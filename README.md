@@ -14,6 +14,7 @@ Here is the complete content for your `README.md` file. Copy and paste this dire
   1. **Snehadip Kumar Ghoshal** (Roll No: cs26mt010) — Backend Architecture, Database & AI Engineering
   2. **[Teammate 2 Name]** (Roll No: [Roll No]) — Frontend UI/UX, Accessibility & Playwright E2E Testing
   3. **[Teammate 3 Name]** (Roll No: [Roll No]) — OpenAPI Spec, Security, Docker/CI & Pytest Suite
+  4. **[Teammate 4 Name]** (Roll No: [Roll No])
 * **One-Paragraph Description:** ScholarPulse is a collaborative multi-page academic knowledge hub where university students and researchers upload, search, rate, comment on, and organize course notes, research paper summaries, and reading lists. To solve information overload during exam preparation and literature reviews, the platform integrates a server-side AI Study Assistant (powered by Google Gemini 2.5 Flash) that automatically generates concise TL;DR summaries, suggests taxonomy tags, and answers user questions strictly grounded in the uploaded document text—with automatic graceful degradation to a local extractive keyword engine if the external LLM service is slow or unavailable.
 * **Target Users:** Undergraduate and postgraduate students seeking peer-reviewed course notes, teaching assistants curating course reading lists, and academic researchers conducting literature reviews.
 
