@@ -11,7 +11,7 @@ Here is the complete content for your `README.md` file. Copy and paste this dire
 ### 1. Overview
 * **Website Name:** ScholarPulse
 * **Team Members:**
-  1. **Snehadip Kumar Ghoshal** (Roll No: cs26mt010) — Backend Architecture, Database & AI Engineering
+  1. **Snehadip  Ghoshal** (Roll No: cs26mt010) — Backend Architecture, Database & AI Engineering
   2. **[Teammate 2 Name]** (Roll No: [Roll No]) — Frontend UI/UX, Accessibility & Playwright E2E Testing
   3. **[Teammate 3 Name]** (Roll No: [Roll No]) — OpenAPI Spec, Security, Docker/CI & Pytest Suite
   4. **[Teammate 4 Name]** (Roll No: [Roll No])
