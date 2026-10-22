@@ -1,7 +1,7 @@
 Here is the complete content for your `README.md` file. Copy and paste this directly into your `README.md` file in VS Code, replace the teammate name placeholders with your actual team members' names and roll numbers, and save it:
 
-```markdown
 # ScholarPulse — AI-Enabled Academic Knowledge Hub
+
 **Course Project 2026 | Theme 4: Knowledge Hub**
 
 ---
@@ -9,44 +9,47 @@ Here is the complete content for your `README.md` file. Copy and paste this dire
 ## Milestone 1 (MS-1): Problem Statement & Design Document
 
 ### 1. Overview
-* **Website Name:** ScholarPulse
-* **Team Members:**
-  1. **Snehadip  Ghoshal** (Roll No: cs26mt010) — Backend Architecture, Database & AI Engineering
-  2. **[Teammate 2 Name]** (Roll No: [Roll No]) — Frontend UI/UX, Accessibility & Playwright E2E Testing
-  3. **[Teammate 3 Name]** (Roll No: [Roll No]) — OpenAPI Spec, Security, Docker/CI & Pytest Suite
-  4. **Ritik Kumar**  Roll no. : cs26mt021 - PPT and Testing
-* **One-Paragraph Description:** ScholarPulse is a collaborative multi-page academic knowledge hub where university students and researchers upload, search, rate, comment on, and organize course notes, research paper summaries, and reading lists. To solve information overload during exam preparation and literature reviews, the platform integrates a server-side AI Study Assistant (powered by Google Gemini 2.5 Flash) that automatically generates concise TL;DR summaries, suggests taxonomy tags, and answers user questions strictly grounded in the uploaded document text—with automatic graceful degradation to a local extractive keyword engine if the external LLM service is slow or unavailable.
-* **Target Users:** Undergraduate and postgraduate students seeking peer-reviewed course notes, teaching assistants curating course reading lists, and academic researchers conducting literature reviews.
+
+- **Website Name:** ScholarPulse
+- **Team Members:**
+
+  | # | Name | Roll No. | Main Area |
+  |---|------|----------|-----------|
+  | 1 | Snehadip Ghoshal | cs26mt010 | Backend Architecture, Database & AI Engineering |
+  | 2 | Harshit Pant | cs26mt006 | Frontend UI/UX, Accessibility & Playwright E2E Testing |
+  | 3 | Gangadevi Venkata Siva Krishna | cs26mt009 | OpenAPI Spec, Security, Docker/CI & Pytest Suite |
+  | 4 | Ritik Kumar | cs26mt021 | PPT and Testing |
+
+- **Description:** ScholarPulse is a collaborative multi-page academic knowledge hub where university students and researchers upload, search, rate, comment on, and organize course notes, research paper summaries, and reading lists. To solve information overload during exam preparation and literature reviews, the platform integrates a server-side AI Study Assistant (powered by Google Gemini 2.5 Flash) that automatically generates concise TL;DR summaries, suggests taxonomy tags, and answers user questions strictly grounded in the uploaded document text, with automatic graceful degradation to a local extractive keyword engine if the external LLM service is slow or unavailable.
+- **Target Users:** Undergraduate and postgraduate students seeking peer-reviewed course notes, teaching assistants curating course reading lists, and academic researchers conducting literature reviews.
 
 ---
 
 ### 2. Dataset Specification
-* **Primary Dataset Source & License:** 
-  * **Cornell University arXiv Metadata Dataset (Kaggle):** `https://www.kaggle.com/datasets/Cornell-University/arxiv`
-  * **License:** CC0 1.0 Universal (Public Domain Dedication) — free for academic and commercial redistribution.
-* **Synthetic Data Augmentation (`backend/app/seed.py`):**
-  * To simulate a live campus portal with active users, our deterministic seed script populates initial academic categories (`CS301`, `CS402`, `CS205`, `SE101`), user accounts with Argon2id salted password hashes, tags, peer reviews (1–5 star ratings + comments), and curated reading collections automatically during `docker compose up`.
-* **Field Mapping to Database Schema:**
-  * `title` -> `resources.title` (indexed `VARCHAR(200)`)
-  * `abstract` / study notes -> `resources.content_text` (`TEXT`)
-  * `categories` -> mapped to normalized `categories` (`code`, `name`) and many-to-many `tags` via `resource_tags`
-  * `authors` / contributors -> mapped to `users` (`id`, `username`, `email`, `bio`)
+
+- **Primary Dataset Source & License:**
+  - **Cornell University arXiv Metadata Dataset (Kaggle):** <https://www.kaggle.com/datasets/Cornell-University/arxiv>
+  - **License:** CC0 1.0 Universal (Public Domain Dedication), free for academic and commercial redistribution.
+- **Synthetic Data Augmentation (`backend/app/seed.py`):** To simulate a live campus portal with active users, our deterministic seed script populates initial academic categories (`CS301`, `CS402`, `CS205`, `SE101`), user accounts with Argon2id salted password hashes, tags, peer reviews (1–5 star ratings and comments), and curated reading collections automatically during `docker compose up`.
+- **Field Mapping to Database Schema:**
+  - `title` → `resources.title` (indexed `VARCHAR(200)`)
+  - `abstract` / study notes → `resources.content_text` (`TEXT`)
+  - `categories` → normalized `categories` (`code`, `name`) and many-to-many `tags` via `resource_tags`
+  - `authors` / contributors → `users` (`id`, `username`, `email`, `bio`)
 
 ---
 
-### 3. Content Structure (Sitemap — 7 Distinct Pages)
+### 3. Content Structure (Sitemap: 7 Distinct Pages)
+
 ```text
 [1. Home / Discovery Feed (/)]
  ├──> [2. Explore & Filter Catalog (/explore)]
  │     └──> [3. Resource Detail, Peer Reviews & Grounded AI Q&A (/resources/:id)]
  ├──> [4. Curated Reading Lists / Collections Hub (/collections)]
- ├──> [5. Publish / Upload Study Notes (/upload)] (Authenticated Users)
+ ├──> [5. Publish / Upload Study Notes (/upload)]            (authenticated users)
  ├──> [6. Authentication Portal + DPDP Act 2023 Consent Notice (/auth)]
- └──> [7. User Profile, Bio Editor & Right-to-Erasure Account Deletion (/profile)] (Authenticated Users)
-
+ └──> [7. User Profile, Bio Editor & Account Deletion (/profile)]   (authenticated users)
 ```
-
----
 
 ### 4. Functionality & Page-by-Page Breakdown
 
