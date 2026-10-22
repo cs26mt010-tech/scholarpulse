@@ -71,6 +71,9 @@ Here is the complete content for your `README.md` file. Copy and paste this dire
 | **6. Auth Portal (`/auth`)** | Sign-In form and Registration form with explicit **DPDP Act 2023 Data Consent checkbox**. | Log in (sets HttpOnly JWT cookie) or register a new account after consenting to data usage policy. |
 | **7. Profile & Privacy (`/profile`)** | Logged-in user's username, email, academic bio, DPDP consent status, and account management controls. | Update academic bio, log out, or click **"Delete Account & All Data"** (cascading erasure per DPDP Act 2023). |
 
+
+
+
 #### 10 User Stories
 
 1. **As a visitor**, I want to browse and search study notes without logging in so that I can evaluate the platform's usefulness before creating an account.
