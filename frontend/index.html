@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScholarPulse — AI-Enabled Academic Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-page: #f4f6f0;
+      --bg-card: #ffffff;
+      --bg-hero: #084c3a;
+      --bg-hero-pill: #286655;
+      --green-btn: #166e48;
+      --green-btn-hover: #0f5637;
+      --green-tint: #eaf4ee;
+      --green-border: #b8dcc8;
+      --green-text: #11623f;
+      --amber-tint: #fcf6e8;
+      --amber-border: #f0dfad;
+      --amber-btn: #e6ba65;
+      --amber-text: #8c5d0b;
+      --blue-tint: #eef5fc;
+      --blue-border: #c5ddf5;
+      --blue-text: #1d5a96;
+      --red-tint: #fdf2f2;
+      --red-border: #f5c2c0;
+      --red-btn: #c81e1e;
+      --red-text: #9b1c1c;
+      --text-main: #111915;
+      --text-muted: #55625b;
+      --border-soft: #e2e7df;
+      --shadow-sm: 0 2px 6px rgba(15, 35, 25, 0.04);
+      --shadow-md: 0 8px 24px rgba(15, 35, 25, 0.08);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar (Exact Figma Match) */
+    header.topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0 2rem;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--green-btn);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    nav.primary-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      color: var(--text-main);
+      background: #f1f5f2;
+    }
+    .nav-btn.active {
+      color: var(--green-text);
+      background: var(--green-tint);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .conn-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: var(--green-tint);
+      color: var(--green-text);
+      border: 1px solid var(--green-border);
+    }
+    .avatar-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--green-tint);
+      color: var(--green-text);
+      border: 1px solid var(--green-border);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease;
+    }
+    .avatar-btn:hover { transform: scale(1.04); }
+
+    /* Main Container */
+    main.page-wrap {
+      max-width: 1120px;
+      margin: 1.5rem auto 3.5rem auto;
+      padding: 0 1.25rem;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Common UI Elements */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .back-btn:hover { background: #f8faf8; }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green-text);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0 0 0.25rem 0;
+      letter-spacing: -0.02em;
+    }
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      margin: 0 0 1.5rem 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.2rem;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-green {
+      background: var(--green-btn);
+      color: #ffffff;
+    }
+    .btn-green:hover { background: var(--green-btn-hover); }
+    .btn-amber {
+      background: var(--amber-btn);
+      color: #1c1912;
+    }
+    .btn-amber:hover { filter: brightness(0.96); }
+    .btn-outline {
+      background: #ffffff;
+      color: var(--text-main);
+      border-color: var(--border-soft);
+    }
+    .btn-outline:hover { background: #f5f7f5; }
+    .btn-danger {
+      background: var(--red-btn);
+      color: #ffffff;
+    }
+    .btn-danger:hover { filter: brightness(0.93); }
+    .btn-danger-outline {
+      background: #ffffff;
+      color: var(--red-text);
+      border-color: var(--red-border);
+    }
+
+    /* Pills & Badges */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .pill-green { background: var(--green-tint); color: var(--green-text); }
+    .pill-amber { background: var(--amber-tint); color: var(--amber-text); }
+    .pill-blue  { background: var(--blue-tint); color: var(--blue-text); }
+    .pill-gray  { background: #eef1ee; color: #434e47; }
+    .pill-red   { background: var(--red-tint); color: var(--red-text); }
+
+    /* Hero Banner (Home / Collection Detail) */
+    .hero-box {
+      background: var(--bg-hero);
+      color: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 2.25rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--bg-hero-pill);
+      color: #d8eee5;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      margin-bottom: 0.85rem;
+    }
+    .hero-box h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .hero-box p {
+      margin: 0 0 1.4rem 0;
+      color: #cbe0d8;
+      font-size: 0.98rem;
+    }
+    .hero-search-row {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .hero-search-input {
+      flex: 1;
+      min-width: 240px;
+      padding: 0.75rem 1rem;
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 0.92rem;
+      background: #ffffff;
+      color: var(--text-main);
+    }
+
+    /* Section Headers */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 1.5rem 0 0.9rem 0;
+    }
+    .sec-head h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .link-green {
+      color: var(--green-text);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .link-green:hover { text-decoration: underline; }
+
+    /* Grids & Cards */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1.15rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 1.15rem;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .card.clickable { cursor: pointer; }
+    .card.clickable:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .card-green-tint { background: #eef7f1; border-color: #cde6d6; }
+    .card-amber-tint { background: #fdf8eb; border-color: #f0dfad; }
+    .card-blue-tint  { background: #eff6fc; border-color: #cbe0f5; }
+
+    /* Collection Card Top Row */
+    .coll-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.1rem;
+    }
+    .spark-icon {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .readings-box {
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      padding: 0.25rem 0.6rem;
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      line-height: 1.15;
+    }
+    .readings-box strong {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    /* Resource Card Layout */
+    .res-row-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      margin-bottom: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .res-row-card:hover {
+      border-color: var(--green-border);
+      box-shadow: var(--shadow-sm);
+    }
+    .type-square {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.74rem;
+      flex-shrink: 0;
+    }
+    .type-pdf { background: #fdeaea; color: #b42318; }
+    .type-sl  { background: #fef4e6; color: #b54708; }
+    .type-doc { background: #e8f5ee; color: #067647; }
+
+    /* Two-column layouts for Explore, Resource Detail, Collection Detail, Moderation */
+    .layout-sidebar-main {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .layout-split-detail {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .layout-sidebar-main, .layout-split-detail, .auth-split {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* Auth Split Layout (Flow 1 / Flow 2 Sign-in) */
+    .auth-split {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 2rem;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      background: #ffffff;
+      color: var(--text-main);
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: 2px solid var(--green-btn);
+      border-color: transparent;
+    }
+
+    /* AI Assistant Answer Callout Boxes */
+    .ai-box-green {
+      background: var(--green-tint);
+      border: 1px solid var(--green-border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .ai-box-amber {
+      background: var(--amber-tint);
+      border: 1px solid var(--amber-border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .ai-box-blue {
+      background: var(--blue-tint);
+      border: 1px solid var(--blue-border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .cite-chip {
+      display: inline-block;
+      background: #ffffff;
+      border: 1px solid var(--green-border);
+      color: var(--green-text);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin: 0.35rem 0.35rem 0 0;
+    }
+
+    /* Filter Chips in Sidebar */
+    .filter-group-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 1rem 0 0.45rem 0;
+    }
+    .filter-opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0.45rem 0.7rem;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      margin-bottom: 0.25rem;
+    }
+    .filter-opt:hover { background: #f2f5f2; }
+    .filter-opt.active {
+      background: var(--green-tint);
+      color: var(--green-text);
+      border-color: var(--green-border);
+    }
+
+    /* Upload Dropzone */
+    .dropzone {
+      border: 2px dashed var(--green-border);
+      background: #f8fbf9;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Toast Notification */
+    #toastBanner {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #112a20;
+      color: #ffffff;
+      padding: 0.75rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar" role="banner">
+    <a class="brand-wrap" onclick="navigateTo('home')" aria-label="ScholarPulse Home">
+      <span class="brand-icon">*</span>
+      <span>ScholarPulse</span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Main Navigation">
+      <button type="button" class="nav-btn active" id="nav-home" onclick="navigateTo('home')">Home</button>
+      <button type="button" class="nav-btn" id="nav-explore" onclick="navigateTo('explore')">Explore</button>
+      <button type="button" class="nav-btn" id="nav-collections" onclick="navigateTo('collections')">Collections</button>
+      <button type="button" class="nav-btn" id="nav-upload" onclick="navigateTo('upload')">Upload</button>
+      <button type="button" class="nav-btn" id="nav-moderation" onclick="navigateTo('moderation')">Moderation</button>
+      <button type="button" class="nav-btn" id="nav-auth" onclick="navigateTo('auth')">Sign in</button>
+    </nav>
+
+    <div class="topbar-right">
+      <span class="conn-pill" id="apiStatusBadge">API Ready (630 resources)</span>
+      <button type="button" class="avatar-btn" id="profileAvatarBtn" onclick="navigateTo('profile')" title="Open My Profile (Sam Green)">SG</button>
+    </div>
+  </header>
+
+  <main class="page-wrap">
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 01: HOME DASHBOARD                                             -->
+    <!-- ===================================================================== -->
+    <section id="screen-home" class="screen active" aria-labelledby="home-hero-title">
+      <div class="hero-box">
+        <span class="hero-badge">Verified Learning Space</span>
+        <h1 id="home-hero-title">Your knowledge. Connected. Verified.</h1>
+        <p>Find trusted course notes, build reading lists, and get AI answers grounded in your documents.</p>
+        <div class="hero-search-row">
+          <input type="search" id="homeSearchInput" class="hero-search-input" placeholder="Ask a question or search academic resources..." aria-label="Ask a question or search academic resources" />
+          <button type="button" class="btn btn-amber" onclick="handleHomeSearch()">Explore resources</button>
+          <button type="button" class="btn btn-outline" onclick="navigateTo('collections')">My collections</button>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h2>Featured collections</h2>
+        <button type="button" class="link-green" onclick="navigateTo('collections')">Browse all &rarr;</button>
+      </div>
+      <div class="grid-3" id="homeCollectionsGrid"></div>
+
+      <div class="sec-head" style="margin-top: 2rem;">
+        <h2>Recently added resources</h2>
+        <button type="button" class="link-green" onclick="navigateTo('explore')">View all 630 resources &rarr;</button>
+      </div>
+      <div class="grid-2" id="homeRecentResourcesGrid"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 02: EXPLORE RESOURCES                                          -->
+    <!-- ===================================================================== -->
+    <section id="screen-explore" class="screen" aria-labelledby="explore-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <span class="eyebrow">Resource Library</span>
+      <h1 class="page-title" id="explore-title">Explore resources</h1>
+      <p class="page-subtitle">Search trusted notes across courses, topics, and formats.</p>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <input type="search" id="exploreSearchInput" class="form-input" style="flex:1; min-width:260px;" placeholder="graph algorithms, dynamic programming, B+Tree, MVCC..." oninput="renderExploreList()" />
+        <select id="exploreSortSelect" class="form-select" style="width:220px;" onchange="renderExploreList()" aria-label="Sort resources">
+          <option value="rating">Sort by: Most relevant (★ Rating)</option>
+          <option value="newest">Sort by: Newest uploaded</option>
+          <option value="comments">Sort by: Most discussed</option>
+        </select>
+      </div>
+
+      <div class="layout-sidebar-main">
+        <!-- Filters Sidebar -->
+        <aside class="card">
+          <h3 style="margin:0 0 0.5rem 0; font-size:1rem;">Filters</h3>
+
+          <div class="filter-group-title">Course</div>
+          <button type="button" class="filter-opt active" data-course="" onclick="setExploreCourseFilter('')">All Courses</button>
+          <button type="button" class="filter-opt" data-course="CS301" onclick="setExploreCourseFilter('CS301')">CS301 &middot; Algorithms</button>
+          <button type="button" class="filter-opt" data-course="CS205" onclick="setExploreCourseFilter('CS205')">CS205 &middot; OS</button>
+          <button type="button" class="filter-opt" data-course="CS402" onclick="setExploreCourseFilter('CS402')">CS402 &middot; Databases</button>
+          <button type="button" class="filter-opt" data-course="SE101" onclick="setExploreCourseFilter('SE101')">SE101 &middot; Software Eng</button>
+
+          <div class="filter-group-title">Resource Type</div>
+          <button type="button" class="filter-opt active" data-rtype="" onclick="setExploreTypeFilter('')">All Types</button>
+          <button type="button" class="filter-opt" data-rtype="lecture_notes" onclick="setExploreTypeFilter('lecture_notes')">Lecture notes</button>
+          <button type="button" class="filter-opt" data-rtype="slides" onclick="setExploreTypeFilter('slides')">Slides</button>
+          <button type="button" class="filter-opt" data-rtype="assignment" onclick="setExploreTypeFilter('assignment')">Assignments</button>
+          <button type="button" class="filter-opt" data-rtype="paper_summary" onclick="setExploreTypeFilter('paper_summary')">arXiv Paper Summaries</button>
+
+          <div class="filter-group-title">Quality</div>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.86rem; font-weight:600; color:var(--green-text); cursor:pointer; padding:0.35rem 0;">
+            <input type="checkbox" id="exploreVerifiedOnly" checked onchange="renderExploreList()" />
+            Verified only
+          </label>
+        </aside>
+
+        <!-- Main Results Column -->
+        <div>
+          <div style="margin-bottom:0.9rem;">
+            <strong style="font-size:1.1rem;" id="exploreCountLabel">128 resources</strong>
+            <span style="display:block; font-size:0.84rem; color:var(--text-muted);">Curated for your courses</span>
+          </div>
+
+          <!-- Course-Wide AI Box when a course filter is selected -->
+          <div id="courseScopeAiBanner" class="card card-green-tint" style="margin-bottom:1rem; display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+              <div>
+                <span class="eyebrow" style="margin:0;">Course-Wide Grounded AI</span>
+                <strong id="courseScopeAiTitle">Ask AI across all resources in CS301</strong>
+              </div>
+              <div style="display:flex; gap:0.5rem; flex:1; min-width:260px;">
+                <input type="text" id="courseAiQuestionInput" class="form-input" placeholder="Compare BFS, Dijkstra, and Bellman-Ford..." />
+                <button type="button" class="btn btn-green" onclick="askCourseScopeAI()">Ask Course AI</button>
+              </div>
+            </div>
+            <div id="courseAiAnswerBox" style="display:none; margin-top:0.75rem; font-size:0.88rem;"></div>
+          </div>
+
+          <div id="exploreResultsContainer"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 03 / 10 / 11: RESOURCE DETAIL + ASK AI + NOT FOUND + FALLBACK  -->
+    <!-- ===================================================================== -->
+    <section id="screen-resource-detail" class="screen" aria-labelledby="detail-res-title">
+      <button type="button" class="back-btn" onclick="navigateTo('explore')">&larr; Back</button>
+      <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.3rem;" id="detailBreadcrumb">
+        Explore / CS301 Algorithms / Graph algorithms &mdash; Week 04
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem;">
+        <div>
+          <h1 class="page-title" id="detail-res-title">Graph algorithms &mdash; Week 04</h1>
+          <p style="margin:0.2rem 0 0.65rem 0; color:var(--text-muted); font-size:0.9rem;" id="detailMetaLine">
+            CS301 &middot; Lecture notes &middot; 18 pages &middot; Uploaded by A. Sharma
+          </p>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <span class="pill pill-green" id="detailVerifiedBadge">Verified source</span>
+            <span class="pill pill-gray" id="detailRatingBadge">&#9733; 4.8 rating</span>
+            <span class="pill pill-blue" id="detailChunksBadge">4 indexed chunks</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.6rem;">
+          <button type="button" class="btn btn-outline" onclick="rateCurrentResource(5)">&#9733; Rate 5/5</button>
+          <button type="button" class="btn btn-danger-outline" onclick="navigateTo('report-form')">&#9873; Report content</button>
+        </div>
+      </div>
+
+      <div class="layout-split-detail">
+        <!-- Left Column: Document Preview + Comments -->
+        <div>
+          <div class="card" style="margin-bottom:1.25rem;">
+            <span class="eyebrow" style="color:var(--text-muted);">Document Preview</span>
+            <h2 style="margin:0.25rem 0 1rem 0; font-size:1.35rem;" id="detailPreviewHeading">4. Graph Traversal &amp; Shortest Paths</h2>
+
+            <div class="card" style="background:#fbfcfa; margin-bottom:0.9rem;">
+              <strong style="display:block; margin-bottom:0.3rem;" id="detailSubhead1">Breadth-first search (BFS)</strong>
+              <p style="margin:0; font-size:0.92rem; color:var(--text-muted);" id="detailParagraph1">
+                BFS explores vertices in increasing distance from the source. It uses a queue and visits each vertex at most once.
+              </p>
+            </div>
+
+            <div style="margin-bottom:0.9rem;">
+              <span class="pill pill-green" style="font-size:0.82rem; padding:0.35rem 0.75rem;" id="detailComplexityPill">
+                Time complexity: O(V + E)
+              </span>
+            </div>
+
+            <div class="card" style="background:#fbfcfa;">
+              <strong style="display:block; margin-bottom:0.3rem;">Key idea &amp; Full Excerpt</strong>
+              <p style="margin:0; font-size:0.9rem; color:var(--text-muted); white-space:pre-line;" id="detailParagraph2">
+                When all edges have equal weight, BFS returns shortest paths by number of edges.
+              </p>
+            </div>
+
+            <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);" id="detailPageFooter">
+              Page 4 of 18 &middot; Grounded in ScholarPulse library
+            </div>
+          </div>
+
+          <!-- Community Comments Card -->
+          <div class="card">
+            <h3 style="margin:0 0 0.75rem 0; font-size:1.05rem;">Student Comments &amp; Discussion</h3>
+            <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+              <input type="text" id="newCommentInput" class="form-input" placeholder="Share a revision note or flag an equation..." />
+              <button type="button" class="btn btn-green" onclick="submitResourceComment()">Post</button>
+            </div>
+            <div id="detailCommentsList"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: ScholarPulse AI Study Assistant (with 3 States in Figma) -->
+        <aside class="card">
+          <span class="eyebrow">&#10022; ScholarPulse AI</span>
+          <h2 style="margin:0.15rem 0 0.25rem 0; font-size:1.3rem;">Ask this document</h2>
+          <p style="margin:0 0 0.9rem 0; font-size:0.86rem; color:var(--text-muted);">
+            Answers grounded in the source with numbered citations.
+          </p>
+
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <input type="text" id="resourceAiInput" class="form-input" value="Why does BFS find shortest paths?" aria-label="Ask AI about this resource" />
+            <button type="button" class="btn btn-green" onclick="runResourceAiQuery('answered')">Ask</button>
+          </div>
+
+          <!-- STATE A: Grounded Answer with Citations -->
+          <div id="aiStateAnswered" class="ai-box-green" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--green-text); margin-bottom:0.35rem;" id="aiAnswerHeader">
+              Answer &middot; 2 Sources
+            </div>
+            <p style="margin:0 0 0.6rem 0; font-size:0.92rem; font-weight:500;" id="aiAnswerText">
+              BFS visits vertices in layers, so the first time a vertex is reached is via the fewest edges from the source.
+            </p>
+            <div id="aiAnswerChips">
+              <span class="cite-chip">[1] Lecture notes, p. 4</span>
+              <span class="cite-chip">[2] Course handout, p. 2</span>
+            </div>
+          </div>
+
+          <!-- STATE B: Screen 10 — Not-Found State ("Not found in this document") -->
+          <div id="aiStateNotFound" class="ai-box-amber" style="display:none;" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--amber-text); margin-bottom:0.3rem;">
+              Not Found
+            </div>
+            <strong style="display:block; font-size:0.98rem; margin-bottom:0.25rem;">Not found in this document</strong>
+            <p style="margin:0; font-size:0.86rem; color:var(--text-muted);">
+              Try a different question or search related resources. The assistant refuses to guess when the answer is absent from the document.
+            </p>
+          </div>
+
+          <!-- STATE C: Screen 11 — Fallback State ("AI unavailable, showing keyword matches") -->
+          <div id="aiStateFallback" class="ai-box-blue" style="display:none;" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--blue-text); margin-bottom:0.3rem;">
+              Keyword Matches
+            </div>
+            <strong style="display:block; font-size:0.98rem; margin-bottom:0.25rem;">AI unavailable, showing keyword matches</strong>
+            <p style="margin:0; font-size:0.86rem; color:var(--text-muted);" id="aiFallbackSubtext">
+              These are document matches from MySQL FULLTEXT search, not an AI-generated answer.
+            </p>
+          </div>
+
+          <div style="margin-top:1.1rem;">
+            <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:0.45rem;">Sources</div>
+            <div id="aiSourcesList">
+              <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[1] Lecture notes &middot; page 4</div>
+              <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[2] Course handout &middot; page 2</div>
+            </div>
+          </div>
+
+          <!-- Figma State Switcher Buttons (Exact Match to Video 1 & Video 2) -->
+          <div style="display:flex; gap:0.5rem; margin-top:1rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline" style="flex:1; padding:0.5rem;" onclick="switchAiVisualState('not_found')">Not-found state</button>
+            <button type="button" class="btn btn-outline" style="flex:1; padding:0.5rem;" onclick="switchAiVisualState('fallback')">Fallback state</button>
+            <button type="button" class="btn btn-outline" style="padding:0.5rem 0.75rem;" onclick="switchAiVisualState('answered')">Cited answer</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 04: COLLECTIONS HUB                                            -->
+    <!-- ===================================================================== -->
+    <section id="screen-collections" class="screen" aria-labelledby="collections-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+        <div>
+          <span class="eyebrow">Your Library</span>
+          <h1 class="page-title" id="collections-title">Collections</h1>
+          <p class="page-subtitle" style="margin:0;">Purposeful reading lists for revision, projects, and deep work.</p>
+        </div>
+        <button type="button" class="btn btn-green" onclick="toggleCreateCollectionModal()">Create collection</button>
+      </div>
+
+      <!-- Inline Create Collection Drawer -->
+      <div id="createCollectionBox" class="card card-green-tint" style="display:none; margin-bottom:1.25rem;">
+        <h3 style="margin:0 0 0.75rem 0; font-size:1.05rem;">Create a new reading list collection</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 160px auto; gap:0.65rem; align-items:end;">
+          <div>
+            <label class="form-label" for="newCollTitle">Collection title</label>
+            <input type="text" id="newCollTitle" class="form-input" placeholder="e.g. Midterm Graph & DP Revision" />
+          </div>
+          <div>
+            <label class="form-label" for="newCollDesc">Short description</label>
+            <input type="text" id="newCollDesc" class="form-input" placeholder="Core concepts, proofs and worked examples." />
+          </div>
+          <div>
+            <label class="form-label" for="newCollCourse">Course</label>
+            <select id="newCollCourse" class="form-select">
+              <option value="CS301">CS301</option>
+              <option value="CS402">CS402</option>
+              <option value="CS205">CS205</option>
+              <option value="SE101">SE101</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-green" onclick="handleCreateCollection()">Save list</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.5rem;">
+        <input type="search" id="collectionSearchInput" class="form-input" placeholder="Search your collections..." oninput="renderCollectionsHub()" aria-label="Search your collections" />
+      </div>
+
+      <div class="grid-3" id="collectionsHubGrid"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 05: COLLECTION DETAIL + ASK ACROSS THIS LIST                   -->
+    <!-- ===================================================================== -->
+    <section id="screen-collection-detail" class="screen" aria-labelledby="coll-detail-title">
+      <button type="button" class="back-btn" onclick="navigateTo('collections')">&larr; Back</button>
+
+      <div class="hero-box">
+        <span class="hero-badge" id="collDetailBadge">Curated Collection</span>
+        <h1 id="coll-detail-title">Algorithms, clearly explained</h1>
+        <p style="margin:0; color:#d0e6dd;" id="collDetailMeta">12 readings &middot; CS301 &middot; Updated this week</p>
+      </div>
+
+      <div class="layout-split-detail">
+        <div>
+          <h2 style="margin:0 0 0.9rem 0; font-size:1.25rem;">Reading list</h2>
+          <div id="collDetailItemsList"></div>
+        </div>
+
+        <aside class="card">
+          <span class="eyebrow">&#10022; Collection AI</span>
+          <h2 style="margin:0.15rem 0 0.25rem 0; font-size:1.25rem;">Ask across this list</h2>
+          <p style="margin:0 0 0.9rem 0; font-size:0.86rem; color:var(--text-muted);">
+            Compare concepts across saved readings (capped at 20 resources, max 3 chunks per source).
+          </p>
+
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <input type="text" id="collAiInput" class="form-input" value="Compare BFS and Dijkstra..." aria-label="Ask AI across this collection" />
+            <button type="button" class="btn btn-green" onclick="runCollectionAiQuery()">Ask</button>
+          </div>
+
+          <div class="ai-box-green" id="collAiResultBox" aria-live="polite">
+            <p style="margin:0 0 0.65rem 0; font-size:0.92rem; font-weight:500;" id="collAiAnswerText">
+              BFS is optimal for unweighted graphs; Dijkstra handles non-negative weighted edges using priority-queue relaxation.
+            </p>
+            <div id="collAiChips">
+              <span class="cite-chip">[1] Reading 01, p. 4</span>
+              <span class="cite-chip">[2] Reading 03, p. 6</span>
+            </div>
+          </div>
+
+          <div style="margin-top:1rem;">
+            <button type="button" class="btn btn-outline" onclick="openResourceDetail(1)">Open a resource</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 06: UPLOAD STUDY NOTES                                         -->
+    <!-- ===================================================================== -->
+    <section id="screen-upload" class="screen" aria-labelledby="upload-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <span class="eyebrow">Contribute</span>
+      <h1 class="page-title" id="upload-title">Upload study notes</h1>
+      <p class="page-subtitle">Share useful material with your course community.</p>
+
+      <div class="layout-split-detail">
+        <div class="card">
+          <span class="eyebrow" style="color:var(--text-muted); margin-bottom:0.6rem;">Select a Document</span>
+          <div class="dropzone">
+            <div style="font-size:1.5rem; color:var(--green-text); margin-bottom:0.35rem;">&uarr;</div>
+            <strong style="display:block; font-size:1.02rem; margin-bottom:0.2rem;">Drag your file here, or browse</strong>
+            <span style="display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:0.9rem;">PDF or .TXT &middot; Maximum 5 MB (server validated)</span>
+            <input type="file" id="uploadFileInput" accept=".pdf,.txt" style="display:none;" onchange="handleFilePicked()" />
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('uploadFileInput').click()">Choose file</button>
+          </div>
+
+          <span class="eyebrow" style="color:var(--text-muted); margin-bottom:0.6rem;">Resource Details</span>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
+            <div>
+              <label class="form-label" for="uploadTitleInput">Resource title</label>
+              <input type="text" id="uploadTitleInput" class="form-input" value="Graph algorithms — Week 04" />
+            </div>
+            <div>
+              <label class="form-label" for="uploadCourseInput">Course code</label>
+              <select id="uploadCourseInput" class="form-select">
+                <option value="CS301">CS301 — Algorithms</option>
+                <option value="CS402">CS402 — Databases</option>
+                <option value="CS205">CS205 — Operating Systems</option>
+                <option value="SE101">SE101 — Software Engineering</option>
+              </select>
+            </div>
+          </div>
+
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted); margin-bottom:1.1rem; cursor:pointer;">
+            <input type="checkbox" id="uploadRightsConfirm" checked />
+            I confirm that I have the right to share this study material and it contains no private student data.
+          </label>
+
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <span class="pill pill-green" id="uploadReadyBadge" style="padding:0.45rem 0.85rem;">PDF &middot; ready to upload</span>
+            <button type="button" class="btn btn-green" onclick="submitUploadForm()">Upload resource</button>
+          </div>
+        </div>
+
+        <aside class="card" style="background:#fbfcfa;">
+          <h3 style="margin:0 0 0.75rem 0; font-size:1rem;">Submission Checklist</h3>
+          <div class="card" style="padding:0.65rem 0.9rem; margin-bottom:0.55rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Use a descriptive title</div>
+          <div class="card" style="padding:0.65rem 0.9rem; margin-bottom:0.55rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Choose the correct course</div>
+          <div class="card" style="padding:0.65rem 0.9rem; margin-bottom:0.55rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Share only permitted material</div>
+          <div class="card" style="padding:0.65rem 0.9rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Remove private student data</div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 14: UPLOAD STATUS (CHECK YOUR FILE — SUCCESS & ERROR STATES)   -->
+    <!-- ===================================================================== -->
+    <section id="screen-upload-status" class="screen" aria-labelledby="upload-status-title">
+      <button type="button" class="back-btn" onclick="navigateTo('upload')">&larr; Back</button>
+      <span class="eyebrow">Upload Status</span>
+      <h1 class="page-title" id="upload-status-title">Check your file</h1>
+      <p class="page-subtitle">Review validation feedback before returning to your upload.</p>
+
+      <div class="grid-2">
+        <!-- Left Card: Success -->
+        <div class="card">
+          <span class="pill pill-green" style="margin-bottom:0.65rem;">Success</span>
+          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Resource uploaded</h2>
+          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
+            Your notes are now chunked (~800 chars, 100 overlap), embedded, and available to the course community.
+          </p>
+
+          <div class="res-row-card" style="cursor:default; background:#f8fbf9;">
+            <div class="type-square type-desc type-doc" style="background:#e3f5eb; color:#067647;">PDF</div>
+            <div>
+              <strong style="display:block;" id="uploadedFileNameDisplay">graph-algorithms-week04.pdf</strong>
+              <span style="font-size:0.82rem; color:var(--text-muted);" id="uploadedFileMetaDisplay">2.4 MB &middot; CS301 &middot; Validated &amp; Indexed</span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:0.65rem; margin-top:1rem;">
+            <button type="button" class="btn btn-green" onclick="openResourceDetail(state.lastUploadedResourceId || 1)">View resource</button>
+            <button type="button" class="btn btn-outline" onclick="navigateTo('upload')">Back to upload</button>
+          </div>
+        </div>
+
+        <!-- Right Card: Needs Attention (Validation Error Preview) -->
+        <div class="card">
+          <span class="pill pill-red" style="margin-bottom:0.65rem;">Needs Attention</span>
+          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">We couldn't upload this file yet</h2>
+          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
+            Fix the issue below and try again.
+          </p>
+
+          <div class="card" style="background:var(--red-tint); border-color:var(--red-border); margin-bottom:1.15rem;">
+            <strong style="display:block; color:var(--red-text); font-size:0.92rem;">File exceeds size limit or contains no extractable text</strong>
+            <span style="font-size:0.84rem; color:var(--red-text);">Choose a smaller PDF/.txt file with selectable text to continue.</span>
+          </div>
+
+          <button type="button" class="btn btn-green" onclick="navigateTo('upload')">Choose another file</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 07: AUTHENTICATION (WELCOME BACK / SIGN IN)                    -->
+    <!-- ===================================================================== -->
+    <section id="screen-auth" class="screen" aria-labelledby="auth-welcome-title">
+      <div class="auth-split">
+        <div style="display:flex; flex-direction:column; justify-content:center;">
+          <span class="eyebrow">Your Academic Workspace</span>
+          <h1 style="font-size:2.4rem; font-weight:800; line-height:1.15; margin:0.25rem 0 0.85rem 0;">
+            Make every study session count.
+          </h1>
+          <p style="color:var(--text-muted); font-size:1rem; margin:0 0 1.5rem 0; max-width:440px;">
+            Find trusted notes, build focused collections, and ask better questions with cited AI answers.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:0.6rem; align-items:flex-start;">
+            <span class="pill pill-green" style="padding:0.45rem 0.85rem; font-size:0.84rem;">&#10003; Verified course resources</span>
+            <span class="pill pill-green" style="padding:0.45rem 0.85rem; font-size:0.84rem;">&#10022; All answers with citations</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding:2rem;">
+          <h2 id="auth-welcome-title" style="margin:0 0 0.25rem 0; font-size:1.5rem;">Welcome back</h2>
+          <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Sign in to continue to ScholarPulse.</p>
+
+          <div class="form-group">
+            <label class="form-label" for="loginEmailInput">University email</label>
+            <input type="email" id="loginEmailInput" class="form-input" value="sam.green@university.edu" placeholder="name@university.edu" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPasswordInput">Password</label>
+            <input type="password" id="loginPasswordInput" class="form-input" value="ScholarPulse!2026" placeholder="Enter your password" />
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.84rem; margin-bottom:1.15rem;">
+            <label style="display:flex; align-items:center; gap:0.4rem; color:var(--text-muted); cursor:pointer;">
+              <input type="checkbox" checked /> Remember me on this device
+            </label>
+            <button type="button" class="link-green" onclick="navigateTo('auth-status')">Forgot password?</button>
+          </div>
+
+          <button type="button" class="btn btn-green" style="width:100%; margin-bottom:0.65rem;" onclick="handleLoginSubmit()">Sign in</button>
+          <button type="button" class="btn btn-outline" style="width:100%; margin-bottom:1rem;" onclick="navigateTo('auth-status')">Continue with Google</button>
+
+          <div style="font-size:0.82rem; color:var(--text-muted); background:#f8fbf9; padding:0.65rem; border-radius:8px; margin-bottom:0.85rem;">
+            <strong>DPDP Act 2023 Consent Notice:</strong> We collect only your university email, username, and uploaded study notes to provide course library and session authentication services. You can delete your account and all associated data anytime from your Profile.
+          </div>
+
+          <div style="text-align:center; font-size:0.86rem;">
+            New to ScholarPulse? <button type="button" class="link-green" onclick="navigateTo('auth-status')">Create account &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 15: ACCOUNT STATUS (YOU'RE ALMOST THERE — ERROR & CREATED)     -->
+    <!-- ===================================================================== -->
+    <section id="screen-auth-status" class="screen" aria-labelledby="auth-status-title">
+      <button type="button" class="back-btn" onclick="navigateTo('auth')">&larr; Back</button>
+      <span class="eyebrow">Account Status</span>
+      <h1 class="page-title" id="auth-status-title">You're almost there</h1>
+      <p class="page-subtitle">Prototype states for form validation and account creation.</p>
+
+      <div class="grid-2">
+        <!-- Sign-in Error Card -->
+        <div class="card">
+          <span class="pill pill-red" style="margin-bottom:0.65rem;">Sign-in Error</span>
+          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Check your details</h2>
+          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
+            We couldn't sign you in with that email and password. Try again.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="retryEmailInput">University email</label>
+            <input type="email" id="retryEmailInput" class="form-input" style="border-color:var(--red-border); background:var(--red-tint);" value="name@university.edu" />
+            <span style="display:block; font-size:0.78rem; color:var(--red-text); margin-top:0.25rem;">Enter a valid university email.</span>
+          </div>
+
+          <button type="button" class="btn btn-green" onclick="navigateTo('auth')">Try sign in again</button>
+        </div>
+
+        <!-- Account Created Card -->
+        <div class="card">
+          <span class="pill pill-green" style="margin-bottom:0.65rem;">Account Created</span>
+          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Welcome to ScholarPulse</h2>
+          <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">
+            Your workspace is ready. Start by exploring trusted course resources or saving a reading list.
+          </p>
+
+          <div style="display:flex; gap:0.65rem;">
+            <button type="button" class="btn btn-green" onclick="navigateTo('explore')">Explore resources</button>
+            <button type="button" class="btn btn-outline" onclick="navigateTo('profile')">Open my profile</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 08: MY PROFILE (SAM GREEN)                                     -->
+    <!-- ===================================================================== -->
+    <section id="screen-profile" class="screen" aria-labelledby="profile-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <span class="eyebrow">Your Workspace</span>
+      <h1 class="page-title" id="profile-title">My profile</h1>
+      <p class="page-subtitle">Your contributions and saved learning paths in one place.</p>
+
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.75rem;">
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div style="width:60px; height:60px; border-radius:50%; background:var(--green-tint); color:var(--green-text); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.25rem;" id="profileCircleInitials">
+            SG
+          </div>
+          <div>
+            <h2 style="margin:0; font-size:1.3rem;" id="profileDisplayName">Sam Green</h2>
+            <p style="margin:0.15rem 0 0.4rem 0; font-size:0.88rem; color:var(--text-muted);" id="profileEmailText">sam.green@university.edu</p>
+            <span class="pill pill-green" id="profileRoleBadge">Student contributor</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline" onclick="toggleEditProfileBox()">Edit profile</button>
+          <select id="roleSwitchSelect" class="form-select" style="width:auto;" onchange="switchDemoRole(this.value)" aria-label="Switch active role">
+            <option value="student">Role: Student (Sam Green)</option>
+            <option value="ta">Role: TA (Snehadip Ghoshal)</option>
+            <option value="moderator">Role: Moderator (Harshit Pant)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inline Edit Profile Drawer -->
+      <div id="editProfileDrawer" class="card card-green-tint" style="display:none; margin-bottom:1.5rem;">
+        <h3 style="margin:0 0 0.65rem 0; font-size:1rem;">Update Profile &amp; DPDP Act Account Controls</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end;">
+          <div>
+            <label class="form-label" for="editUsernameInput">Display name / username</label>
+            <input type="text" id="editUsernameInput" class="form-input" value="Sam Green" />
+          </div>
+          <div>
+            <label class="form-label" for="editBioInput">Academic bio</label>
+            <input type="text" id="editBioInput" class="form-input" value="Student contributor focusing on Graph Algorithms and Operating Systems." />
+          </div>
+          <button type="button" class="btn btn-green" onclick="saveProfileEdits()">Save changes</button>
+        </div>
+      </div>
+
+      <h2 style="font-size:1.15rem; margin:0 0 0.85rem 0;">My uploads</h2>
+      <div class="grid-2" id="profileUploadsGrid" style="margin-bottom:1.75rem;"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:0.85rem;">
+        <h2 style="font-size:1.15rem; margin:0;">Saved collections</h2>
+        <button type="button" class="btn btn-outline" onclick="navigateTo('moderation')">Open moderation queue</button>
+      </div>
+      <div class="grid-2" id="profileCollectionsGrid"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 12: REPORT CONTENT FORM                                        -->
+    <!-- ===================================================================== -->
+    <section id="screen-report-form" class="screen" aria-labelledby="report-modal-title">
+      <button type="button" class="back-btn" onclick="navigateTo('resource-detail')">&larr; Back</button>
+
+      <div class="card" style="max-width:640px; margin:0 auto; padding:2rem;">
+        <span class="eyebrow">Report Content</span>
+        <h1 class="page-title" id="report-modal-title" style="font-size:1.65rem;">Help keep ScholarPulse trustworthy</h1>
+        <p class="page-subtitle">Tell our moderation team what needs a closer look.</p>
+
+        <div class="card" style="background:#f8fbf9; margin-bottom:1.15rem;">
+          <span class="eyebrow" style="color:var(--text-muted);">Reported Resource</span>
+          <strong style="display:block; font-size:1.02rem;" id="reportTargetTitle">Graph algorithms &mdash; Week 04</strong>
+          <span style="font-size:0.84rem; color:var(--text-muted);">CS301 &middot; Lecture notes &middot; A. Sharma</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reportReasonSelect">Reason for report</label>
+          <select id="reportReasonSelect" class="form-select" style="margin-bottom:0.65rem;">
+            <option value="incorrect_or_misleading">Incorrect or misleading information</option>
+            <option value="copyright_concern">Copyright or privacy concern</option>
+            <option value="low_quality_or_spam">Low-quality content or spam</option>
+          </select>
+
+          <div class="card" style="padding:0.75rem 1rem;">
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; font-weight:600; margin-bottom:0.45rem; cursor:pointer;">
+              <input type="radio" name="reportReasonRadio" value="incorrect_or_misleading" checked onchange="document.getElementById('reportReasonSelect').value=this.value" />
+              Incorrect or misleading information
+            </label>
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; color:var(--text-muted); cursor:pointer;">
+              <input type="radio" name="reportReasonRadio" value="copyright_concern" onchange="document.getElementById('reportReasonSelect').value=this.value" />
+              Copyright or privacy concern
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reportDetailsInput">Additional details (optional)</label>
+          <textarea id="reportDetailsInput" class="form-textarea" rows="3" placeholder="Describe the issue for the reviewer...">The complexity stated in section 4 may be incorrect.</textarea>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem;">
+          <button type="button" class="btn btn-outline" onclick="navigateTo('resource-detail')">Cancel</button>
+          <button type="button" class="btn btn-green" onclick="submitContentReport()">Submit report</button>
+        </div>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.85rem;">
+          Reports are reviewed by the ScholarPulse moderation team.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 09: MODERATION QUEUE                                           -->
+    <!-- ===================================================================== -->
+    <section id="screen-moderation" class="screen" aria-labelledby="moderation-title">
+      <button type="button" class="back-btn" onclick="navigateTo('profile')">&larr; Back</button>
+      <span class="eyebrow">Trust &amp; Safety</span>
+      <h1 class="page-title" id="moderation-title">Moderation queue</h1>
+      <p class="page-subtitle">Review reported resources and take clear, auditable actions.</p>
+
+      <div style="display:flex; gap:0.65rem; flex-wrap:wrap; margin-bottom:1.25rem;">
+        <span class="pill pill-amber" style="padding:0.4rem 0.85rem;" id="modOpenCountBadge">4 OPEN REPORTS</span>
+        <span class="pill pill-gray" style="padding:0.4rem 0.85rem;">2 UNDER REVIEW</span>
+        <span class="pill pill-green" style="padding:0.4rem 0.85rem;" id="modResolvedCountBadge">12 RESOLVED</span>
+      </div>
+
+      <div class="layout-split-detail">
+        <!-- Left List: Reported Content -->
+        <div class="card">
+          <h2 style="margin:0 0 0.85rem 0; font-size:1.15rem;">Reported content</h2>
+          <div id="moderationReportsList"></div>
+        </div>
+
+        <!-- Right Panel: Selected Report Action Card -->
+        <aside class="card">
+          <span class="eyebrow" id="selectedReportEyebrow">Selected Report &middot; #RP-204</span>
+          <h2 style="margin:0.2rem 0 0.35rem 0; font-size:1.4rem;" id="selectedReportReason">Incorrect or misleading</h2>
+          <p style="margin:0 0 0.85rem 0; font-size:0.9rem; color:var(--text-muted);" id="selectedReportTarget">
+            Graph algorithms &mdash; Week 04
+          </p>
+
+          <div class="card" style="background:#fbfcfa; margin-bottom:1.25rem;">
+            <p style="margin:0; font-size:0.9rem; color:var(--text-muted); font-style:italic;" id="selectedReportQuote">
+              "The complexity stated in section 4 may be incorrect."
+            </p>
+          </div>
+
+          <div style="font-size:0.84rem; font-weight:700; margin-bottom:0.6rem;">Choose an action</div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.65rem;">
+            <button type="button" class="btn btn-outline" onclick="navigateTo('review-confirm')">Hide resource</button>
+            <button type="button" class="btn btn-green" onclick="applyModerationAction('restore')">Restore resource</button>
+            <button type="button" class="btn btn-danger" onclick="navigateTo('review-confirm')">Remove permanently</button>
+            <button type="button" class="btn btn-outline" onclick="applyModerationAction('dismiss')">Dismiss report</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 13: REVIEW REPORT #RP-204 DESTRUCTIVE CONFIRMATION             -->
+    <!-- ===================================================================== -->
+    <section id="screen-review-confirm" class="screen" aria-labelledby="review-confirm-title">
+      <button type="button" class="back-btn" onclick="navigateTo('moderation')">&larr; Back</button>
+      <span class="eyebrow">Trust &amp; Safety</span>
+      <h1 class="page-title" id="review-confirm-title">Review report #RP-204</h1>
+      <p class="page-subtitle">Review the evidence and confirm the appropriate action.</p>
+
+      <div class="layout-split-detail">
+        <div class="card">
+          <span class="pill pill-amber" style="margin-bottom:0.65rem;">Open Report</span>
+          <h2 style="margin:0 0 0.35rem 0; font-size:1.4rem;" id="confirmReportReasonTitle">Incorrect or misleading information</h2>
+          <p style="margin:0 0 0.85rem 0; font-size:0.92rem; color:var(--text-muted);" id="confirmReportTargetTitle">
+            Graph algorithms &mdash; Week 04
+          </p>
+
+          <div class="card" style="background:#fbfcfa; margin-bottom:1.15rem;">
+            <p style="margin:0; font-size:0.9rem; color:var(--text-muted);" id="confirmReportQuoteText">
+              "The complexity stated in section 4 may be incorrect."
+            </p>
+          </div>
+
+          <h3 style="font-size:0.92rem; margin:0 0 0.5rem 0;">Review checklist</h3>
+          <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.86rem; color:var(--green-text); font-weight:600;">&#10003; Open the cited section</div>
+          <div class="card" style="padding:0.6rem 0.85rem; font-size:0.86rem; color:var(--green-text); font-weight:600;">&#10003; Compare against course sources</div>
+        </div>
+
+        <aside class="card">
+          <span class="pill pill-red" style="margin-bottom:0.65rem;">Destructive Action</span>
+          <h2 style="margin:0 0 0.35rem 0; font-size:1.35rem;">Remove this resource?</h2>
+          <p style="margin:0 0 1.15rem 0; font-size:0.9rem; color:var(--text-muted);">
+            This removes the resource from the library and excludes it from AI retrieval. Confirm only after review.
+          </p>
+
+          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+            <button type="button" class="btn btn-outline" onclick="applyModerationAction('hide')">Hide resource</button>
+            <button type="button" class="btn btn-green" onclick="applyModerationAction('restore')">Restore resource</button>
+            <button type="button" class="btn btn-danger" onclick="applyModerationAction('remove')">Remove permanently</button>
+            <button type="button" class="btn btn-outline" onclick="applyModerationAction('dismiss')">Dismiss report</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toastBanner" role="status" aria-live="polite"></div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION LOGIC & LIVE BACKEND API INTEGRATION (`/api/v1/*`)          -->
+  <!-- ======================================================================= -->
+  <script>
+    const state = {
+      apiAvailable: false,
+      csrfToken: "",
+      currentUser: {
+        id: 7,
+        username: "Sam Green",
+        email: "sam.green@university.edu",
+        role: "student",
+        initials: "SG"
+      },
+      exploreCourseFilter: "",
+      exploreTypeFilter: "",
+      selectedResourceId: 1,
+      selectedCollectionId: 1,
+      selectedReportId: 204,
+      lastUploadedResourceId: 1,
+      collections: [
+        {
+          id: 1,
+          title: "Algorithms, clearly explained",
+          description: "Core concepts, proofs and worked examples.",
+          course_code: "CS301",
+          item_count: 12,
+          is_official: true,
+          theme: "green"
+        },
+        {
+          id: 2,
+          title: "Systems & architecture",
+          description: "Processes, memory and distributed systems.",
+          course_code: "CS205",
+          item_count: 8,
+          is_official: true,
+          theme: "amber"
+        },
+        {
+          id: 3,
+          title: "Exam-ready mathematics",
+          description: "Probability, combinatorics and linear algebra.",
+          course_code: "CS301",
+          item_count: 15,
+          is_official: true,
+          theme: "blue"
+        },
+        {
+          id: 4,
+          title: "Machine learning foundations",
+          description: "Models, metrics, and evaluation.",
+          course_code: "CS402",
+          item_count: 9,
+          is_official: true,
+          theme: "green"
+        },
+        {
+          id: 5,
+          title: "Interview revision",
+          description: "DSA patterns and concise explanations.",
+          course_code: "CS301",
+          item_count: 21,
+          is_official: false,
+          theme: "amber"
+        },
+        {
+          id: 6,
+          title: "Research methods",
+          description: "Reading papers and evaluating evidence.",
+          course_code: "SE101",
+          item_count: 6,
+          is_official: false,
+          theme: "blue"
+        }
+      ],
+      resources: [
+        {
+          id: 1,
+          title: "Graph algorithms — Week 04",
+          course_code: "CS301",
+          resource_type: "lecture_notes",
+          badge_code: "PDF",
+          pages_label: "18 pages · Updated 2 days ago",
+          uploader_username: "A. Sharma",
+          is_official: true,
+          avg_rating: 4.8,
+          rating_count: 14,
+          chunk_count: 5,
+          tldr_summary: "Covers Breadth-First Search (BFS) layer-by-layer traversal in O(V+E), DFS timestamps, and shortest paths.",
+          content_text: "Breadth-First Search (BFS) explores vertices in increasing distance layers from a designated source vertex s. It maintains a First-In-First-Out (FIFO) queue Q. When all edges have equal unit weight, BFS guarantees shortest paths in O(V + E) time and builds a breadth-first predecessor tree.",
+          comments: [
+            { id: 1, username: "sam_green", body: "Section 4's explanation of BFS level-order queue invariants really helped me for the CS301 midterm!", created_at: "2 days ago" },
+            { id: 2, username: "ananya_verma", body: "Verified the O(V + E) aggregate adjacency list proof against CLRS 4th Edition.", created_at: "Yesterday" }
+          ]
+        },
+        {
+          id: 2,
+          title: "Dynamic programming patterns",
+          course_code: "CS301",
+          resource_type: "slides",
+          badge_code: "SL",
+          pages_label: "32 slides · Updated 1 week ago",
+          uploader_username: "Harshit Pant",
+          is_official: true,
+          avg_rating: 4.6,
+          rating_count: 11,
+          chunk_count: 4,
+          tldr_summary: "Optimal substructure, overlapping subproblems, LCS with Hirschberg linear-space reduction, and 0/1 Knapsack FPTAS.",
+          content_text: "Dynamic Programming (DP) applies when a problem exhibits both optimal substructure and overlapping subproblems. Hirschberg's divide-and-conquer algorithm reconstructs the full Longest Common Subsequence alignment in Theta(mn) time and Theta(m + n) linear space.",
+          comments: [
+            { id: 3, username: "rohan_iyer", body: "Hirschberg's space reduction diagram on slide 14 is super clear.", created_at: "3 days ago" }
+          ]
+        },
+        {
+          id: 3,
+          title: "Process scheduling — summary",
+          course_code: "CS205",
+          resource_type: "lecture_notes",
+          badge_code: "DOC",
+          pages_label: "9 pages · Updated yesterday",
+          uploader_username: "Snehadip Ghoshal",
+          is_official: true,
+          avg_rating: 4.9,
+          rating_count: 19,
+          chunk_count: 4,
+          tldr_summary: "Linux Completely Fair Scheduler (CFS) vruntime red-black tree, MLFQ priority boosts, and EDF real-time bounds.",
+          content_text: "The Linux Completely Fair Scheduler (CFS) models an ideal multitasking CPU using virtual runtime (vruntime) weighted inversely by process nice value. Runnable tasks are indexed by vruntime in a self-balancing Red-Black Tree; CFS dispatches the leftmost node in O(1) cached time.",
+          comments: []
+        },
+        {
+          id: 4,
+          title: "Greedy algorithms and proof strategy",
+          course_code: "CS301",
+          resource_type: "lecture_notes",
+          badge_code: "PDF",
+          pages_label: "12 pages · Verified",
+          uploader_username: "A. Sharma",
+          is_official: true,
+          avg_rating: 4.7,
+          rating_count: 10,
+          chunk_count: 4,
+          tldr_summary: "Exchange arguments, activity selection, Huffman prefix-free coding, Kruskal/Prim MST cut property, and matroids.",
+          content_text: "In an exchange argument, we start with an arbitrary optimal solution O* that differs from the greedy schedule G, swap one element in O* for the greedy choice without worsening the objective, and inductively transform O* into G.",
+          comments: []
+        },
+        {
+          id: 5,
+          title: "Trees, traversals and invariants",
+          course_code: "CS301",
+          resource_type: "lecture_notes",
+          badge_code: "DOC",
+          pages_label: "9 pages · Verified",
+          uploader_username: "Snehadip Ghoshal",
+          is_official: true,
+          avg_rating: 4.8,
+          rating_count: 12,
+          chunk_count: 4,
+          tldr_summary: "Red-Black Tree five invariants, 2 log2(n+1) height bound, O(1) rotations, and potential method amortized analysis.",
+          content_text: "A Red-Black Tree satisfies five invariants ensuring that no simple path from the root to a leaf is more than twice as long as any other, bounding height by 2 log2(n + 1) and guaranteeing O(log n) search, insert, and delete with at most 3 rotations on deletion.",
+          comments: []
+        },
+        {
+          id: 6,
+          title: "B+Tree Indexing & MySQL FULLTEXT Search",
+          course_code: "CS402",
+          resource_type: "lecture_notes",
+          badge_code: "PDF",
+          pages_label: "14 pages · Verified",
+          uploader_username: "Harshit Pant",
+          is_official: true,
+          avg_rating: 4.9,
+          rating_count: 16,
+          chunk_count: 5,
+          tldr_summary: "B+Tree internal routing keys, doubly linked leaf pages, leftmost prefix rule, and MySQL InnoDB FULLTEXT inverted indexes.",
+          content_text: "A composite B+Tree index on (category_id, status, avg_rating) sorts keys lexicographically. When Gemini AI is slow or out of quota, ScholarPulse uses a MySQL InnoDB FULLTEXT index over resource_chunks(chunk_text) as its deterministic keyword fallback.",
+          comments: []
+        },
+        {
+          id: 7,
+          title: "Web Security: Argon2id, Session Cookies & CSRF",
+          course_code: "SE101",
+          resource_type: "lecture_notes",
+          badge_code: "PDF",
+          pages_label: "11 pages · Verified",
+          uploader_username: "G. V. Siva krishna",
+          is_official: true,
+          avg_rating: 4.8,
+          rating_count: 13,
+          chunk_count: 4,
+          tldr_summary: "Salted Argon2id memory-hard password hashes, HttpOnly SameSite=Lax cookies, X-CSRF-Token protection, and DPDP Act 2023.",
+          content_text: "ScholarPulse hashes passwords with salted Argon2id (64 MiB memory cost) and stores sessions in HttpOnly, SameSite=Lax cookies protected by an HMAC-SHA256 synchronizer X-CSRF-Token header on all state-changing requests.",
+          comments: []
+        }
+      ],
+      reports: [
+        {
+          id: 204,
+          code: "#RP-204",
+          reason_title: "Incorrect or misleading",
+          target_title: "Graph algorithms — Week 04",
+          target_id: 1,
+          quote: "The complexity stated in section 4 may be incorrect.",
+          status: "Open",
+          pill_class: "pill-amber"
+        },
+        {
+          id: 203,
+          code: "#RP-203",
+          reason_title: "Copyright concern",
+          target_title: "Process scheduling — summary",
+          target_id: 3,
+          quote: "Please verify if the CFS Red-Black tree diagram is adapted from a textbook.",
+          status: "Open",
+          pill_class: "pill-amber"
+        },
+        {
+          id: 202,
+          code: "#RP-202",
+          reason_title: "Low-quality content",
+          target_title: "Sorting revision notes",
+          target_id: 2,
+          quote: "Contains an adversarial prompt injection test block in Section 3.",
+          status: "Reviewing",
+          pill_class: "pill-amber"
+        },
+        {
+          id: 201,
+          code: "#RP-201",
+          reason_title: "Incorrect course tag",
+          target_title: "Discrete math — worksheet",
+          target_id: 4,
+          quote: "Tagged as CS402 instead of CS301.",
+          status: "Resolved",
+          pill_class: "pill-green"
+        }
+      ]
+    };
+
+    function showToast(msg) {
+      const el = document.getElementById("toastBanner");
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 3200);
+    }
+
+    // Navigation across all 15 Figma prototype screens
+    function navigateTo(screenId) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      const target = document.getElementById("screen-" + screenId);
+      if (target) target.classList.add("active");
+
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      const navMap = {
+        "home": "nav-home",
+        "explore": "nav-explore",
+        "resource-detail": "nav-explore",
+        "report-form": "nav-explore",
+        "collections": "nav-collections",
+        "collection-detail": "nav-collections",
+        "upload": "nav-upload",
+        "upload-status": "nav-upload",
+        "moderation": "nav-moderation",
+        "review-confirm": "nav-moderation",
+        "auth": "nav-auth",
+        "auth-status": "nav-auth"
+      };
+      const navBtnId = navMap[screenId];
+      if (navBtnId && document.getElementById(navBtnId)) {
+        document.getElementById(navBtnId).classList.add("active");
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Connect to Live FastAPI Backend (`/api/v1/*`) when running via `docker compose up`
+    async function syncWithBackend() {
+      try {
+        const res = await fetch("/api/v1/health");
+        if (!res.ok) return;
+        const health = await res.json();
+        state.apiAvailable = true;
+        document.getElementById("apiStatusBadge").textContent =
+          "Live API Connected (" + (health.counts ? health.counts.resources : 630) + " resources)";
+
+        const [collRes, resList] = await Promise.all([
+          fetch("/api/v1/collections"),
+          fetch("/api/v1/resources?page=1&page_size=25")
+        ]);
+        if (collRes.ok) {
+          const colls = await collRes.json();
+          if (Array.isArray(colls) && colls.length > 0) {
+            const themes = ["green", "amber", "blue"];
+            state.collections = colls.map((c, idx) => ({
+              id: c.id,
+              title: c.title,
+              description: c.description || "Curated course reading list.",
+              course_code: c.course_code || "CS301",
+              item_count: c.item_count || 8,
+              is_official: c.is_official,
+              theme: themes[idx % 3]
+            }));
+          }
+        }
+        if (resList.ok) {
+          const rData = await resList.json();
+          if (rData && Array.isArray(rData.items) && rData.items.length > 0) {
+            state.resources = rData.items.map(r => ({
+              id: r.id,
+              title: r.title,
+              course_code: r.course_code || "CS301",
+              resource_type: r.resource_type || "lecture_notes",
+              badge_code: r.resource_type === "slides" ? "SL" : (r.resource_type === "paper_summary" ? "DOC" : "PDF"),
+              pages_label: (r.resource_type === "slides" ? "32 slides" : "18 pages") + " · Verified",
+              uploader_username: r.source_authors || r.uploader_username || "A. Sharma",
+              is_official: r.is_official,
+              avg_rating: r.avg_rating || 4.8,
+              rating_count: r.rating_count || 12,
+              chunk_count: 5,
+              tldr_summary: r.tldr_summary || "",
+              content_text: r.tldr_summary || "",
+              comments: []
+            }));
+          }
+        }
+        renderAllViews();
+      } catch (err) {
+        // Running in standalone Canvas preview mode — uses built-in state seamlessly
+      }
+    }
+
+    function getCollectionCardHtml(c) {
+      const tintClass = c.theme === "amber" ? "card-amber-tint" : (c.theme === "blue" ? "card-blue-tint" : "card-green-tint");
+      const iconColor = c.theme === "amber" ? "#b54708" : (c.theme === "blue" ? "#1d5a96" : "#11623f");
+      return `
+        <article class="card clickable ${tintClass}" onclick="openCollectionDetail(${c.id})">
+          <div class="coll-card-top">
+            <span class="spark-icon" style="color:${iconColor};">&#10022;</span>
+            <div class="readings-box">
+              <strong>${c.item_count}</strong>
+              READINGS
+            </div>
+          </div>
+          <h3 style="margin:0 0 0.35rem 0; font-size:1.12rem;">${c.title}</h3>
+          <p style="margin:0; font-size:0.88rem; color:var(--text-muted);">${c.description}</p>
+        </article>
+      `;
+    }
+
+    function getResourceRowHtml(r) {
+      const sqClass = r.badge_code === "SL" ? "type-sl" : (r.badge_code === "DOC" ? "type-doc" : "type-pdf");
+      return `
+        <article class="res-row-card" onclick="openResourceDetail(${r.id})">
+          <div class="type-square ${sqClass}">${r.badge_code || "PDF"}</div>
+          <div style="flex:1;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--green-text); letter-spacing:0.05em;">${r.course_code}</span>
+            <h3 style="margin:0.1rem 0 0.25rem 0; font-size:1.08rem;">${r.title}</h3>
+            <div style="font-size:0.84rem; color:var(--text-muted); margin-bottom:0.55rem;">${r.pages_label}</div>
+            <div style="display:flex; gap:0.45rem; align-items:center;">
+              ${r.is_official ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-gray">Community</span>'}
+              <span class="pill pill-gray">&#9733; ${r.avg_rating}</span>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderHome() {
+      const collGrid = document.getElementById("homeCollectionsGrid");
+      collGrid.innerHTML = state.collections.slice(0, 3).map(getCollectionCardHtml).join("");
+
+      const resGrid = document.getElementById("homeRecentResourcesGrid");
+      resGrid.innerHTML = state.resources.slice(0, 2).map(getResourceRowHtml).join("");
+    }
+
+    function handleHomeSearch() {
+      const q = document.getElementById("homeSearchInput").value.trim();
+      document.getElementById("exploreSearchInput").value = q;
+      navigateTo("explore");
+      renderExploreList();
+    }
+
+    function setExploreCourseFilter(course) {
+      state.exploreCourseFilter = course;
+      document.querySelectorAll("[data-course]").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-course") === course);
+      });
+      const banner = document.getElementById("courseScopeAiBanner");
+      if (course) {
+        banner.style.display = "block";
+        document.getElementById("courseScopeAiTitle").textContent = "Ask AI across all resources in " + course;
+      } else {
+        banner.style.display = "none";
+      }
+      renderExploreList();
+    }
+
+    function setExploreTypeFilter(rtype) {
+      state.exploreTypeFilter = rtype;
+      document.querySelectorAll("[data-rtype]").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-rtype") === rtype);
+      });
+      renderExploreList();
+    }
+
+    function renderExploreList() {
+      const q = (document.getElementById("exploreSearchInput").value || "").toLowerCase().trim();
+      const sortBy = document.getElementById("exploreSortSelect").value;
+      const verifiedOnly = document.getElementById("exploreVerifiedOnly").checked;
+
+      let filtered = state.resources.filter(r => {
+        if (state.exploreCourseFilter && r.course_code !== state.exploreCourseFilter) return false;
+        if (state.exploreTypeFilter && r.resource_type !== state.exploreTypeFilter) return false;
+        if (verifiedOnly && !r.is_official) return false;
+        if (q && !(r.title.toLowerCase().includes(q) || (r.tldr_summary || "").toLowerCase().includes(q) || r.course_code.toLowerCase().includes(q))) {
+          return false;
+        }
+        return true;
+      });
+
+      if (sortBy === "rating") {
+        filtered.sort((a, b) => b.avg_rating - a.avg_rating);
+      } else if (sortBy === "newest") {
+        filtered.sort((a, b) => b.id - a.id);
+      }
+
+      document.getElementById("exploreCountLabel").textContent =
+        (state.exploreCourseFilter || q ? filtered.length : 128) + " resources";
+      document.getElementById("exploreResultsContainer").innerHTML =
+        filtered.map(getResourceRowHtml).join("") || '<div class="card">No matching resources found. Try clearing a filter.</div>';
+    }
+
+    async function openResourceDetail(resId) {
+      state.selectedResourceId = resId;
+      let resObj = state.resources.find(r => r.id === resId) || state.resources[0];
+
+      if (state.apiAvailable) {
+        try {
+          const resp = await fetch("/api/v1/resources/" + resId);
+          if (resp.ok) {
+            const full = await resp.json();
+            resObj = Object.assign({}, resObj, full);
+          }
+          const cmResp = await fetch("/api/v1/resources/" + resId + "/comments");
+          if (cmResp.ok) {
+            resObj.comments = await cmResp.json();
+          }
+        } catch (e) {}
+      }
+
+      document.getElementById("detailBreadcrumb").textContent =
+        `Explore / ${resObj.course_code} / ${resObj.title}`;
+      document.getElementById("detail-res-title").textContent = resObj.title;
+      document.getElementById("detailMetaLine").textContent =
+        `${resObj.course_code} · Lecture notes · 18 pages · Uploaded by ${resObj.uploader_username || "A. Sharma"}`;
+      document.getElementById("detailRatingBadge").textContent = `★ ${resObj.avg_rating} rating`;
+      document.getElementById("detailChunksBadge").textContent = `${resObj.chunk_count || 4} indexed chunks`;
+      document.getElementById("detailParagraph2").textContent = resObj.content_text || resObj.tldr_summary;
+      document.getElementById("reportTargetTitle").textContent = resObj.title;
+
+      renderCommentsList(resObj.comments || []);
+      switchAiVisualState("answered");
+      navigateTo("resource-detail");
+    }
+
+    function renderCommentsList(comments) {
+      const container = document.getElementById("detailCommentsList");
+      if (!comments || comments.length === 0) {
+        container.innerHTML = '<div style="font-size:0.86rem; color:var(--text-muted);">No comments yet. Be the first to add a study note!</div>';
+        return;
+      }
+      container.innerHTML = comments.map(c => `
+        <div class="card" style="padding:0.75rem 1rem; margin-bottom:0.55rem; background:#fbfcfa;">
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.25rem;">
+            <strong style="color:var(--text-main);">@${c.username}</strong>
+            <span>${c.created_at || "Just now"}</span>
+          </div>
+          <div style="font-size:0.88rem;">${c.body}</div>
+        </div>
+      `).join("");
+    }
+
+    async function submitResourceComment() {
+      const input = document.getElementById("newCommentInput");
+      const body = input.value.trim();
+      if (!body) return;
+      const resObj = state.resources.find(r => r.id === state.selectedResourceId) || state.resources[0];
+
+      if (state.apiAvailable && state.csrfToken) {
+        try {
+          const resp = await fetch(`/api/v1/resources/${resObj.id}/comments`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
+            body: JSON.stringify({ body })
+          });
+          if (resp.ok) {
+            const created = await resp.json();
+            resObj.comments = [created, ...(resObj.comments || [])];
+            renderCommentsList(resObj.comments);
+            input.value = "";
+            showToast("Comment posted to database!");
+            return;
+          }
+        } catch (e) {}
+      }
+
+      resObj.comments = [{ id: Date.now(), username: state.currentUser.username, body, created_at: "Just now" }, ...(resObj.comments || [])];
+      renderCommentsList(resObj.comments);
+      input.value = "";
+      showToast("Comment added!");
+    }
+
+    async function rateCurrentResource(score) {
+      const resObj = state.resources.find(r => r.id === state.selectedResourceId) || state.resources[0];
+      if (state.apiAvailable && state.csrfToken) {
+        try {
+          const resp = await fetch(`/api/v1/resources/${resObj.id}/ratings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
+            body: JSON.stringify({ score })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            resObj.avg_rating = data.avg_rating;
+            document.getElementById("detailRatingBadge").textContent = `★ ${data.avg_rating} rating`;
+            showToast(`Rated ${score}/5 stars (New average: ★ ${data.avg_rating})`);
+            return;
+          }
+        } catch (e) {}
+      }
+      resObj.avg_rating = 4.9;
+      document.getElementById("detailRatingBadge").textContent = `★ ${resObj.avg_rating} rating`;
+      showToast(`Saved your ${score}/5 star rating!`);
+    }
+
+    // AI States in Resource Detail (Exact match to Figma Flow 1 & Flow 2)
+    function switchAiVisualState(mode) {
+      document.getElementById("aiStateAnswered").style.display = mode === "answered" ? "block" : "none";
+      document.getElementById("aiStateNotFound").style.display = mode === "not_found" ? "block" : "none";
+      document.getElementById("aiStateFallback").style.display = mode === "fallback" ? "block" : "none";
+
+      const srcList = document.getElementById("aiSourcesList");
+      if (mode === "fallback") {
+        srcList.innerHTML = `<div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[1] Lecture notes · page 4 (FULLTEXT keyword match)</div>`;
+      } else {
+        srcList.innerHTML = `
+          <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[1] Lecture notes · page 4</div>
+          <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[2] Course handout · page 2</div>
+        `;
+      }
+    }
+
+    async function runResourceAiQuery(defaultMode) {
+      const q = document.getElementById("resourceAiInput").value.trim();
+      if (!q) return;
+      if (q.length > 300) {
+        showToast("Guardrail: Questions are limited to 300 characters.");
+        return;
+      }
+
+      if (state.apiAvailable && state.csrfToken) {
+        try {
+          const resp = await fetch("/api/v1/ai/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
+            body: JSON.stringify({
+              question: q,
+              scope_type: "resource",
+              scope_id: String(state.selectedResourceId)
+            })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.not_found) {
+              switchAiVisualState("not_found");
+              return;
+            }
+            if (data.fallback_used) {
+              switchAiVisualState("fallback");
+              return;
+            }
+            document.getElementById("aiAnswerText").textContent = data.answer;
+            if (data.citations && data.citations.length > 0) {
+              document.getElementById("aiAnswerHeader").textContent = `Answer · ${data.citations.length} Sources`;
+              document.getElementById("aiAnswerChips").innerHTML = data.citations.map((c, i) =>
+                `<span class="cite-chip">[${i + 1}] Chunk ${c.chunk_id} (${c.resource_title.slice(0, 24)})</span>`
+              ).join("");
+            }
+            switchAiVisualState("answered");
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Offline / Prototype evaluation logic
+      const lower = q.toLowerCase();
+      if (lower.includes("fee") || lower.includes("hostel") || lower.includes("fifa") || lower.includes("quantum")) {
+        switchAiVisualState("not_found");
+      } else {
+        switchAiVisualState(defaultMode || "answered");
+        showToast("Grounded answer generated with verified passage citations.");
+      }
+    }
+
+    async function askCourseScopeAI() {
+      const q = document.getElementById("courseAiQuestionInput").value.trim();
+      if (!q) return;
+      const box = document.getElementById("courseAiAnswerBox");
+      box.style.display = "block";
+      box.innerHTML = `
+        <div class="ai-box-green" style="margin-top:0.4rem;">
+          <div style="font-size:0.72rem; font-weight:800; text-transform:uppercase; color:var(--green-text); margin-bottom:0.25rem;">
+            Multi-Document Course Answer (${state.exploreCourseFilter || "CS301"} · Max 3 chunks/resource)
+          </div>
+          <div>BFS guarantees shortest paths on unweighted graphs in O(V+E) time [Reading 01, Chunk 2], Dijkstra handles non-negative edge weights in O((V+E) log V) [Reading 02, Chunk 6], and Bellman-Ford handles negative edge weights and detects negative cycles in O(VE) time [Reading 02, Chunk 7].</div>
+        </div>
+      `;
+    }
+
+    function renderCollectionsHub() {
+      const q = (document.getElementById("collectionSearchInput").value || "").toLowerCase().trim();
+      const filtered = state.collections.filter(c =>
+        !q || c.title.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q)
+      );
+      document.getElementById("collectionsHubGrid").innerHTML = filtered.map(getCollectionCardHtml).join("");
+    }
+
+    function toggleCreateCollectionModal() {
+      const el = document.getElementById("createCollectionBox");
+      el.style.display = el.style.display === "none" ? "block" : "none";
+    }
+
+    async function handleCreateCollection() {
+      const title = document.getElementById("newCollTitle").value.trim();
+      const desc = document.getElementById("newCollDesc").value.trim() || "Custom study reading list.";
+      const course = document.getElementById("newCollCourse").value;
+      if (!title) {
+        showToast("Please enter a collection title.");
+        return;
+      }
+      const newColl = {
+        id: state.collections.length + 1,
+        title,
+        description: desc,
+        course_code: course,
+        item_count: 4,
+        is_official: state.currentUser.role === "ta",
+        theme: "green"
+      };
+      state.collections.unshift(newColl);
+      document.getElementById("createCollectionBox").style.display = "none";
+      document.getElementById("newCollTitle").value = "";
+      renderCollectionsHub();
+      renderHome();
+      showToast("Collection created!");
+    }
+
+    function openCollectionDetail(collId) {
+      state.selectedCollectionId = collId;
+      const coll = state.collections.find(c => c.id === collId) || state.collections[0];
+      document.getElementById("coll-detail-title").textContent = coll.title;
+      document.getElementById("collDetailMeta").textContent =
+        `${coll.item_count} readings · ${coll.course_code} · Updated this week`;
+
+      const listItems = [
+        { pos: "01", id: 1, title: "Graph algorithms — Week 04", meta: "PDF · 18 pages · Verified" },
+        { pos: "02", id: 2, title: "Dynamic programming patterns", meta: "Slides · 32 slides · Verified" },
+        { pos: "03", id: 4, title: "Greedy algorithms and proof strategy", meta: "PDF · 12 pages · Verified" },
+        { pos: "04", id: 5, title: "Trees, traversals and invariants", meta: "Notes · 9 pages · Verified" }
+      ];
+
+      document.getElementById("collDetailItemsList").innerHTML = listItems.map(item => `
+        <article class="res-row-card" onclick="openResourceDetail(${item.id})">
+          <div class="type-square" style="background:var(--green-tint); color:var(--green-text);">${item.pos}</div>
+          <div>
+            <h3 style="margin:0 0 0.2rem 0; font-size:1.05rem;">${item.title}</h3>
+            <div style="font-size:0.84rem; color:var(--text-muted);">${item.meta}</div>
+          </div>
+        </article>
+      `).join("");
+
+      navigateTo("collection-detail");
+    }
+
+    async function runCollectionAiQuery() {
+      const q = document.getElementById("collAiInput").value.trim();
+      if (!q) return;
+      if (state.apiAvailable && state.csrfToken) {
+        try {
+          const resp = await fetch("/api/v1/ai/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
+            body: JSON.stringify({
+              question: q,
+              scope_type: "collection",
+              scope_id: String(state.selectedCollectionId)
+            })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            document.getElementById("collAiAnswerText").textContent = data.answer;
+            showToast("Synthesized across collection sources!");
+            return;
+          }
+        } catch (e) {}
+      }
+      document.getElementById("collAiAnswerText").textContent =
+        "BFS is optimal for unweighted graphs in O(V+E) time using a FIFO queue, whereas Dijkstra handles non-negative weighted edges in O((V+E) log V) time using priority-queue edge relaxation.";
+      showToast("Synthesized answer across collection readings!");
+    }
+
+    function handleFilePicked() {
+      const input = document.getElementById("uploadFileInput");
+      if (input.files && input.files[0]) {
+        const f = input.files[0];
+        document.getElementById("uploadReadyBadge").textContent = `${f.name} · ready to upload`;
+        document.getElementById("uploadedFileNameDisplay").textContent = f.name;
+      }
+    }
+
+    function submitUploadForm() {
+      const title = document.getElementById("uploadTitleInput").value.trim() || "Graph algorithms — Week 04";
+      const course = document.getElementById("uploadCourseInput").value;
+      const rights = document.getElementById("uploadRightsConfirm").checked;
+      if (!rights) {
+        showToast("Please confirm you have the right to share this material.");
+        return;
+      }
+      const newId = state.resources.length + 1;
+      state.lastUploadedResourceId = newId;
+      state.resources.unshift({
+        id: newId,
+        title,
+        course_code: course,
+        resource_type: "lecture_notes",
+        badge_code: "PDF",
+        pages_label: "14 pages · Uploaded just now",
+        uploader_username: state.currentUser.username,
+        is_official: state.currentUser.role === "ta",
+        avg_rating: 5.0,
+        rating_count: 1,
+        chunk_count: 4,
+        tldr_summary: "Newly uploaded course study notes validated, split into 800-char chunks, and embedded.",
+        content_text: "Uploaded study note content verified and indexed for grounded AI retrieval.",
+        comments: []
+      });
+      document.getElementById("uploadedFileMetaDisplay").textContent = `2.4 MB · ${course} · Validated & Indexed`;
+      renderAllViews();
+      navigateTo("upload-status");
+      showToast("Resource validated, chunked, and uploaded!");
+    }
+
+    async function handleLoginSubmit() {
+      const email = document.getElementById("loginEmailInput").value.trim();
+      const password = document.getElementById("loginPasswordInput").value;
+      if (!email || !email.includes("@")) {
+        navigateTo("auth-status");
+        return;
+      }
+
+      if (state.apiAvailable) {
+        try {
+          const resp = await fetch("/api/v1/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            state.csrfToken = data.csrf_token;
+            state.currentUser = {
+              id: data.user.id,
+              username: data.user.username,
+              email: data.user.email,
+              role: data.user.role,
+              initials: data.user.username.slice(0, 2).toUpperCase()
+            };
+            updateProfileUI();
+            navigateTo("profile");
+            showToast("Signed in as " + data.user.username);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      updateProfileUI();
+      navigateTo("profile");
+      showToast("Signed in as " + state.currentUser.username);
+    }
+
+    function switchDemoRole(role) {
+      if (role === "ta") {
+        state.currentUser = { id: 3, username: "Snehadip Ghoshal", email: "snehadip.ghoshal@university.edu", role: "ta", initials: "SG" };
+      } else if (role === "moderator") {
+        state.currentUser = { id: 1, username: "Harshit Pant", email: "harshit.pant@university.edu", role: "moderator", initials: "HP" };
+      } else {
+        state.currentUser = { id: 7, username: "Sam Green", email: "sam.green@university.edu", role: "student", initials: "SG" };
+      }
+      updateProfileUI();
+      showToast("Switched active session role to " + role.toUpperCase());
+    }
+
+    function updateProfileUI() {
+      document.getElementById("profileAvatarBtn").textContent = state.currentUser.initials;
+      document.getElementById("profileCircleInitials").textContent = state.currentUser.initials;
+      document.getElementById("profileDisplayName").textContent = state.currentUser.username;
+      document.getElementById("profileEmailText").textContent = state.currentUser.email;
+      const roleLabels = {
+        student: "Student contributor",
+        ta: "Teaching Assistant (Official List Publisher)",
+        moderator: "Trust & Safety Moderator"
+      };
+      document.getElementById("profileRoleBadge").textContent = roleLabels[state.currentUser.role] || "Student contributor";
+    }
+
+    function toggleEditProfileBox() {
+      const box = document.getElementById("editProfileDrawer");
+      box.style.display = box.style.display === "none" ? "block" : "none";
+    }
+
+    function saveProfileEdits() {
+      const newName = document.getElementById("editUsernameInput").value.trim();
+      if (newName) {
+        state.currentUser.username = newName;
+        updateProfileUI();
+      }
+      document.getElementById("editProfileDrawer").style.display = "none";
+      showToast("Profile updated!");
+    }
+
+    function renderProfile() {
+      document.getElementById("profileUploadsGrid").innerHTML = state.resources.slice(0, 2).map(getResourceRowHtml).join("");
+      document.getElementById("profileCollectionsGrid").innerHTML = state.collections.slice(0, 2).map(getCollectionCardHtml).join("");
+    }
+
+    function submitContentReport() {
+      const reasonSelect = document.getElementById("reportReasonSelect").value;
+      const details = document.getElementById("reportDetailsInput").value.trim() || "Reported for moderator review.";
+      const resObj = state.resources.find(r => r.id === state.selectedResourceId) || state.resources[0];
+
+      const reasonMap = {
+        incorrect_or_misleading: "Incorrect or misleading",
+        copyright_concern: "Copyright concern",
+        low_quality_or_spam: "Low-quality content"
+      };
+      const newId = 205 + state.reports.length;
+      state.reports.unshift({
+        id: newId,
+        code: "#RP-" + newId,
+        reason_title: reasonMap[reasonSelect] || "Incorrect or misleading",
+        target_title: resObj.title,
+        target_id: resObj.id,
+        quote: details,
+        status: "Open",
+        pill_class: "pill-amber"
+      });
+      state.selectedReportId = newId;
+      renderModerationQueue();
+      navigateTo("moderation");
+      showToast("Report submitted to the Moderation Queue.");
+    }
+
+    function renderModerationQueue() {
+      const listEl = document.getElementById("moderationReportsList");
+      listEl.innerHTML = state.reports.map(rp => {
+        const isSel = rp.id === state.selectedReportId;
+        return `
+          <div class="card clickable" style="margin-bottom:0.75rem; border-color:${isSel ? 'var(--green-btn)' : 'var(--border-soft)'}; background:${isSel ? '#f4faf6' : '#ffffff'};" onclick="selectModerationReport(${rp.id})">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:0.74rem; font-weight:700; color:var(--text-muted);">${rp.code}</span>
+                <strong style="display:block; font-size:1rem; margin:0.1rem 0;">${rp.reason_title}</strong>
+                <span style="font-size:0.84rem; color:var(--text-muted);">${rp.target_title}</span>
+              </div>
+              <span class="pill ${rp.pill_class}">${rp.status}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const sel = state.reports.find(r => r.id === state.selectedReportId) || state.reports[0];
+      if (sel) {
+        document.getElementById("selectedReportEyebrow").textContent = `Selected Report · ${sel.code}`;
+        document.getElementById("selectedReportReason").textContent = sel.reason_title;
+        document.getElementById("selectedReportTarget").textContent = sel.target_title;
+        document.getElementById("selectedReportQuote").textContent = `"${sel.quote}"`;
+
+        document.getElementById("confirmReportReasonTitle").textContent = sel.reason_title;
+        document.getElementById("confirmReportTargetTitle").textContent = sel.target_title;
+        document.getElementById("confirmReportQuoteText").textContent = `"${sel.quote}"`;
+      }
+    }
+
+    function selectModerationReport(repId) {
+      state.selectedReportId = repId;
+      renderModerationQueue();
+    }
+
+    function applyModerationAction(action) {
+      const sel = state.reports.find(r => r.id === state.selectedReportId) || state.reports[0];
+      if (!sel) return;
+      if (action === "dismiss") {
+        sel.status = "Dismissed";
+        sel.pill_class = "pill-gray";
+      } else {
+        sel.status = "Resolved (" + action + ")";
+        sel.pill_class = "pill-green";
+      }
+      renderModerationQueue();
+      navigateTo("moderation");
+      showToast(`Moderation action '${action.toUpperCase()}' logged on ${sel.code}.`);
+    }
+
+    function renderAllViews() {
+      renderHome();
+      renderExploreList();
+      renderCollectionsHub();
+      renderProfile();
+      renderModerationQueue();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      renderAllViews();
+      syncWithBackend();
+    });
+  </script>
+</body>
+</html>
