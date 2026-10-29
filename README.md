@@ -1,117 +1,58 @@
-Here is the complete content for your `README.md` file. Copy and paste this directly into your `README.md` file in VS Code, replace the teammate name placeholders with your actual team members' names and roll numbers, and save it:
+# ScholarPulse: AI-Enabled Academic Knowledge Hub
 
-# ScholarPulse — AI-Enabled Academic Knowledge Hub
+**Course Project 2026 | Theme 4: Knowledge Hub | Team of 4 (`cs26mt010-tech/scholarpulse`)**
 
-**Course Project 2026 | Theme 4: Knowledge Hub**
+ScholarPulse is a multi-page academic knowledge hub where students upload, search, rate, comment on, and organise course notes, paper summaries, and curated reading lists. Teaching assistants publish official course reading lists, and moderators review reported content with logged actions. To reduce information overload during exam preparation, ScholarPulse includes a grounded **AI Study Assistant** (Google Gemini API `gemini-embedding-001` and `gemini-2.5-flash`, called strictly server-side) that answers questions using only the text of a chosen resource, a reading list collection (up to 20 resources), or an entire course code (`CS301`, `CS402`, `CS205`, `SE101`), citing the exact passages used and falling back to MySQL `FULLTEXT` keyword search on timeout or quota exhaustion.
 
----
+## Team Members
 
-## Milestone 1 (MS-1): Problem Statement & Design Document
+| # | Name | Roll No. | Main Area |
+| :- | :--- | :--- | :--- |
+| 1 | Harshit Pant | `cs26mt006` | Backend, database schema & migrations, seed script & dataset subset, roles & moderation, AI retrieval pipeline |
+| 2 | Snehadip Ghoshal | `cs26mt010` | Frontend UI/UX, accessibility, Figma prototype, connecting frontend to API, Playwright E2E tests |
+| 3 | Gangadevi Venkata Siva krishna | `cs26mt009` | OpenAPI 3.0.3 spec, authentication & security (Argon2id, CSRF), Docker/CI, pytest suite, AI guardrails & evaluation |
+| 4 | Ritik Kumar | `cs26mt021` | PPT presentation, integration testing, and evaluation benchmarking |
 
-### 1. Overview
+## Milestone 3 (MS-3) Deliverables Included
 
-- **Website Name:** ScholarPulse
-- **Team Members:**
+1. **OpenAPI 3.0.3 YAML Specification (`docs/openapi.yaml` & `openapi.yaml`)**:
+   - Complete contract defining **21 REST API paths** and **30 component schemas** across 9 functional tags (`System`, `Auth`, `Users`, `Categories`, `Resources`, `Ratings & Comments`, `Collections`, `AI Study Assistant`, `Moderation`), plus `SessionCookie` (`sp_session`) and `CsrfToken` (`X-CSRF-Token`) security schemes.
+2. **Database Schema & Alembic Migrations (`backend/app/models/schema.py` & `backend/alembic/versions/0001_initial_schema_12_tables.py`)**:
+   - All **12 relational tables**: `users`, `categories`, `resources`, `resource_chunks`, `tags`, `resource_tags`, `ratings`, `comments`, `collections`, `collection_items`, `reports`, and `ai_queries`.
+   - Includes B+Tree composite indexes (`ix_resources_cat_status_rating`, `ix_collection_items_order`, etc.) and MySQL 8 InnoDB `FULLTEXT` indexes (`ft_resource_chunks_text`, `ft_resources_title_content`).
+3. **Committed Dataset Subset & 30 Team-Written Course Notes (`data/seed/` & `scripts/build_dataset.py`)**:
+   - `data/seed/arxiv_subset.jsonl`: **600 Computer Science paper summaries** sampled deterministically (`SEED=2026`) from the Cornell University arXiv Metadata Dataset (CC0 1.0 Public Domain, <https://www.kaggle.com/datasets/Cornell-University/arxiv>) mapped to `CS301`, `CS402`, `CS205`, and `SE101`.
+   - `data/seed/team_notes.jsonl` & `data/seed/notes/*.txt`: **30 original multi-page course notes** (including 3 adversarial prompt-injection test notes) split into ~800-character chunks with 100-character overlap.
+   - `data/eval/evaluation_questions.json`: **42 ground-truth evaluation questions** (single-passage, multi-chunk, paraphrased, multi-document, unanswerable refusal, and prompt-injection resilience).
+4. **Deterministic, Idempotent Seed Script (`scripts/seed_db.py`)**:
+   - Populates **630 resources** (600 arXiv + 30 notes), **1,313 chunks** with embeddings, **20 users** (with salted Argon2id password hashes), **4 course categories**, **66 tags** (`2,515` tag mappings), **800 ratings**, **300 comments**, **15 collections** (`73` items), **6 moderation reports**, and sample audited `ai_queries`.
+5. **Single-Command Docker Compose Stack (`docker-compose.yml` & `backend/Dockerfile`)**:
+   - Starts `db` (MySQL 8.0 with UTF8MB4 and `mysqladmin ping` healthcheck) and `backend` (FastAPI on port `8000` running `alembic upgrade head` and `scripts/seed_db.py` automatically on startup).
 
-  | # | Name | Roll No. | Main Area |
-  |---|------|----------|-----------|
-  | 1 | Snehadip Ghoshal | cs26mt010 | Backend Architecture, Database & AI Engineering |
-  | 2 | Harshit Pant | cs26mt006 | Frontend UI/UX, Accessibility & Playwright E2E Testing |
-  | 3 | Gangadevi Venkata Siva Krishna | cs26mt009 | OpenAPI Spec, Security, Docker/CI & Pytest Suite |
-  | 4 | Ritik Kumar | cs26mt021 | PPT and Testing |
-
-- **Description:** ScholarPulse is a collaborative multi-page academic knowledge hub where university students and researchers upload, search, rate, comment on, and organize course notes, research paper summaries, and reading lists. To solve information overload during exam preparation and literature reviews, the platform integrates a server-side AI Study Assistant (powered by Google Gemini 2.5 Flash) that automatically generates concise TL;DR summaries, suggests taxonomy tags, and answers user questions strictly grounded in the uploaded document text, with automatic graceful degradation to a local extractive keyword engine if the external LLM service is slow or unavailable.
-- **Target Users:** Undergraduate and postgraduate students seeking peer-reviewed course notes, teaching assistants curating course reading lists, and academic researchers conducting literature reviews.
-
-* **One-Paragraph Description:** ScholarPulse is a collaborative multi-page academic knowledge hub where university students and researchers upload, search, rate, comment on, and organize course notes, research paper summaries, and reading lists. To solve information overload during exam preparation and literature reviews, the platform integrates a server-side AI Study Assistant (powered by Google Gemini 2.5 Flash) that automatically generates concise TL;DR summaries, suggests taxonomy tags, and answers user questions strictly grounded in the uploaded document text—with automatic graceful degradation to a local extractive keyword engine if the external LLM service is slow or unavailable.
-
-
----
-
-### 2. Dataset Specification
-
-- **Primary Dataset Source & License:**
-  - **Cornell University arXiv Metadata Dataset (Kaggle):** <https://www.kaggle.com/datasets/Cornell-University/arxiv>
-  - **License:** CC0 1.0 Universal (Public Domain Dedication), free for academic and commercial redistribution.
-- **Synthetic Data Augmentation (`backend/app/seed.py`):** To simulate a live campus portal with active users, our deterministic seed script populates initial academic categories (`CS301`, `CS402`, `CS205`, `SE101`), user accounts with Argon2id salted password hashes, tags, peer reviews (1–5 star ratings and comments), and curated reading collections automatically during `docker compose up`.
-- **Field Mapping to Database Schema:**
-  - `title` → `resources.title` (indexed `VARCHAR(200)`)
-  - `abstract` / study notes → `resources.content_text` (`TEXT`)
-  - `categories` → normalized `categories` (`code`, `name`) and many-to-many `tags` via `resource_tags`
-  - `authors` / contributors → `users` (`id`, `username`, `email`, `bio`)
-
----
-
-### 3. Content Structure (Sitemap: 7 Distinct Pages)
-
-```text
-[1. Home / Discovery Feed (/)]
- ├──> [2. Explore & Filter Catalog (/explore)]
- │     └──> [3. Resource Detail, Peer Reviews & Grounded AI Q&A (/resources/:id)]
- ├──> [4. Curated Reading Lists / Collections Hub (/collections)]
- ├──> [5. Publish / Upload Study Notes (/upload)]            (authenticated users)
- ├──> [6. Authentication Portal + DPDP Act 2023 Consent Notice (/auth)]
- └──> [7. User Profile, Bio Editor & Account Deletion (/profile)]   (authenticated users)
-```
-
-### 4. Functionality & Page-by-Page Breakdown
-
-| Page / Screen | What the Screen Shows | What a User Can Do |
-| --- | --- | --- |
-| **1. Home (`/`)** | Hero banner, platform overview, and top 3 featured/recent study notes with cached AI TL;DR previews and tags. | Navigate to catalog, jump to upload page, or click any featured resource to read and query it. |
-| **2. Explore Catalog (`/explore`)** | Search bar, course category dropdown filter, and paginated list of resources with summary snippets and tags. | Search by keyword, filter by university course code, and select a document to view full details. |
-| **3. Resource Detail (`/resources/:id`)** | Full note text, author info, cached AI TL;DR summary, interactive **AI Q&A panel**, star ratings, and peer review thread. | Ask natural-language questions to the AI assistant, post a 1–5 star review, or delete the resource (if owner). |
-| **4. Collections Hub (`/collections`)** | Grid of curated reading lists (e.g., "Midterm Exam Prep") with titles and descriptions. | Browse study collections or create a new themed reading collection (authenticated users). |
-| **5. Publish Notes (`/upload`)** | Accessible form with Title, Course Category selector, comma-separated Tags, and full Markdown/Text notes input. | Submit new study notes; backend validates input, caches an initial AI summary, and persists to MySQL. |
-| **6. Auth Portal (`/auth`)** | Sign-In form and Registration form with explicit **DPDP Act 2023 Data Consent checkbox**. | Log in (sets HttpOnly JWT cookie) or register a new account after consenting to data usage policy. |
-| **7. Profile & Privacy (`/profile`)** | Logged-in user's username, email, academic bio, DPDP consent status, and account management controls. | Update academic bio, log out, or click **"Delete Account & All Data"** (cascading erasure per DPDP Act 2023). |
-
-#### 10 User Stories
-
-1. **As a visitor**, I want to browse and search study notes without logging in so that I can evaluate the platform's usefulness before creating an account.
-2. **As a student**, I want to filter course notes by specific course codes (e.g., `CS301`) so that I only see materials relevant to my current classes.
-3. **As a visitor**, I want to read peer reviews and 1–5 star ratings on uploaded notes so that I can trust the accuracy of the study material.
-4. **As a prospective user**, I want to see a clear DPDP Act 2023 consent notice during registration so that I know what personal data is collected and why.
-5. **As a registered student**, I want to publish my course notes with custom tags and course categories so that I can contribute to my peers' exam preparation.
-6. **As a content owner**, I want the system to restrict edit and delete permissions strictly to my own uploaded resources so that no other user can tamper with my work.
-7. **As a student**, I want to view an automatic TL;DR summary on every resource page so that I can quickly decide if a long document is worth reading in full.
-8. **As a student**, I want to ask specific questions to an AI assistant grounded strictly in the uploaded note's text so that I get accurate explanations without external hallucinations.
-9. **As a user**, I want the site to fall back to a local extractive summary if the external AI API is slow or out of quota so that my study session is never interrupted.
-10. **As a privacy-conscious user**, I want to permanently delete my account and all associated posts and reviews with one click so that I can exercise my right to erasure.
-
----
-
-### 5. AI Feature Proposal (Phase C)
-
-* **Feature:** Grounded Document Q&A Assistant (RAG) + Automated Executive Summarizer.
-* **Model / API:** Google **Gemini API (`gemini-2.5-flash`)** called exclusively from the Python FastAPI backend (`backend/app/ai_service.py`) using the `GEMINI_API_KEY` environment variable.
-* **Data Transmitted & Privacy Guarantees:** Only the public resource title, resource body text (truncated to 4,000 characters), and sanitized user question (capped at 300 characters) are sent to the API. **Zero PII** (no passwords, emails, usernames, or user IDs) is ever transmitted.
-* **Guardrails & Security:**
-* Per-user rate limiting (15 requests/hour) enforced server-side.
-* Regex prompt-injection filter blocks override phrases (e.g., *"ignore previous instructions"*, *"reveal your api key"*).
-* Untrusted document content and user questions are isolated inside `<document_context>` and `<user_question>` XML tags.
-
-
-* **Failure Mode & Graceful Degradation:**
-* All Gemini API requests enforce a strict **4.5-second timeout**.
-* If the external API times out, returns a `429`/`5xx` error, or has no key configured, the backend catches the exception and seamlessly returns a `200 OK` response computed by our deterministic **Local Extractive Fallback Engine** (`degraded: true`), accompanied by a clear UI notice.
-
-
-
----
-
-## Quick Start (Single-Command Docker Compose)
+## Quick Start (`docker compose up`)
 
 ```bash
-git clone [https://github.com/cs26mt010-tech/scholarpulse](https://github.com/cs26mt010-tech/scholarpulse)
-cd scholarpulse
+# 1. Copy environment variables template (works out of the box with no external download)
+cp .env.example .env
+
+# 2. Build and start MySQL 8.0 + FastAPI Backend (auto-runs migrations and seed script)
 docker compose up --build
 
+# 3. Verify stack health and seeded table counts
+curl http://localhost:8000/api/v1/health
 ```
 
-* **Frontend Web App:** `http://localhost:3000`
-* **Backend REST API & Swagger UI:** `http://localhost:8000/docs`
+- **Web UI** (wired to the live API): `http://localhost:8000/`
+- **Endpoint reference**: [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md)
+- **Interactive Swagger UI (OpenAPI)**: `http://localhost:8000/docs`
+- **Raw OpenAPI 3.0.3 YAML**: `http://localhost:8000/api/v1/openapi.yaml`
 
-```
+## Running Tests & RAG Evaluation Offline
 
+```bash
+# Run the integration test suite
+python3 backend/tests/test_ms3_stack.py
+
+# Run the 42-question RAG & Guardrail evaluation benchmark
+python3 scripts/evaluate_rag.py
 ```

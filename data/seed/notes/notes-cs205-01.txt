@@ -1,0 +1,15 @@
+TITLE: Process Scheduling — Summary: CFS, MLFQ & Real-Time Guarantees
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Snehadip Ghoshal, Harshit Pant
+==============================================================================
+
+## 1. Scheduling Metrics: Turnaround Time, Response Time, and Convoy Effect
+CPU schedulers balance Turnaround Time (T_turnaround = T_completion - T_arrival) and Response Time (T_response = T_first_run - T_arrival). First-Come, First-Served (FCFS) suffers from the convoy effect where short I/O-bound tasks queue behind a CPU-bound process. Shortest Remaining Time First (SRTF) is provably optimal for average turnaround time but requires knowing future burst lengths and risks starving long jobs.
+
+## 2. Multi-Level Feedback Queue (MLFQ) Priority Boost Rules
+MLFQ schedules interactive and batch workloads without prior burst knowledge using priority queues with exponentially increasing time quanta. Jobs enter at the highest priority; if a job exhausts its allotment at a level, its priority is reduced. To prevent starvation of CPU-bound jobs and prevent gaming the scheduler, MLFQ tracks total CPU usage per level and periodically boosts all jobs back to the topmost queue after period S.
+
+## 3. Linux Completely Fair Scheduler (CFS) and Red-Black Tree vruntime
+The Linux Completely Fair Scheduler (CFS) models an ideal multitasking CPU using virtual runtime (`vruntime`), which accumulates actual physical execution time weighted inversely by process nice value (`weight_0 / weight_i`). Runnable tasks are indexed by `vruntime` in a self-balancing Red-Black Tree; CFS always dispatches the leftmost node (minimum `vruntime`, cached for O(1) access) and updates tree position in O(log N) time.
+
+## 4. Real-Time Scheduling: Rate Monotonic (RM) vs Earliest Deadline First (EDF)
+For periodic real-time tasks with period T_i and execution time C_i, static-priority Rate Monotonic (RM) scheduling assigns higher priority to shorter periods and guarantees schedulability if total CPU utilization U = sum(C_i / T_i) <= n(2^(1/n) - 1) -> ln(2) approx 69.3%. Dynamic-priority Earliest Deadline First (EDF) is optimal on uniprocessors, achieving schedulability for any task set with U <= 100%.

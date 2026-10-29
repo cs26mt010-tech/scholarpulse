@@ -557,13 +557,13 @@
       <button type="button" class="nav-btn" id="nav-explore" onclick="navigateTo('explore')">Explore</button>
       <button type="button" class="nav-btn" id="nav-collections" onclick="navigateTo('collections')">Collections</button>
       <button type="button" class="nav-btn" id="nav-upload" onclick="navigateTo('upload')">Upload</button>
-      <button type="button" class="nav-btn" id="nav-moderation" onclick="navigateTo('moderation')">Moderation</button>
-      <button type="button" class="nav-btn" id="nav-auth" onclick="navigateTo('auth')">Sign in</button>
+      <button type="button" class="nav-btn" id="nav-moderation" onclick="navigateTo('moderation')" style="display:none;">Moderation</button>
+      <button type="button" class="nav-btn" id="nav-auth" onclick="handleNavAuth()">Sign in</button>
     </nav>
 
     <div class="topbar-right">
-      <span class="conn-pill" id="apiStatusBadge">API Ready (630 resources)</span>
-      <button type="button" class="avatar-btn" id="profileAvatarBtn" onclick="navigateTo('profile')" title="Open My Profile (Sam Green)">SG</button>
+      <span class="conn-pill" id="apiStatusBadge">Connecting to API&hellip;</span>
+      <button type="button" class="avatar-btn" id="profileAvatarBtn" onclick="navigateTo('profile')" title="Open my profile">?</button>
     </div>
   </header>
 
@@ -592,7 +592,7 @@
 
       <div class="sec-head" style="margin-top: 2rem;">
         <h2>Recently added resources</h2>
-        <button type="button" class="link-green" onclick="navigateTo('explore')">View all 630 resources &rarr;</button>
+        <button type="button" class="link-green" id="homeViewAllBtn" onclick="navigateTo('explore')">View all resources &rarr;</button>
       </div>
       <div class="grid-2" id="homeRecentResourcesGrid"></div>
     </section>
@@ -607,25 +607,22 @@
       <p class="page-subtitle">Search trusted notes across courses, topics, and formats.</p>
 
       <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem;">
-        <input type="search" id="exploreSearchInput" class="form-input" style="flex:1; min-width:260px;" placeholder="graph algorithms, dynamic programming, B+Tree, MVCC..." oninput="renderExploreList()" />
-        <select id="exploreSortSelect" class="form-select" style="width:220px;" onchange="renderExploreList()" aria-label="Sort resources">
-          <option value="rating">Sort by: Most relevant (★ Rating)</option>
-          <option value="newest">Sort by: Newest uploaded</option>
+        <input type="search" id="exploreSearchInput" class="form-input" style="flex:1; min-width:260px;" placeholder="graph algorithms, dynamic programming, B+Tree, MVCC..." oninput="debouncedLoadResources()" aria-label="Search resources" />
+        <select id="exploreSortSelect" class="form-select" style="width:220px;" onchange="loadResources(1)" aria-label="Sort resources">
+          <option value="rating">Sort by: Top rated</option>
+          <option value="newest">Sort by: Newest</option>
           <option value="comments">Sort by: Most discussed</option>
         </select>
       </div>
 
       <div class="layout-sidebar-main">
-        <!-- Filters Sidebar -->
         <aside class="card">
           <h3 style="margin:0 0 0.5rem 0; font-size:1rem;">Filters</h3>
 
           <div class="filter-group-title">Course</div>
-          <button type="button" class="filter-opt active" data-course="" onclick="setExploreCourseFilter('')">All Courses</button>
-          <button type="button" class="filter-opt" data-course="CS301" onclick="setExploreCourseFilter('CS301')">CS301 &middot; Algorithms</button>
-          <button type="button" class="filter-opt" data-course="CS205" onclick="setExploreCourseFilter('CS205')">CS205 &middot; OS</button>
-          <button type="button" class="filter-opt" data-course="CS402" onclick="setExploreCourseFilter('CS402')">CS402 &middot; Databases</button>
-          <button type="button" class="filter-opt" data-course="SE101" onclick="setExploreCourseFilter('SE101')">SE101 &middot; Software Eng</button>
+          <div id="courseFilterList">
+            <button type="button" class="filter-opt active" data-course="" onclick="setExploreCourseFilter('')">All Courses</button>
+          </div>
 
           <div class="filter-group-title">Resource Type</div>
           <button type="button" class="filter-opt active" data-rtype="" onclick="setExploreTypeFilter('')">All Types</button>
@@ -634,29 +631,32 @@
           <button type="button" class="filter-opt" data-rtype="assignment" onclick="setExploreTypeFilter('assignment')">Assignments</button>
           <button type="button" class="filter-opt" data-rtype="paper_summary" onclick="setExploreTypeFilter('paper_summary')">arXiv Paper Summaries</button>
 
+          <div class="filter-group-title">Popular tags</div>
+          <div id="tagFilterList">
+            <button type="button" class="filter-opt active" data-tag="" onclick="setExploreTagFilter('')">All Tags</button>
+          </div>
+
           <div class="filter-group-title">Quality</div>
           <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.86rem; font-weight:600; color:var(--green-text); cursor:pointer; padding:0.35rem 0;">
-            <input type="checkbox" id="exploreVerifiedOnly" checked onchange="renderExploreList()" />
+            <input type="checkbox" id="exploreVerifiedOnly" onchange="loadResources(1)" />
             Verified only
           </label>
         </aside>
 
-        <!-- Main Results Column -->
         <div>
           <div style="margin-bottom:0.9rem;">
-            <strong style="font-size:1.1rem;" id="exploreCountLabel">128 resources</strong>
-            <span style="display:block; font-size:0.84rem; color:var(--text-muted);">Curated for your courses</span>
+            <strong style="font-size:1.1rem;" id="exploreCountLabel">Loading&hellip;</strong>
+            <span style="display:block; font-size:0.84rem; color:var(--text-muted);" id="exploreSubLabel"></span>
           </div>
 
-          <!-- Course-Wide AI Box when a course filter is selected -->
           <div id="courseScopeAiBanner" class="card card-green-tint" style="margin-bottom:1rem; display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
               <div>
                 <span class="eyebrow" style="margin:0;">Course-Wide Grounded AI</span>
-                <strong id="courseScopeAiTitle">Ask AI across all resources in CS301</strong>
+                <strong id="courseScopeAiTitle">Ask AI across all resources in this course</strong>
               </div>
               <div style="display:flex; gap:0.5rem; flex:1; min-width:260px;">
-                <input type="text" id="courseAiQuestionInput" class="form-input" placeholder="Compare BFS, Dijkstra, and Bellman-Ford..." />
+                <input type="text" id="courseAiQuestionInput" class="form-input" maxlength="300" placeholder="Compare BFS, Dijkstra, and Bellman-Ford..." onkeydown="if(event.key==='Enter')askCourseScopeAI()" />
                 <button type="button" class="btn btn-green" onclick="askCourseScopeAI()">Ask Course AI</button>
               </div>
             </div>
@@ -664,6 +664,7 @@
           </div>
 
           <div id="exploreResultsContainer"></div>
+          <div id="explorePager" style="display:flex; gap:0.6rem; align-items:center; justify-content:center; margin-top:1rem;"></div>
         </div>
       </div>
     </section>
@@ -673,133 +674,112 @@
     <!-- ===================================================================== -->
     <section id="screen-resource-detail" class="screen" aria-labelledby="detail-res-title">
       <button type="button" class="back-btn" onclick="navigateTo('explore')">&larr; Back</button>
-      <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.3rem;" id="detailBreadcrumb">
-        Explore / CS301 Algorithms / Graph algorithms &mdash; Week 04
-      </div>
+      <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.3rem;" id="detailBreadcrumb"></div>
 
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem;">
         <div>
-          <h1 class="page-title" id="detail-res-title">Graph algorithms &mdash; Week 04</h1>
-          <p style="margin:0.2rem 0 0.65rem 0; color:var(--text-muted); font-size:0.9rem;" id="detailMetaLine">
-            CS301 &middot; Lecture notes &middot; 18 pages &middot; Uploaded by A. Sharma
-          </p>
+          <h1 class="page-title" id="detail-res-title">Resource</h1>
+          <p style="margin:0.2rem 0 0.65rem 0; color:var(--text-muted); font-size:0.9rem;" id="detailMetaLine"></p>
           <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
             <span class="pill pill-green" id="detailVerifiedBadge">Verified source</span>
-            <span class="pill pill-gray" id="detailRatingBadge">&#9733; 4.8 rating</span>
-            <span class="pill pill-blue" id="detailChunksBadge">4 indexed chunks</span>
+            <span class="pill pill-gray" id="detailRatingBadge">&#9733; &ndash;</span>
+            <span class="pill pill-blue" id="detailChunksBadge">0 indexed chunks</span>
           </div>
         </div>
-        <div style="display:flex; gap:0.6rem;">
-          <button type="button" class="btn btn-outline" onclick="rateCurrentResource(5)">&#9733; Rate 5/5</button>
-          <button type="button" class="btn btn-danger-outline" onclick="navigateTo('report-form')">&#9873; Report content</button>
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center;">
+          <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">Rate:</span>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(1)" aria-label="Rate 1 star">1&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(2)" aria-label="Rate 2 stars">2&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(3)" aria-label="Rate 3 stars">3&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(4)" aria-label="Rate 4 stars">4&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(5)" aria-label="Rate 5 stars">5&#9733;</button>
+          <button type="button" class="btn btn-danger-outline" onclick="openReportForm()">&#9873; Report content</button>
+          <button type="button" class="btn btn-danger-outline" id="detailDeleteBtn" style="display:none;" onclick="deleteCurrentResource()">Delete</button>
         </div>
       </div>
 
       <div class="layout-split-detail">
-        <!-- Left Column: Document Preview + Comments -->
         <div>
           <div class="card" style="margin-bottom:1.25rem;">
             <span class="eyebrow" style="color:var(--text-muted);">Document Preview</span>
-            <h2 style="margin:0.25rem 0 1rem 0; font-size:1.35rem;" id="detailPreviewHeading">4. Graph Traversal &amp; Shortest Paths</h2>
+            <h2 style="margin:0.25rem 0 1rem 0; font-size:1.35rem;" id="detailPreviewHeading">Summary</h2>
 
             <div class="card" style="background:#fbfcfa; margin-bottom:0.9rem;">
-              <strong style="display:block; margin-bottom:0.3rem;" id="detailSubhead1">Breadth-first search (BFS)</strong>
-              <p style="margin:0; font-size:0.92rem; color:var(--text-muted);" id="detailParagraph1">
-                BFS explores vertices in increasing distance from the source. It uses a queue and visits each vertex at most once.
-              </p>
+              <strong style="display:block; margin-bottom:0.3rem;">TL;DR</strong>
+              <p style="margin:0; font-size:0.92rem; color:var(--text-muted);" id="detailParagraph1"></p>
             </div>
 
-            <div style="margin-bottom:0.9rem;">
-              <span class="pill pill-green" style="font-size:0.82rem; padding:0.35rem 0.75rem;" id="detailComplexityPill">
-                Time complexity: O(V + E)
-              </span>
-            </div>
+            <div style="margin-bottom:0.9rem; display:flex; gap:0.4rem; flex-wrap:wrap;" id="detailTags"></div>
 
             <div class="card" style="background:#fbfcfa;">
-              <strong style="display:block; margin-bottom:0.3rem;">Key idea &amp; Full Excerpt</strong>
-              <p style="margin:0; font-size:0.9rem; color:var(--text-muted); white-space:pre-line;" id="detailParagraph2">
-                When all edges have equal weight, BFS returns shortest paths by number of edges.
-              </p>
+              <strong style="display:block; margin-bottom:0.3rem;">Full text excerpt</strong>
+              <p style="margin:0; font-size:0.9rem; color:var(--text-muted); white-space:pre-line; max-height:340px; overflow:auto;" id="detailParagraph2"></p>
             </div>
 
-            <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);" id="detailPageFooter">
-              Page 4 of 18 &middot; Grounded in ScholarPulse library
+            <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);" id="detailPageFooter"></div>
+          </div>
+
+          <div class="card" style="margin-bottom:1.25rem;" id="detailAddToCollectionCard">
+            <h3 style="margin:0 0 0.65rem 0; font-size:1.05rem;">Save to a collection</h3>
+            <div style="display:flex; gap:0.5rem;">
+              <select id="detailCollectionSelect" class="form-select" aria-label="Choose one of your collections"></select>
+              <button type="button" class="btn btn-outline" onclick="addCurrentResourceToCollection()">Add</button>
             </div>
           </div>
 
-          <!-- Community Comments Card -->
           <div class="card">
             <h3 style="margin:0 0 0.75rem 0; font-size:1.05rem;">Student Comments &amp; Discussion</h3>
             <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
-              <input type="text" id="newCommentInput" class="form-input" placeholder="Share a revision note or flag an equation..." />
+              <input type="text" id="newCommentInput" class="form-input" maxlength="2000" placeholder="Share a revision note or flag an equation..." onkeydown="if(event.key==='Enter')submitResourceComment()" />
               <button type="button" class="btn btn-green" onclick="submitResourceComment()">Post</button>
             </div>
             <div id="detailCommentsList"></div>
           </div>
         </div>
 
-        <!-- Right Column: ScholarPulse AI Study Assistant (with 3 States in Figma) -->
         <aside class="card">
           <span class="eyebrow">&#10022; ScholarPulse AI</span>
           <h2 style="margin:0.15rem 0 0.25rem 0; font-size:1.3rem;">Ask this document</h2>
           <p style="margin:0 0 0.9rem 0; font-size:0.86rem; color:var(--text-muted);">
-            Answers grounded in the source with numbered citations.
+            Answers grounded in the source with numbered citations. Limit: 300 characters, 20 questions per hour.
           </p>
 
           <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-            <input type="text" id="resourceAiInput" class="form-input" value="Why does BFS find shortest paths?" aria-label="Ask AI about this resource" />
-            <button type="button" class="btn btn-green" onclick="runResourceAiQuery('answered')">Ask</button>
+            <input type="text" id="resourceAiInput" class="form-input" maxlength="300" placeholder="Ask a question about this document..." aria-label="Ask AI about this resource" onkeydown="if(event.key==='Enter')runResourceAiQuery()" />
+            <button type="button" class="btn btn-green" id="resourceAiBtn" onclick="runResourceAiQuery()">Ask</button>
+          </div>
+          <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; cursor:pointer;">
+            <input type="checkbox" id="resourceAiKeywordOnly" /> Keyword search only (skip AI)
+          </label>
+
+          <div id="aiStateIdle" class="card" style="background:#fbfcfa; font-size:0.86rem; color:var(--text-muted);">
+            Ask a question to get an answer with citations from this document.
           </div>
 
-          <!-- STATE A: Grounded Answer with Citations -->
-          <div id="aiStateAnswered" class="ai-box-green" aria-live="polite">
-            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--green-text); margin-bottom:0.35rem;" id="aiAnswerHeader">
-              Answer &middot; 2 Sources
-            </div>
-            <p style="margin:0 0 0.6rem 0; font-size:0.92rem; font-weight:500;" id="aiAnswerText">
-              BFS visits vertices in layers, so the first time a vertex is reached is via the fewest edges from the source.
-            </p>
-            <div id="aiAnswerChips">
-              <span class="cite-chip">[1] Lecture notes, p. 4</span>
-              <span class="cite-chip">[2] Course handout, p. 2</span>
-            </div>
+          <div id="aiStateAnswered" class="ai-box-green" style="display:none;" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--green-text); margin-bottom:0.35rem;" id="aiAnswerHeader">Answer</div>
+            <p style="margin:0 0 0.6rem 0; font-size:0.92rem; font-weight:500;" id="aiAnswerText"></p>
+            <div id="aiAnswerChips"></div>
           </div>
 
-          <!-- STATE B: Screen 10 — Not-Found State ("Not found in this document") -->
           <div id="aiStateNotFound" class="ai-box-amber" style="display:none;" aria-live="polite">
-            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--amber-text); margin-bottom:0.3rem;">
-              Not Found
-            </div>
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--amber-text); margin-bottom:0.3rem;">Not Found</div>
             <strong style="display:block; font-size:0.98rem; margin-bottom:0.25rem;">Not found in this document</strong>
             <p style="margin:0; font-size:0.86rem; color:var(--text-muted);">
               Try a different question or search related resources. The assistant refuses to guess when the answer is absent from the document.
             </p>
           </div>
 
-          <!-- STATE C: Screen 11 — Fallback State ("AI unavailable, showing keyword matches") -->
           <div id="aiStateFallback" class="ai-box-blue" style="display:none;" aria-live="polite">
-            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--blue-text); margin-bottom:0.3rem;">
-              Keyword Matches
-            </div>
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--blue-text); margin-bottom:0.3rem;">Keyword Matches</div>
             <strong style="display:block; font-size:0.98rem; margin-bottom:0.25rem;">AI unavailable, showing keyword matches</strong>
-            <p style="margin:0; font-size:0.86rem; color:var(--text-muted);" id="aiFallbackSubtext">
-              These are document matches from MySQL FULLTEXT search, not an AI-generated answer.
-            </p>
+            <p style="margin:0 0 0.5rem 0; font-size:0.86rem; color:var(--text-muted);" id="aiFallbackSubtext"></p>
+            <p style="margin:0; font-size:0.88rem;" id="aiFallbackAnswer"></p>
           </div>
 
           <div style="margin-top:1.1rem;">
             <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:0.45rem;">Sources</div>
-            <div id="aiSourcesList">
-              <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[1] Lecture notes &middot; page 4</div>
-              <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[2] Course handout &middot; page 2</div>
-            </div>
-          </div>
-
-          <!-- Figma State Switcher Buttons (Exact Match to Video 1 & Video 2) -->
-          <div style="display:flex; gap:0.5rem; margin-top:1rem; flex-wrap:wrap;">
-            <button type="button" class="btn btn-outline" style="flex:1; padding:0.5rem;" onclick="switchAiVisualState('not_found')">Not-found state</button>
-            <button type="button" class="btn btn-outline" style="flex:1; padding:0.5rem;" onclick="switchAiVisualState('fallback')">Fallback state</button>
-            <button type="button" class="btn btn-outline" style="padding:0.5rem 0.75rem;" onclick="switchAiVisualState('answered')">Cited answer</button>
+            <div id="aiSourcesList"><div style="font-size:0.84rem; color:var(--text-muted);">No sources yet.</div></div>
           </div>
         </aside>
       </div>
@@ -819,33 +799,36 @@
         <button type="button" class="btn btn-green" onclick="toggleCreateCollectionModal()">Create collection</button>
       </div>
 
-      <!-- Inline Create Collection Drawer -->
       <div id="createCollectionBox" class="card card-green-tint" style="display:none; margin-bottom:1.25rem;">
         <h3 style="margin:0 0 0.75rem 0; font-size:1.05rem;">Create a new reading list collection</h3>
         <div style="display:grid; grid-template-columns: 1fr 1fr 160px auto; gap:0.65rem; align-items:end;">
           <div>
             <label class="form-label" for="newCollTitle">Collection title</label>
-            <input type="text" id="newCollTitle" class="form-input" placeholder="e.g. Midterm Graph & DP Revision" />
+            <input type="text" id="newCollTitle" class="form-input" maxlength="150" placeholder="e.g. Midterm Graph & DP Revision" />
           </div>
           <div>
             <label class="form-label" for="newCollDesc">Short description</label>
-            <input type="text" id="newCollDesc" class="form-input" placeholder="Core concepts, proofs and worked examples." />
+            <input type="text" id="newCollDesc" class="form-input" maxlength="1000" placeholder="Core concepts, proofs and worked examples." />
           </div>
           <div>
             <label class="form-label" for="newCollCourse">Course</label>
-            <select id="newCollCourse" class="form-select">
-              <option value="CS301">CS301</option>
-              <option value="CS402">CS402</option>
-              <option value="CS205">CS205</option>
-              <option value="SE101">SE101</option>
-            </select>
+            <select id="newCollCourse" class="form-select"></select>
           </div>
           <button type="button" class="btn btn-green" onclick="handleCreateCollection()">Save list</button>
         </div>
+        <div style="display:flex; gap:1.25rem; margin-top:0.75rem; font-size:0.84rem; color:var(--text-muted); flex-wrap:wrap;">
+          <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" id="newCollPublic" checked /> Public</label>
+          <label id="newCollOfficialRow" style="display:none; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" id="newCollOfficial" /> Official TA reading list</label>
+        </div>
       </div>
 
-      <div style="margin-bottom:1.5rem;">
-        <input type="search" id="collectionSearchInput" class="form-input" placeholder="Search your collections..." oninput="renderCollectionsHub()" aria-label="Search your collections" />
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <input type="search" id="collectionSearchInput" class="form-input" style="flex:1; min-width:220px;" placeholder="Search collections..." oninput="renderCollectionsHub()" aria-label="Search collections" />
+        <select id="collectionScopeSelect" class="form-select" style="width:auto;" onchange="loadCollections()" aria-label="Which collections to show">
+          <option value="public">All public collections</option>
+          <option value="official">Official TA lists</option>
+          <option value="mine">My collections</option>
+        </select>
       </div>
 
       <div class="grid-3" id="collectionsHubGrid"></div>
@@ -858,9 +841,12 @@
       <button type="button" class="back-btn" onclick="navigateTo('collections')">&larr; Back</button>
 
       <div class="hero-box">
-        <span class="hero-badge" id="collDetailBadge">Curated Collection</span>
-        <h1 id="coll-detail-title">Algorithms, clearly explained</h1>
-        <p style="margin:0; color:#d0e6dd;" id="collDetailMeta">12 readings &middot; CS301 &middot; Updated this week</p>
+        <span class="hero-badge" id="collDetailBadge">Collection</span>
+        <h1 id="coll-detail-title">Collection</h1>
+        <p style="margin:0; color:#d0e6dd;" id="collDetailMeta"></p>
+        <div style="margin-top:0.85rem;">
+          <button type="button" class="btn btn-outline" id="collDeleteBtn" style="display:none;" onclick="deleteCurrentCollection()">Delete collection</button>
+        </div>
       </div>
 
       <div class="layout-split-detail">
@@ -877,22 +863,13 @@
           </p>
 
           <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-            <input type="text" id="collAiInput" class="form-input" value="Compare BFS and Dijkstra..." aria-label="Ask AI across this collection" />
+            <input type="text" id="collAiInput" class="form-input" maxlength="300" placeholder="Compare two concepts across this list..." aria-label="Ask AI across this collection" onkeydown="if(event.key==='Enter')runCollectionAiQuery()" />
             <button type="button" class="btn btn-green" onclick="runCollectionAiQuery()">Ask</button>
           </div>
 
-          <div class="ai-box-green" id="collAiResultBox" aria-live="polite">
-            <p style="margin:0 0 0.65rem 0; font-size:0.92rem; font-weight:500;" id="collAiAnswerText">
-              BFS is optimal for unweighted graphs; Dijkstra handles non-negative weighted edges using priority-queue relaxation.
-            </p>
-            <div id="collAiChips">
-              <span class="cite-chip">[1] Reading 01, p. 4</span>
-              <span class="cite-chip">[2] Reading 03, p. 6</span>
-            </div>
-          </div>
-
-          <div style="margin-top:1rem;">
-            <button type="button" class="btn btn-outline" onclick="openResourceDetail(1)">Open a resource</button>
+          <div class="ai-box-green" id="collAiResultBox" aria-live="polite" style="display:none;">
+            <p style="margin:0 0 0.65rem 0; font-size:0.92rem; font-weight:500;" id="collAiAnswerText"></p>
+            <div id="collAiChips"></div>
           </div>
         </aside>
       </div>
@@ -910,7 +887,7 @@
       <div class="layout-split-detail">
         <div class="card">
           <span class="eyebrow" style="color:var(--text-muted); margin-bottom:0.6rem;">Select a Document</span>
-          <div class="dropzone">
+          <div class="dropzone" id="uploadDropzone">
             <div style="font-size:1.5rem; color:var(--green-text); margin-bottom:0.35rem;">&uarr;</div>
             <strong style="display:block; font-size:1.02rem; margin-bottom:0.2rem;">Drag your file here, or browse</strong>
             <span style="display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:0.9rem;">PDF or .TXT &middot; Maximum 5 MB (server validated)</span>
@@ -922,27 +899,40 @@
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
             <div>
               <label class="form-label" for="uploadTitleInput">Resource title</label>
-              <input type="text" id="uploadTitleInput" class="form-input" value="Graph algorithms — Week 04" />
+              <input type="text" id="uploadTitleInput" class="form-input" maxlength="200" placeholder="e.g. Graph algorithms — Week 04" />
             </div>
             <div>
               <label class="form-label" for="uploadCourseInput">Course code</label>
-              <select id="uploadCourseInput" class="form-select">
-                <option value="CS301">CS301 — Algorithms</option>
-                <option value="CS402">CS402 — Databases</option>
-                <option value="CS205">CS205 — Operating Systems</option>
-                <option value="SE101">SE101 — Software Engineering</option>
+              <select id="uploadCourseInput" class="form-select"></select>
+            </div>
+            <div>
+              <label class="form-label" for="uploadTypeInput">Resource type</label>
+              <select id="uploadTypeInput" class="form-select">
+                <option value="lecture_notes">Lecture notes</option>
+                <option value="slides">Slides</option>
+                <option value="assignment">Assignment</option>
+                <option value="paper_summary">Paper summary</option>
               </select>
+            </div>
+            <div>
+              <label class="form-label" for="uploadTagsInput">Tags (comma separated)</label>
+              <input type="text" id="uploadTagsInput" class="form-input" placeholder="graphs, bfs, shortest-paths" />
             </div>
           </div>
 
+          <label id="uploadOfficialRow" style="display:none; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted); margin-bottom:0.8rem; cursor:pointer;">
+            <input type="checkbox" id="uploadOfficialInput" />
+            Mark as an official (verified) course resource &mdash; TAs and moderators only.
+          </label>
+
           <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted); margin-bottom:1.1rem; cursor:pointer;">
-            <input type="checkbox" id="uploadRightsConfirm" checked />
+            <input type="checkbox" id="uploadRightsConfirm" />
             I confirm that I have the right to share this study material and it contains no private student data.
           </label>
 
           <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
-            <span class="pill pill-green" id="uploadReadyBadge" style="padding:0.45rem 0.85rem;">PDF &middot; ready to upload</span>
-            <button type="button" class="btn btn-green" onclick="submitUploadForm()">Upload resource</button>
+            <span class="pill pill-gray" id="uploadReadyBadge" style="padding:0.45rem 0.85rem;">No file selected</span>
+            <button type="button" class="btn btn-green" id="uploadSubmitBtn" onclick="submitUploadForm()">Upload resource</button>
           </div>
         </div>
 
@@ -963,42 +953,38 @@
       <button type="button" class="back-btn" onclick="navigateTo('upload')">&larr; Back</button>
       <span class="eyebrow">Upload Status</span>
       <h1 class="page-title" id="upload-status-title">Check your file</h1>
-      <p class="page-subtitle">Review validation feedback before returning to your upload.</p>
+      <p class="page-subtitle">Validation feedback from the server.</p>
 
       <div class="grid-2">
-        <!-- Left Card: Success -->
-        <div class="card">
+        <div class="card" id="uploadSuccessCard" style="display:none;">
           <span class="pill pill-green" style="margin-bottom:0.65rem;">Success</span>
           <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Resource uploaded</h2>
           <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
-            Your notes are now chunked (~800 chars, 100 overlap), embedded, and available to the course community.
+            Your notes are chunked (~800 chars, 100 overlap), embedded, and available to the course community.
           </p>
 
           <div class="res-row-card" style="cursor:default; background:#f8fbf9;">
-            <div class="type-square type-desc type-doc" style="background:#e3f5eb; color:#067647;">PDF</div>
+            <div class="type-square type-doc" id="uploadedTypeBadge">DOC</div>
             <div>
-              <strong style="display:block;" id="uploadedFileNameDisplay">graph-algorithms-week04.pdf</strong>
-              <span style="font-size:0.82rem; color:var(--text-muted);" id="uploadedFileMetaDisplay">2.4 MB &middot; CS301 &middot; Validated &amp; Indexed</span>
+              <strong style="display:block;" id="uploadedFileNameDisplay"></strong>
+              <span style="font-size:0.82rem; color:var(--text-muted);" id="uploadedFileMetaDisplay"></span>
             </div>
           </div>
 
           <div style="display:flex; gap:0.65rem; margin-top:1rem;">
-            <button type="button" class="btn btn-green" onclick="openResourceDetail(state.lastUploadedResourceId || 1)">View resource</button>
-            <button type="button" class="btn btn-outline" onclick="navigateTo('upload')">Back to upload</button>
+            <button type="button" class="btn btn-green" onclick="openResourceDetail(state.lastUploadedResourceId)">View resource</button>
+            <button type="button" class="btn btn-outline" onclick="resetUploadForm(); navigateTo('upload')">Upload another</button>
           </div>
         </div>
 
-        <!-- Right Card: Needs Attention (Validation Error Preview) -->
-        <div class="card">
+        <div class="card" id="uploadErrorCard" style="display:none;">
           <span class="pill pill-red" style="margin-bottom:0.65rem;">Needs Attention</span>
           <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">We couldn't upload this file yet</h2>
-          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
-            Fix the issue below and try again.
-          </p>
+          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">Fix the issue below and try again.</p>
 
           <div class="card" style="background:var(--red-tint); border-color:var(--red-border); margin-bottom:1.15rem;">
-            <strong style="display:block; color:var(--red-text); font-size:0.92rem;">File exceeds size limit or contains no extractable text</strong>
-            <span style="font-size:0.84rem; color:var(--red-text);">Choose a smaller PDF/.txt file with selectable text to continue.</span>
+            <strong style="display:block; color:var(--red-text); font-size:0.92rem;" id="uploadErrorTitle"></strong>
+            <span style="font-size:0.84rem; color:var(--red-text);" id="uploadErrorBody"></span>
           </div>
 
           <button type="button" class="btn btn-green" onclick="navigateTo('upload')">Choose another file</button>
@@ -1026,35 +1012,66 @@
         </div>
 
         <div class="card" style="padding:2rem;">
-          <h2 id="auth-welcome-title" style="margin:0 0 0.25rem 0; font-size:1.5rem;">Welcome back</h2>
-          <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Sign in to continue to ScholarPulse.</p>
+          <!-- Sign in -->
+          <div id="loginPanel">
+            <h2 id="auth-welcome-title" style="margin:0 0 0.25rem 0; font-size:1.5rem;">Welcome back</h2>
+            <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Sign in to continue to ScholarPulse.</p>
 
-          <div class="form-group">
-            <label class="form-label" for="loginEmailInput">University email</label>
-            <input type="email" id="loginEmailInput" class="form-input" value="sam.green@university.edu" placeholder="name@university.edu" />
+            <div class="form-group">
+              <label class="form-label" for="loginEmailInput">University email</label>
+              <input type="email" id="loginEmailInput" class="form-input" placeholder="name@university.edu" autocomplete="username" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loginPasswordInput">Password</label>
+              <input type="password" id="loginPasswordInput" class="form-input" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLoginSubmit()" />
+            </div>
+
+            <div id="loginError" style="display:none; font-size:0.84rem; color:var(--red-text); background:var(--red-tint); border:1px solid var(--red-border); padding:0.6rem 0.75rem; border-radius:8px; margin-bottom:0.85rem;" role="alert"></div>
+
+            <button type="button" class="btn btn-green" style="width:100%; margin-bottom:0.85rem;" onclick="handleLoginSubmit()">Sign in</button>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.85rem;">
+              Seeded demo accounts: <code>sam.green@university.edu</code> (student), <code>snehadip.ghoshal@university.edu</code> (TA), <code>harshit.pant@university.edu</code> (moderator). Password: <code>ScholarPulse!2026</code>
+            </div>
+            <div style="text-align:center; font-size:0.86rem;">
+              New to ScholarPulse? <button type="button" class="link-green" onclick="showAuthPanel('register')">Create account &rarr;</button>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="loginPasswordInput">Password</label>
-            <input type="password" id="loginPasswordInput" class="form-input" value="ScholarPulse!2026" placeholder="Enter your password" />
-          </div>
+          <!-- Register -->
+          <div id="registerPanel" style="display:none;">
+            <h2 style="margin:0 0 0.25rem 0; font-size:1.5rem;">Create your account</h2>
+            <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Use your university email.</p>
 
-          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.84rem; margin-bottom:1.15rem;">
-            <label style="display:flex; align-items:center; gap:0.4rem; color:var(--text-muted); cursor:pointer;">
-              <input type="checkbox" checked /> Remember me on this device
-            </label>
-            <button type="button" class="link-green" onclick="navigateTo('auth-status')">Forgot password?</button>
-          </div>
+            <div class="form-group">
+              <label class="form-label" for="regUsernameInput">Username (3&ndash;50 characters)</label>
+              <input type="text" id="regUsernameInput" class="form-input" maxlength="50" autocomplete="username" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regEmailInput">University email</label>
+              <input type="email" id="regEmailInput" class="form-input" placeholder="name@university.edu" autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPasswordInput">Password (min 8 characters)</label>
+              <input type="password" id="regPasswordInput" class="form-input" autocomplete="new-password" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regBioInput">Short bio (optional)</label>
+              <input type="text" id="regBioInput" class="form-input" maxlength="500" />
+            </div>
 
-          <button type="button" class="btn btn-green" style="width:100%; margin-bottom:0.65rem;" onclick="handleLoginSubmit()">Sign in</button>
-          <button type="button" class="btn btn-outline" style="width:100%; margin-bottom:1rem;" onclick="navigateTo('auth-status')">Continue with Google</button>
+            <div style="font-size:0.82rem; color:var(--text-muted); background:#f8fbf9; padding:0.65rem; border-radius:8px; margin-bottom:0.85rem;">
+              <strong>DPDP Act 2023 Consent Notice:</strong> We collect only your university email, username, and uploaded study notes to provide course library and session authentication services. You can delete your account and all associated data anytime from your Profile.
+              <label style="display:flex; align-items:center; gap:0.4rem; margin-top:0.5rem; cursor:pointer;">
+                <input type="checkbox" id="regConsentInput" /> I accept this notice.
+              </label>
+            </div>
 
-          <div style="font-size:0.82rem; color:var(--text-muted); background:#f8fbf9; padding:0.65rem; border-radius:8px; margin-bottom:0.85rem;">
-            <strong>DPDP Act 2023 Consent Notice:</strong> We collect only your university email, username, and uploaded study notes to provide course library and session authentication services. You can delete your account and all associated data anytime from your Profile.
-          </div>
+            <div id="registerError" style="display:none; font-size:0.84rem; color:var(--red-text); background:var(--red-tint); border:1px solid var(--red-border); padding:0.6rem 0.75rem; border-radius:8px; margin-bottom:0.85rem;" role="alert"></div>
 
-          <div style="text-align:center; font-size:0.86rem;">
-            New to ScholarPulse? <button type="button" class="link-green" onclick="navigateTo('auth-status')">Create account &rarr;</button>
+            <button type="button" class="btn btn-green" style="width:100%; margin-bottom:0.85rem;" onclick="handleRegisterSubmit()">Create account</button>
+            <div style="text-align:center; font-size:0.86rem;">
+              Already registered? <button type="button" class="link-green" onclick="showAuthPanel('login')">Sign in</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1064,41 +1081,19 @@
     <!-- SCREEN 15: ACCOUNT STATUS (YOU'RE ALMOST THERE — ERROR & CREATED)     -->
     <!-- ===================================================================== -->
     <section id="screen-auth-status" class="screen" aria-labelledby="auth-status-title">
-      <button type="button" class="back-btn" onclick="navigateTo('auth')">&larr; Back</button>
       <span class="eyebrow">Account Status</span>
       <h1 class="page-title" id="auth-status-title">You're almost there</h1>
-      <p class="page-subtitle">Prototype states for form validation and account creation.</p>
+      <p class="page-subtitle">Your account was created and you are signed in.</p>
 
-      <div class="grid-2">
-        <!-- Sign-in Error Card -->
-        <div class="card">
-          <span class="pill pill-red" style="margin-bottom:0.65rem;">Sign-in Error</span>
-          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Check your details</h2>
-          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
-            We couldn't sign you in with that email and password. Try again.
-          </p>
-
-          <div class="form-group">
-            <label class="form-label" for="retryEmailInput">University email</label>
-            <input type="email" id="retryEmailInput" class="form-input" style="border-color:var(--red-border); background:var(--red-tint);" value="name@university.edu" />
-            <span style="display:block; font-size:0.78rem; color:var(--red-text); margin-top:0.25rem;">Enter a valid university email.</span>
-          </div>
-
-          <button type="button" class="btn btn-green" onclick="navigateTo('auth')">Try sign in again</button>
-        </div>
-
-        <!-- Account Created Card -->
-        <div class="card">
-          <span class="pill pill-green" style="margin-bottom:0.65rem;">Account Created</span>
-          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Welcome to ScholarPulse</h2>
-          <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">
-            Your workspace is ready. Start by exploring trusted course resources or saving a reading list.
-          </p>
-
-          <div style="display:flex; gap:0.65rem;">
-            <button type="button" class="btn btn-green" onclick="navigateTo('explore')">Explore resources</button>
-            <button type="button" class="btn btn-outline" onclick="navigateTo('profile')">Open my profile</button>
-          </div>
+      <div class="card" style="max-width:560px;">
+        <span class="pill pill-green" style="margin-bottom:0.65rem;">Account Created</span>
+        <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Welcome to ScholarPulse</h2>
+        <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">
+          Your workspace is ready. Start by exploring trusted course resources or saving a reading list.
+        </p>
+        <div style="display:flex; gap:0.65rem;">
+          <button type="button" class="btn btn-green" onclick="navigateTo('explore')">Explore resources</button>
+          <button type="button" class="btn btn-outline" onclick="navigateTo('profile')">Open my profile</button>
         </div>
       </div>
     </section>
@@ -1114,47 +1109,58 @@
 
       <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.75rem;">
         <div style="display:flex; align-items:center; gap:1rem;">
-          <div style="width:60px; height:60px; border-radius:50%; background:var(--green-tint); color:var(--green-text); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.25rem;" id="profileCircleInitials">
-            SG
-          </div>
+          <div style="width:60px; height:60px; border-radius:50%; background:var(--green-tint); color:var(--green-text); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.25rem;" id="profileCircleInitials">?</div>
           <div>
-            <h2 style="margin:0; font-size:1.3rem;" id="profileDisplayName">Sam Green</h2>
-            <p style="margin:0.15rem 0 0.4rem 0; font-size:0.88rem; color:var(--text-muted);" id="profileEmailText">sam.green@university.edu</p>
-            <span class="pill pill-green" id="profileRoleBadge">Student contributor</span>
+            <h2 style="margin:0; font-size:1.3rem;" id="profileDisplayName"></h2>
+            <p style="margin:0.15rem 0 0.4rem 0; font-size:0.88rem; color:var(--text-muted);" id="profileEmailText"></p>
+            <span class="pill pill-green" id="profileRoleBadge"></span>
+            <p style="margin:0.5rem 0 0 0; font-size:0.86rem; color:var(--text-muted);" id="profileBioText"></p>
           </div>
         </div>
         <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
           <button type="button" class="btn btn-outline" onclick="toggleEditProfileBox()">Edit profile</button>
-          <select id="roleSwitchSelect" class="form-select" style="width:auto;" onchange="switchDemoRole(this.value)" aria-label="Switch active role">
-            <option value="student">Role: Student (Sam Green)</option>
-            <option value="ta">Role: TA (Snehadip Ghoshal)</option>
-            <option value="moderator">Role: Moderator (Harshit Pant)</option>
-          </select>
+          <button type="button" class="btn btn-outline" onclick="handleLogout()">Sign out</button>
         </div>
       </div>
 
-      <!-- Inline Edit Profile Drawer -->
       <div id="editProfileDrawer" class="card card-green-tint" style="display:none; margin-bottom:1.5rem;">
-        <h3 style="margin:0 0 0.65rem 0; font-size:1rem;">Update Profile &amp; DPDP Act Account Controls</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end;">
+        <h3 style="margin:0 0 0.65rem 0; font-size:1rem;">Update Profile</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end; margin-bottom:1.25rem;">
           <div>
-            <label class="form-label" for="editUsernameInput">Display name / username</label>
-            <input type="text" id="editUsernameInput" class="form-input" value="Sam Green" />
+            <label class="form-label" for="editUsernameInput">Username</label>
+            <input type="text" id="editUsernameInput" class="form-input" maxlength="50" />
           </div>
           <div>
             <label class="form-label" for="editBioInput">Academic bio</label>
-            <input type="text" id="editBioInput" class="form-input" value="Student contributor focusing on Graph Algorithms and Operating Systems." />
+            <input type="text" id="editBioInput" class="form-input" maxlength="500" />
           </div>
           <button type="button" class="btn btn-green" onclick="saveProfileEdits()">Save changes</button>
         </div>
+
+        <h3 style="margin:0 0 0.65rem 0; font-size:1rem;">Change password</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end; margin-bottom:1.25rem;">
+          <div>
+            <label class="form-label" for="currentPasswordInput">Current password</label>
+            <input type="password" id="currentPasswordInput" class="form-input" autocomplete="current-password" />
+          </div>
+          <div>
+            <label class="form-label" for="newPasswordInput">New password (min 8)</label>
+            <input type="password" id="newPasswordInput" class="form-input" autocomplete="new-password" />
+          </div>
+          <button type="button" class="btn btn-outline" onclick="changePassword()">Update password</button>
+        </div>
+
+        <h3 style="margin:0 0 0.4rem 0; font-size:1rem;">DPDP Act 2023 &mdash; delete my data</h3>
+        <p style="margin:0 0 0.6rem 0; font-size:0.84rem; color:var(--text-muted);">Permanently deletes your account, uploads, ratings, comments, collections and AI query history.</p>
+        <button type="button" class="btn btn-danger" onclick="deleteMyAccount()">Delete my account</button>
       </div>
 
       <h2 style="font-size:1.15rem; margin:0 0 0.85rem 0;">My uploads</h2>
       <div class="grid-2" id="profileUploadsGrid" style="margin-bottom:1.75rem;"></div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:0.85rem;">
-        <h2 style="font-size:1.15rem; margin:0;">Saved collections</h2>
-        <button type="button" class="btn btn-outline" onclick="navigateTo('moderation')">Open moderation queue</button>
+        <h2 style="font-size:1.15rem; margin:0;">My collections</h2>
+        <button type="button" class="btn btn-outline" id="profileModerationBtn" style="display:none;" onclick="navigateTo('moderation')">Open moderation queue</button>
       </div>
       <div class="grid-2" id="profileCollectionsGrid"></div>
     </section>
@@ -1171,34 +1177,24 @@
         <p class="page-subtitle">Tell our moderation team what needs a closer look.</p>
 
         <div class="card" style="background:#f8fbf9; margin-bottom:1.15rem;">
-          <span class="eyebrow" style="color:var(--text-muted);">Reported Resource</span>
-          <strong style="display:block; font-size:1.02rem;" id="reportTargetTitle">Graph algorithms &mdash; Week 04</strong>
-          <span style="font-size:0.84rem; color:var(--text-muted);">CS301 &middot; Lecture notes &middot; A. Sharma</span>
+          <span class="eyebrow" style="color:var(--text-muted);" id="reportTargetKind">Reported Resource</span>
+          <strong style="display:block; font-size:1.02rem;" id="reportTargetTitle"></strong>
+          <span style="font-size:0.84rem; color:var(--text-muted);" id="reportTargetMeta"></span>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="reportReasonSelect">Reason for report</label>
-          <select id="reportReasonSelect" class="form-select" style="margin-bottom:0.65rem;">
+          <select id="reportReasonSelect" class="form-select">
             <option value="incorrect_or_misleading">Incorrect or misleading information</option>
             <option value="copyright_concern">Copyright or privacy concern</option>
             <option value="low_quality_or_spam">Low-quality content or spam</option>
+            <option value="inappropriate_content">Inappropriate content</option>
           </select>
-
-          <div class="card" style="padding:0.75rem 1rem;">
-            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; font-weight:600; margin-bottom:0.45rem; cursor:pointer;">
-              <input type="radio" name="reportReasonRadio" value="incorrect_or_misleading" checked onchange="document.getElementById('reportReasonSelect').value=this.value" />
-              Incorrect or misleading information
-            </label>
-            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; color:var(--text-muted); cursor:pointer;">
-              <input type="radio" name="reportReasonRadio" value="copyright_concern" onchange="document.getElementById('reportReasonSelect').value=this.value" />
-              Copyright or privacy concern
-            </label>
-          </div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="reportDetailsInput">Additional details (optional)</label>
-          <textarea id="reportDetailsInput" class="form-textarea" rows="3" placeholder="Describe the issue for the reviewer...">The complexity stated in section 4 may be incorrect.</textarea>
+          <textarea id="reportDetailsInput" class="form-textarea" rows="3" maxlength="1000" placeholder="Describe the issue for the reviewer..."></textarea>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem;">
@@ -1220,39 +1216,39 @@
       <h1 class="page-title" id="moderation-title">Moderation queue</h1>
       <p class="page-subtitle">Review reported resources and take clear, auditable actions.</p>
 
-      <div style="display:flex; gap:0.65rem; flex-wrap:wrap; margin-bottom:1.25rem;">
-        <span class="pill pill-amber" style="padding:0.4rem 0.85rem;" id="modOpenCountBadge">4 OPEN REPORTS</span>
-        <span class="pill pill-gray" style="padding:0.4rem 0.85rem;">2 UNDER REVIEW</span>
-        <span class="pill pill-green" style="padding:0.4rem 0.85rem;" id="modResolvedCountBadge">12 RESOLVED</span>
+      <div style="display:flex; gap:0.65rem; flex-wrap:wrap; margin-bottom:1.25rem; align-items:center;">
+        <span class="pill pill-amber" style="padding:0.4rem 0.85rem;" id="modOpenCountBadge">0 OPEN</span>
+        <span class="pill pill-gray" style="padding:0.4rem 0.85rem;" id="modDismissedCountBadge">0 DISMISSED</span>
+        <span class="pill pill-green" style="padding:0.4rem 0.85rem;" id="modResolvedCountBadge">0 RESOLVED</span>
+        <select id="modStatusFilter" class="form-select" style="width:auto; margin-left:auto;" onchange="loadModeration()" aria-label="Filter reports by status">
+          <option value="">All reports</option>
+          <option value="open">Open</option>
+          <option value="resolved">Resolved</option>
+          <option value="dismissed">Dismissed</option>
+        </select>
       </div>
 
       <div class="layout-split-detail">
-        <!-- Left List: Reported Content -->
         <div class="card">
           <h2 style="margin:0 0 0.85rem 0; font-size:1.15rem;">Reported content</h2>
           <div id="moderationReportsList"></div>
         </div>
 
-        <!-- Right Panel: Selected Report Action Card -->
         <aside class="card">
-          <span class="eyebrow" id="selectedReportEyebrow">Selected Report &middot; #RP-204</span>
-          <h2 style="margin:0.2rem 0 0.35rem 0; font-size:1.4rem;" id="selectedReportReason">Incorrect or misleading</h2>
-          <p style="margin:0 0 0.85rem 0; font-size:0.9rem; color:var(--text-muted);" id="selectedReportTarget">
-            Graph algorithms &mdash; Week 04
-          </p>
+          <span class="eyebrow" id="selectedReportEyebrow">Selected Report</span>
+          <h2 style="margin:0.2rem 0 0.35rem 0; font-size:1.4rem;" id="selectedReportReason">No report selected</h2>
+          <p style="margin:0 0 0.85rem 0; font-size:0.9rem; color:var(--text-muted);" id="selectedReportTarget"></p>
 
           <div class="card" style="background:#fbfcfa; margin-bottom:1.25rem;">
-            <p style="margin:0; font-size:0.9rem; color:var(--text-muted); font-style:italic;" id="selectedReportQuote">
-              "The complexity stated in section 4 may be incorrect."
-            </p>
+            <p style="margin:0; font-size:0.9rem; color:var(--text-muted); font-style:italic;" id="selectedReportQuote"></p>
           </div>
 
           <div style="font-size:0.84rem; font-weight:700; margin-bottom:0.6rem;">Choose an action</div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.65rem;">
-            <button type="button" class="btn btn-outline" onclick="navigateTo('review-confirm')">Hide resource</button>
-            <button type="button" class="btn btn-green" onclick="applyModerationAction('restore')">Restore resource</button>
-            <button type="button" class="btn btn-danger" onclick="navigateTo('review-confirm')">Remove permanently</button>
-            <button type="button" class="btn btn-outline" onclick="applyModerationAction('dismiss')">Dismiss report</button>
+            <button type="button" class="btn btn-outline" onclick="startModerationAction('hide')">Hide</button>
+            <button type="button" class="btn btn-green" onclick="startModerationAction('restore')">Restore</button>
+            <button type="button" class="btn btn-danger" onclick="startModerationAction('remove')">Remove permanently</button>
+            <button type="button" class="btn btn-outline" onclick="startModerationAction('dismiss')">Dismiss report</button>
           </div>
         </aside>
       </div>
@@ -1264,21 +1260,17 @@
     <section id="screen-review-confirm" class="screen" aria-labelledby="review-confirm-title">
       <button type="button" class="back-btn" onclick="navigateTo('moderation')">&larr; Back</button>
       <span class="eyebrow">Trust &amp; Safety</span>
-      <h1 class="page-title" id="review-confirm-title">Review report #RP-204</h1>
+      <h1 class="page-title" id="review-confirm-title">Review report</h1>
       <p class="page-subtitle">Review the evidence and confirm the appropriate action.</p>
 
       <div class="layout-split-detail">
         <div class="card">
-          <span class="pill pill-amber" style="margin-bottom:0.65rem;">Open Report</span>
-          <h2 style="margin:0 0 0.35rem 0; font-size:1.4rem;" id="confirmReportReasonTitle">Incorrect or misleading information</h2>
-          <p style="margin:0 0 0.85rem 0; font-size:0.92rem; color:var(--text-muted);" id="confirmReportTargetTitle">
-            Graph algorithms &mdash; Week 04
-          </p>
+          <span class="pill pill-amber" style="margin-bottom:0.65rem;" id="confirmReportStatusPill">Open Report</span>
+          <h2 style="margin:0 0 0.35rem 0; font-size:1.4rem;" id="confirmReportReasonTitle"></h2>
+          <p style="margin:0 0 0.85rem 0; font-size:0.92rem; color:var(--text-muted);" id="confirmReportTargetTitle"></p>
 
           <div class="card" style="background:#fbfcfa; margin-bottom:1.15rem;">
-            <p style="margin:0; font-size:0.9rem; color:var(--text-muted);" id="confirmReportQuoteText">
-              "The complexity stated in section 4 may be incorrect."
-            </p>
+            <p style="margin:0; font-size:0.9rem; color:var(--text-muted);" id="confirmReportQuoteText"></p>
           </div>
 
           <h3 style="font-size:0.92rem; margin:0 0 0.5rem 0;">Review checklist</h3>
@@ -1287,17 +1279,18 @@
         </div>
 
         <aside class="card">
-          <span class="pill pill-red" style="margin-bottom:0.65rem;">Destructive Action</span>
-          <h2 style="margin:0 0 0.35rem 0; font-size:1.35rem;">Remove this resource?</h2>
-          <p style="margin:0 0 1.15rem 0; font-size:0.9rem; color:var(--text-muted);">
-            This removes the resource from the library and excludes it from AI retrieval. Confirm only after review.
-          </p>
+          <span class="pill pill-red" style="margin-bottom:0.65rem;" id="confirmActionPill">Action</span>
+          <h2 style="margin:0 0 0.35rem 0; font-size:1.35rem;" id="confirmActionTitle">Confirm action</h2>
+          <p style="margin:0 0 1.15rem 0; font-size:0.9rem; color:var(--text-muted);" id="confirmActionDescription"></p>
 
-          <div style="display:flex; flex-direction:column; gap:0.6rem;">
-            <button type="button" class="btn btn-outline" onclick="applyModerationAction('hide')">Hide resource</button>
-            <button type="button" class="btn btn-green" onclick="applyModerationAction('restore')">Restore resource</button>
-            <button type="button" class="btn btn-danger" onclick="applyModerationAction('remove')">Remove permanently</button>
-            <button type="button" class="btn btn-outline" onclick="applyModerationAction('dismiss')">Dismiss report</button>
+          <div class="form-group">
+            <label class="form-label" for="moderationNoteInput">Audit note (optional)</label>
+            <textarea id="moderationNoteInput" class="form-textarea" rows="2" maxlength="500" placeholder="Why are you taking this action?"></textarea>
+          </div>
+
+          <div style="display:flex; gap:0.6rem;">
+            <button type="button" class="btn btn-outline" onclick="navigateTo('moderation')">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmActionBtn" onclick="applyModerationAction()">Confirm</button>
           </div>
         </aside>
       </div>
@@ -1308,895 +1301,1232 @@
   <div id="toastBanner" role="status" aria-live="polite"></div>
 
   <!-- ======================================================================= -->
-  <!-- APPLICATION LOGIC & LIVE BACKEND API INTEGRATION (`/api/v1/*`)          -->
+  <!-- APPLICATION LOGIC — LIVE BACKEND INTEGRATION (`/api/v1/*`)               -->
+  <!-- Every screen reads/writes through the REST API documented in            -->
+  <!-- docs/API_ENDPOINTS.md. No mock data: the page is served by FastAPI at   -->
+  <!-- `/` so all calls are same-origin (cookie session + X-CSRF-Token).       -->
   <!-- ======================================================================= -->
   <script>
-    const state = {
-      apiAvailable: false,
-      csrfToken: "",
-      currentUser: {
-        id: 7,
-        username: "Sam Green",
-        email: "sam.green@university.edu",
-        role: "student",
-        initials: "SG"
-      },
-      exploreCourseFilter: "",
-      exploreTypeFilter: "",
-      selectedResourceId: 1,
-      selectedCollectionId: 1,
-      selectedReportId: 204,
-      lastUploadedResourceId: 1,
-      collections: [
-        {
-          id: 1,
-          title: "Algorithms, clearly explained",
-          description: "Core concepts, proofs and worked examples.",
-          course_code: "CS301",
-          item_count: 12,
-          is_official: true,
-          theme: "green"
-        },
-        {
-          id: 2,
-          title: "Systems & architecture",
-          description: "Processes, memory and distributed systems.",
-          course_code: "CS205",
-          item_count: 8,
-          is_official: true,
-          theme: "amber"
-        },
-        {
-          id: 3,
-          title: "Exam-ready mathematics",
-          description: "Probability, combinatorics and linear algebra.",
-          course_code: "CS301",
-          item_count: 15,
-          is_official: true,
-          theme: "blue"
-        },
-        {
-          id: 4,
-          title: "Machine learning foundations",
-          description: "Models, metrics, and evaluation.",
-          course_code: "CS402",
-          item_count: 9,
-          is_official: true,
-          theme: "green"
-        },
-        {
-          id: 5,
-          title: "Interview revision",
-          description: "DSA patterns and concise explanations.",
-          course_code: "CS301",
-          item_count: 21,
-          is_official: false,
-          theme: "amber"
-        },
-        {
-          id: 6,
-          title: "Research methods",
-          description: "Reading papers and evaluating evidence.",
-          course_code: "SE101",
-          item_count: 6,
-          is_official: false,
-          theme: "blue"
-        }
-      ],
-      resources: [
-        {
-          id: 1,
-          title: "Graph algorithms — Week 04",
-          course_code: "CS301",
-          resource_type: "lecture_notes",
-          badge_code: "PDF",
-          pages_label: "18 pages · Updated 2 days ago",
-          uploader_username: "A. Sharma",
-          is_official: true,
-          avg_rating: 4.8,
-          rating_count: 14,
-          chunk_count: 5,
-          tldr_summary: "Covers Breadth-First Search (BFS) layer-by-layer traversal in O(V+E), DFS timestamps, and shortest paths.",
-          content_text: "Breadth-First Search (BFS) explores vertices in increasing distance layers from a designated source vertex s. It maintains a First-In-First-Out (FIFO) queue Q. When all edges have equal unit weight, BFS guarantees shortest paths in O(V + E) time and builds a breadth-first predecessor tree.",
-          comments: [
-            { id: 1, username: "sam_green", body: "Section 4's explanation of BFS level-order queue invariants really helped me for the CS301 midterm!", created_at: "2 days ago" },
-            { id: 2, username: "ananya_verma", body: "Verified the O(V + E) aggregate adjacency list proof against CLRS 4th Edition.", created_at: "Yesterday" }
-          ]
-        },
-        {
-          id: 2,
-          title: "Dynamic programming patterns",
-          course_code: "CS301",
-          resource_type: "slides",
-          badge_code: "SL",
-          pages_label: "32 slides · Updated 1 week ago",
-          uploader_username: "Harshit Pant",
-          is_official: true,
-          avg_rating: 4.6,
-          rating_count: 11,
-          chunk_count: 4,
-          tldr_summary: "Optimal substructure, overlapping subproblems, LCS with Hirschberg linear-space reduction, and 0/1 Knapsack FPTAS.",
-          content_text: "Dynamic Programming (DP) applies when a problem exhibits both optimal substructure and overlapping subproblems. Hirschberg's divide-and-conquer algorithm reconstructs the full Longest Common Subsequence alignment in Theta(mn) time and Theta(m + n) linear space.",
-          comments: [
-            { id: 3, username: "rohan_iyer", body: "Hirschberg's space reduction diagram on slide 14 is super clear.", created_at: "3 days ago" }
-          ]
-        },
-        {
-          id: 3,
-          title: "Process scheduling — summary",
-          course_code: "CS205",
-          resource_type: "lecture_notes",
-          badge_code: "DOC",
-          pages_label: "9 pages · Updated yesterday",
-          uploader_username: "Snehadip Ghoshal",
-          is_official: true,
-          avg_rating: 4.9,
-          rating_count: 19,
-          chunk_count: 4,
-          tldr_summary: "Linux Completely Fair Scheduler (CFS) vruntime red-black tree, MLFQ priority boosts, and EDF real-time bounds.",
-          content_text: "The Linux Completely Fair Scheduler (CFS) models an ideal multitasking CPU using virtual runtime (vruntime) weighted inversely by process nice value. Runnable tasks are indexed by vruntime in a self-balancing Red-Black Tree; CFS dispatches the leftmost node in O(1) cached time.",
-          comments: []
-        },
-        {
-          id: 4,
-          title: "Greedy algorithms and proof strategy",
-          course_code: "CS301",
-          resource_type: "lecture_notes",
-          badge_code: "PDF",
-          pages_label: "12 pages · Verified",
-          uploader_username: "A. Sharma",
-          is_official: true,
-          avg_rating: 4.7,
-          rating_count: 10,
-          chunk_count: 4,
-          tldr_summary: "Exchange arguments, activity selection, Huffman prefix-free coding, Kruskal/Prim MST cut property, and matroids.",
-          content_text: "In an exchange argument, we start with an arbitrary optimal solution O* that differs from the greedy schedule G, swap one element in O* for the greedy choice without worsening the objective, and inductively transform O* into G.",
-          comments: []
-        },
-        {
-          id: 5,
-          title: "Trees, traversals and invariants",
-          course_code: "CS301",
-          resource_type: "lecture_notes",
-          badge_code: "DOC",
-          pages_label: "9 pages · Verified",
-          uploader_username: "Snehadip Ghoshal",
-          is_official: true,
-          avg_rating: 4.8,
-          rating_count: 12,
-          chunk_count: 4,
-          tldr_summary: "Red-Black Tree five invariants, 2 log2(n+1) height bound, O(1) rotations, and potential method amortized analysis.",
-          content_text: "A Red-Black Tree satisfies five invariants ensuring that no simple path from the root to a leaf is more than twice as long as any other, bounding height by 2 log2(n + 1) and guaranteeing O(log n) search, insert, and delete with at most 3 rotations on deletion.",
-          comments: []
-        },
-        {
-          id: 6,
-          title: "B+Tree Indexing & MySQL FULLTEXT Search",
-          course_code: "CS402",
-          resource_type: "lecture_notes",
-          badge_code: "PDF",
-          pages_label: "14 pages · Verified",
-          uploader_username: "Harshit Pant",
-          is_official: true,
-          avg_rating: 4.9,
-          rating_count: 16,
-          chunk_count: 5,
-          tldr_summary: "B+Tree internal routing keys, doubly linked leaf pages, leftmost prefix rule, and MySQL InnoDB FULLTEXT inverted indexes.",
-          content_text: "A composite B+Tree index on (category_id, status, avg_rating) sorts keys lexicographically. When Gemini AI is slow or out of quota, ScholarPulse uses a MySQL InnoDB FULLTEXT index over resource_chunks(chunk_text) as its deterministic keyword fallback.",
-          comments: []
-        },
-        {
-          id: 7,
-          title: "Web Security: Argon2id, Session Cookies & CSRF",
-          course_code: "SE101",
-          resource_type: "lecture_notes",
-          badge_code: "PDF",
-          pages_label: "11 pages · Verified",
-          uploader_username: "G. V. Siva krishna",
-          is_official: true,
-          avg_rating: 4.8,
-          rating_count: 13,
-          chunk_count: 4,
-          tldr_summary: "Salted Argon2id memory-hard password hashes, HttpOnly SameSite=Lax cookies, X-CSRF-Token protection, and DPDP Act 2023.",
-          content_text: "ScholarPulse hashes passwords with salted Argon2id (64 MiB memory cost) and stores sessions in HttpOnly, SameSite=Lax cookies protected by an HMAC-SHA256 synchronizer X-CSRF-Token header on all state-changing requests.",
-          comments: []
-        }
-      ],
-      reports: [
-        {
-          id: 204,
-          code: "#RP-204",
-          reason_title: "Incorrect or misleading",
-          target_title: "Graph algorithms — Week 04",
-          target_id: 1,
-          quote: "The complexity stated in section 4 may be incorrect.",
-          status: "Open",
-          pill_class: "pill-amber"
-        },
-        {
-          id: 203,
-          code: "#RP-203",
-          reason_title: "Copyright concern",
-          target_title: "Process scheduling — summary",
-          target_id: 3,
-          quote: "Please verify if the CFS Red-Black tree diagram is adapted from a textbook.",
-          status: "Open",
-          pill_class: "pill-amber"
-        },
-        {
-          id: 202,
-          code: "#RP-202",
-          reason_title: "Low-quality content",
-          target_title: "Sorting revision notes",
-          target_id: 2,
-          quote: "Contains an adversarial prompt injection test block in Section 3.",
-          status: "Reviewing",
-          pill_class: "pill-amber"
-        },
-        {
-          id: 201,
-          code: "#RP-201",
-          reason_title: "Incorrect course tag",
-          target_title: "Discrete math — worksheet",
-          target_id: 4,
-          quote: "Tagged as CS402 instead of CS301.",
-          status: "Resolved",
-          pill_class: "pill-green"
-        }
-      ]
+    "use strict";
+
+    // ---------------------------------------------------------------------
+    // Constants & global state
+    // ---------------------------------------------------------------------
+    const API = "/api/v1";
+    const PAGE_SIZE = 15;
+
+    const TYPE_LABELS = {
+      lecture_notes: "Lecture notes",
+      slides: "Slides",
+      assignment: "Assignment",
+      paper_summary: "Paper summary"
+    };
+    const TYPE_BADGES = {
+      lecture_notes: ["NOTES", "type-pdf"],
+      slides: ["SL", "type-sl"],
+      assignment: ["HW", "type-pdf"],
+      paper_summary: ["ARX", "type-doc"]
+    };
+    const ROLE_LABELS = {
+      student: "Student contributor",
+      ta: "Teaching Assistant (Official List Publisher)",
+      moderator: "Trust & Safety Moderator"
+    };
+    const REASON_LABELS = {
+      incorrect_or_misleading: "Incorrect or misleading",
+      copyright_concern: "Copyright or privacy concern",
+      low_quality_or_spam: "Low-quality content or spam",
+      inappropriate_content: "Inappropriate content"
+    };
+    const MOD_ACTIONS = {
+      hide:    { pill: "Reversible", title: "Hide this content?", btn: "Hide", cls: "btn-outline",
+                 text: "Hidden content disappears from browse, search and AI retrieval. You can restore it later." },
+      restore: { pill: "Reversible", title: "Restore this content?", btn: "Restore", cls: "btn-green",
+                 text: "The content becomes visible again and is eligible for AI retrieval." },
+      remove:  { pill: "Destructive Action", title: "Permanently remove this content?", btn: "Remove permanently", cls: "btn-danger",
+                 text: "This removes the content from the library and excludes it from AI retrieval. Confirm only after review." },
+      dismiss: { pill: "No content change", title: "Dismiss this report?", btn: "Dismiss report", cls: "btn-outline",
+                 text: "The report is closed and the reported content is left untouched." }
     };
 
-    function showToast(msg) {
-      const el = document.getElementById("toastBanner");
+    const state = {
+      user: null,              // signed-in user (from /auth/login, /auth/register or /auth/me)
+      csrfToken: "",
+      categories: [],
+      filters: { course: "", type: "", tag: "" },
+      page: 1,
+      exploreLoaded: false,
+      exploreDirty: true,
+      listToken: 0,            // guards against out-of-order explore responses
+      collections: [],
+      currentResource: null,
+      currentComments: [],
+      currentCollection: null,
+      myCollections: [],
+      reportTarget: null,      // { type, id, title, meta }
+      reports: [],
+      selectedReportId: null,
+      pendingModAction: null,
+      lastUploadedResourceId: null,
+      uploadFile: null
+    };
+
+    // ---------------------------------------------------------------------
+    // Small helpers
+    // ---------------------------------------------------------------------
+    const $ = (id) => document.getElementById(id);
+    const decodeBox = document.createElement("textarea");
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (ch) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+    // The backend stores user text HTML-escaped; decode once, then escape for display.
+    function fmt(s) {
+      decodeBox.innerHTML = String(s == null ? "" : s);
+      return esc(decodeBox.value);
+    }
+    function fmtDate(s) { return s ? String(s).slice(0, 10) : ""; }
+    function isModerator() { return !!state.user && state.user.role === "moderator"; }
+    function canPublishOfficial() { return !!state.user && (state.user.role === "ta" || state.user.role === "moderator"); }
+
+    function showToast(msg, isError) {
+      const el = $("toastBanner");
       el.textContent = msg;
+      el.style.background = isError ? "#8a1c14" : "#112a20";
       el.style.display = "block";
       clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 3200);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 4200);
     }
 
-    // Navigation across all 15 Figma prototype screens
+    // ---------------------------------------------------------------------
+    // API client
+    // ---------------------------------------------------------------------
+    class ApiError extends Error {
+      constructor(status, code, message) {
+        super(message);
+        this.status = status;
+        this.code = code;
+      }
+    }
+
+    function parseErrorBody(status, data) {
+      let code = "HTTP_" + status;
+      let message = "Request failed (" + status + ").";
+      if (data && data.detail !== undefined) {
+        const d = data.detail;
+        if (typeof d === "string") {
+          message = d;
+        } else if (Array.isArray(d)) {                       // FastAPI 422 validation errors
+          code = "VALIDATION_ERROR";
+          message = d.map((x) => {
+            const field = Array.isArray(x.loc) ? x.loc.filter((p) => p !== "body").join(".") : "";
+            return (field ? field + ": " : "") + x.msg;
+          }).join("; ");
+        } else if (d && typeof d === "object") {             // { error, message }
+          code = d.error || code;
+          message = d.message || message;
+        }
+      } else if (data && data.message) {
+        code = data.error || code;
+        message = data.message;
+      }
+      return new ApiError(status, code, message);
+    }
+
+    /**
+     * api(path, { method, query, body, form })
+     *  - same-origin fetch with the sp_session cookie
+     *  - JSON body, or FormData for multipart uploads
+     *  - X-CSRF-Token attached automatically on state-changing requests
+     *  - resolves with parsed JSON; rejects with ApiError
+     */
+    async function api(path, opts) {
+      opts = opts || {};
+      const method = (opts.method || "GET").toUpperCase();
+      const headers = { "Accept": "application/json" };
+      const init = { method, headers, credentials: "same-origin" };
+
+      if (method !== "GET" && state.csrfToken) headers["X-CSRF-Token"] = state.csrfToken;
+      if (opts.form) {
+        init.body = opts.form;                               // browser sets multipart boundary
+      } else if (opts.body !== undefined) {
+        headers["Content-Type"] = "application/json";
+        init.body = JSON.stringify(opts.body);
+      }
+
+      let url = API + path;
+      if (opts.query) {
+        const qs = new URLSearchParams();
+        Object.keys(opts.query).forEach((k) => {
+          const v = opts.query[k];
+          if (v !== "" && v !== null && v !== undefined && v !== false) qs.set(k, String(v));
+        });
+        const s = qs.toString();
+        if (s) url += "?" + s;
+      }
+
+      let res;
+      try {
+        res = await fetch(url, init);
+      } catch (e) {
+        throw new ApiError(0, "NETWORK_ERROR", "Cannot reach the ScholarPulse server. Is the backend running?");
+      }
+
+      const text = await res.text();
+      let data = null;
+      if (text) { try { data = JSON.parse(text); } catch (e) { data = null; } }
+
+      if (!res.ok) {
+        const err = parseErrorBody(res.status, data);
+        if (res.status === 401 && !opts.silent401 && state.user) {
+          // Session expired or cookie cleared: drop local auth state.
+          state.user = null;
+          state.csrfToken = "";
+          updateAuthUI();
+        }
+        throw err;
+      }
+      return data;
+    }
+
+    function handleError(e, prefix) {
+      if (e && e.status === 401) {
+        showToast("Please sign in to continue.", true);
+        navigateTo("auth");
+        return;
+      }
+      showToast((prefix ? prefix + ": " : "") + (e && e.message ? e.message : "Something went wrong."), true);
+    }
+
+    function requireLogin(msg) {
+      if (state.user) return true;
+      showToast(msg || "Please sign in to do that.", true);
+      navigateTo("auth");
+      return false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Navigation
+    // ---------------------------------------------------------------------
+    const NAV_MAP = {
+      "home": "nav-home",
+      "explore": "nav-explore",
+      "resource-detail": "nav-explore",
+      "report-form": "nav-explore",
+      "collections": "nav-collections",
+      "collection-detail": "nav-collections",
+      "upload": "nav-upload",
+      "upload-status": "nav-upload",
+      "moderation": "nav-moderation",
+      "review-confirm": "nav-moderation",
+      "auth": "nav-auth",
+      "auth-status": "nav-auth"
+    };
+
     function navigateTo(screenId) {
-      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-      const target = document.getElementById("screen-" + screenId);
+      if ((screenId === "upload" || screenId === "profile") && !state.user) {
+        showToast("Please sign in first.", true);
+        screenId = "auth";
+      }
+      if ((screenId === "moderation" || screenId === "review-confirm") && !isModerator()) {
+        showToast("Moderator role required.", true);
+        screenId = state.user ? "home" : "auth";
+      }
+
+      document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+      const target = $("screen-" + screenId);
       if (target) target.classList.add("active");
 
-      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-      const navMap = {
-        "home": "nav-home",
-        "explore": "nav-explore",
-        "resource-detail": "nav-explore",
-        "report-form": "nav-explore",
-        "collections": "nav-collections",
-        "collection-detail": "nav-collections",
-        "upload": "nav-upload",
-        "upload-status": "nav-upload",
-        "moderation": "nav-moderation",
-        "review-confirm": "nav-moderation",
-        "auth": "nav-auth",
-        "auth-status": "nav-auth"
-      };
-      const navBtnId = navMap[screenId];
-      if (navBtnId && document.getElementById(navBtnId)) {
-        document.getElementById(navBtnId).classList.add("active");
-      }
+      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+      const navBtn = $(NAV_MAP[screenId]);
+      if (navBtn) navBtn.classList.add("active");
+
+      // Per-screen data loaders
+      if (screenId === "home") loadHome();
+      else if (screenId === "explore") { if (!state.exploreLoaded || state.exploreDirty) loadResources(state.page); }
+      else if (screenId === "collections") loadCollections();
+      else if (screenId === "profile") loadProfile();
+      else if (screenId === "moderation") loadModeration();
+      else if (screenId === "upload") prepareUploadForm();
+
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Connect to Live FastAPI Backend (`/api/v1/*`) when running via `docker compose up`
-    async function syncWithBackend() {
-      try {
-        const res = await fetch("/api/v1/health");
-        if (!res.ok) return;
-        const health = await res.json();
-        state.apiAvailable = true;
-        document.getElementById("apiStatusBadge").textContent =
-          "Live API Connected (" + (health.counts ? health.counts.resources : 630) + " resources)";
+    function updateAuthUI() {
+      const u = state.user;
+      $("nav-auth").textContent = u ? "Sign out" : "Sign in";
+      $("nav-moderation").style.display = isModerator() ? "" : "none";
+      $("profileModerationBtn").style.display = isModerator() ? "" : "none";
+      $("uploadOfficialRow").style.display = canPublishOfficial() ? "flex" : "none";
+      $("newCollOfficialRow").style.display = canPublishOfficial() ? "flex" : "none";
 
-        const [collRes, resList] = await Promise.all([
-          fetch("/api/v1/collections"),
-          fetch("/api/v1/resources?page=1&page_size=25")
-        ]);
-        if (collRes.ok) {
-          const colls = await collRes.json();
-          if (Array.isArray(colls) && colls.length > 0) {
-            const themes = ["green", "amber", "blue"];
-            state.collections = colls.map((c, idx) => ({
-              id: c.id,
-              title: c.title,
-              description: c.description || "Curated course reading list.",
-              course_code: c.course_code || "CS301",
-              item_count: c.item_count || 8,
-              is_official: c.is_official,
-              theme: themes[idx % 3]
-            }));
-          }
-        }
-        if (resList.ok) {
-          const rData = await resList.json();
-          if (rData && Array.isArray(rData.items) && rData.items.length > 0) {
-            state.resources = rData.items.map(r => ({
-              id: r.id,
-              title: r.title,
-              course_code: r.course_code || "CS301",
-              resource_type: r.resource_type || "lecture_notes",
-              badge_code: r.resource_type === "slides" ? "SL" : (r.resource_type === "paper_summary" ? "DOC" : "PDF"),
-              pages_label: (r.resource_type === "slides" ? "32 slides" : "18 pages") + " · Verified",
-              uploader_username: r.source_authors || r.uploader_username || "A. Sharma",
-              is_official: r.is_official,
-              avg_rating: r.avg_rating || 4.8,
-              rating_count: r.rating_count || 12,
-              chunk_count: 5,
-              tldr_summary: r.tldr_summary || "",
-              content_text: r.tldr_summary || "",
-              comments: []
-            }));
-          }
-        }
-        renderAllViews();
-      } catch (err) {
-        // Running in standalone Canvas preview mode — uses built-in state seamlessly
+      const initials = u ? u.username.replace(/[^A-Za-z0-9 ]/g, " ").trim().split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase() : "?";
+      $("profileAvatarBtn").textContent = initials || "?";
+      $("profileAvatarBtn").title = u ? "Open my profile (" + u.username + ")" : "Sign in";
+      $("profileAvatarBtn").setAttribute("onclick", u ? "navigateTo('profile')" : "navigateTo('auth')");
+
+      if (u) {
+        $("profileCircleInitials").textContent = initials;
+        $("profileDisplayName").textContent = decodeText(u.username);
+        $("profileEmailText").textContent = u.email;
+        $("profileRoleBadge").textContent = ROLE_LABELS[u.role] || ROLE_LABELS.student;
+        $("profileBioText").textContent = decodeText(u.bio || "");
+      }
+    }
+    function decodeText(s) { decodeBox.innerHTML = String(s == null ? "" : s); return decodeBox.value; }
+
+    // ---------------------------------------------------------------------
+    // Boot: health check, session restore, reference data
+    // ---------------------------------------------------------------------
+    async function checkHealth() {
+      const badge = $("apiStatusBadge");
+      try {
+        const h = await api("/health");
+        state.resourceTotal = h.counts ? h.counts.resources : null;
+        badge.textContent = "Live API connected" + (state.resourceTotal != null ? " (" + state.resourceTotal + " resources)" : "");
+        badge.style.background = "";
+      } catch (e) {
+        badge.textContent = "API offline";
+        badge.style.background = "#fdeaea";
+        showToast(e.message, true);
       }
     }
 
-    function getCollectionCardHtml(c) {
-      const tintClass = c.theme === "amber" ? "card-amber-tint" : (c.theme === "blue" ? "card-blue-tint" : "card-green-tint");
-      const iconColor = c.theme === "amber" ? "#b54708" : (c.theme === "blue" ? "#1d5a96" : "#11623f");
+    // GET /auth/me restores the session after a page reload (cookie is HttpOnly) and
+    // returns a fresh CSRF token.
+    async function restoreSession() {
+      try {
+        const me = await api("/auth/me", { silent401: true });
+        state.user = me;
+        state.csrfToken = me.csrf_token || "";
+      } catch (e) {
+        state.user = null;
+        state.csrfToken = "";
+      }
+      updateAuthUI();
+    }
+
+    async function loadCategories() {
+      try {
+        state.categories = await api("/categories");
+      } catch (e) { state.categories = []; }
+      const opts = state.categories.map((c) =>
+        `<option value="${esc(c.course_code)}">${esc(c.course_code)} — ${fmt(c.course_name)}</option>`).join("");
+      $("uploadCourseInput").innerHTML = opts;
+      $("newCollCourse").innerHTML = opts;
+      renderCourseFilters();
+    }
+
+    function renderCourseFilters() {
+      const box = $("courseFilterList");
+      box.innerHTML =
+        `<button type="button" class="filter-opt" data-course="">All Courses</button>` +
+        state.categories.map((c) =>
+          `<button type="button" class="filter-opt" data-course="${esc(c.course_code)}">${esc(c.course_code)} &middot; ${fmt(c.course_name)} (${Number(c.resource_count) || 0})</button>`
+        ).join("");
+      syncFilterButtons();
+    }
+
+    async function loadTags() {
+      let tags = [];
+      try { tags = await api("/tags"); } catch (e) { /* non-fatal */ }
+      $("tagFilterList").innerHTML =
+        `<button type="button" class="filter-opt" data-tag="">All Tags</button>` +
+        tags.slice(0, 12).map((t) =>
+          `<button type="button" class="filter-opt" data-tag="${esc(t.name)}">${esc(t.name)} (${Number(t.usage_count) || 0})</button>`
+        ).join("");
+      syncFilterButtons();
+    }
+
+    function syncFilterButtons() {
+      document.querySelectorAll("[data-course]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-course") === state.filters.course));
+      document.querySelectorAll("[data-rtype]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-rtype") === state.filters.type));
+      document.querySelectorAll("[data-tag]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-tag") === state.filters.tag));
+    }
+
+    // ---------------------------------------------------------------------
+    // Reusable renderers
+    // ---------------------------------------------------------------------
+    function resourceRowHtml(r) {
+      const badge = TYPE_BADGES[r.resource_type] || ["DOC", "type-doc"];
+      const by = r.uploader_username || r.source_authors || "Unknown";
+      const when = fmtDate(r.published_on || r.created_at);
       return `
-        <article class="card clickable ${tintClass}" onclick="openCollectionDetail(${c.id})">
+        <article class="res-row-card" onclick="openResourceDetail(${Number(r.id)})" tabindex="0" onkeydown="if(event.key==='Enter')openResourceDetail(${Number(r.id)})">
+          <div class="type-square ${badge[1]}">${badge[0]}</div>
+          <div style="flex:1;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--green-text); letter-spacing:0.05em;">${esc(r.course_code)}</span>
+            <h3 style="margin:0.1rem 0 0.25rem 0; font-size:1.08rem;">${fmt(r.title)}</h3>
+            <div style="font-size:0.84rem; color:var(--text-muted); margin-bottom:0.55rem;">${esc(TYPE_LABELS[r.resource_type] || r.resource_type)} &middot; ${fmt(by)}${when ? " &middot; " + esc(when) : ""}</div>
+            <div style="display:flex; gap:0.45rem; align-items:center; flex-wrap:wrap;">
+              ${r.is_official ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-gray">Community</span>'}
+              <span class="pill pill-gray">&#9733; ${Number(r.avg_rating || 0).toFixed(1)} (${Number(r.rating_count) || 0})</span>
+              <span class="pill pill-gray">${Number(r.comment_count) || 0} comments</span>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function collectionCardHtml(c, idx) {
+      const themes = ["green", "amber", "blue"];
+      const theme = themes[(idx || 0) % 3];
+      const tintClass = theme === "amber" ? "card-amber-tint" : (theme === "blue" ? "card-blue-tint" : "card-green-tint");
+      const iconColor = theme === "amber" ? "#b54708" : (theme === "blue" ? "#1d5a96" : "#11623f");
+      const flags = [
+        c.is_official ? '<span class="pill pill-green">Official</span>' : "",
+        c.is_public ? "" : '<span class="pill pill-gray">Private</span>',
+        c.course_code ? `<span class="pill pill-gray">${esc(c.course_code)}</span>` : ""
+      ].join(" ");
+      return `
+        <article class="card clickable ${tintClass}" onclick="openCollectionDetail(${Number(c.id)})" tabindex="0" onkeydown="if(event.key==='Enter')openCollectionDetail(${Number(c.id)})">
           <div class="coll-card-top">
             <span class="spark-icon" style="color:${iconColor};">&#10022;</span>
-            <div class="readings-box">
-              <strong>${c.item_count}</strong>
-              READINGS
-            </div>
+            <div class="readings-box"><strong>${Number(c.item_count) || 0}</strong>READINGS</div>
           </div>
-          <h3 style="margin:0 0 0.35rem 0; font-size:1.12rem;">${c.title}</h3>
-          <p style="margin:0; font-size:0.88rem; color:var(--text-muted);">${c.description}</p>
-        </article>
-      `;
+          <h3 style="margin:0 0 0.35rem 0; font-size:1.12rem;">${fmt(c.title)}</h3>
+          <p style="margin:0 0 0.5rem 0; font-size:0.88rem; color:var(--text-muted);">${fmt(c.description || "Curated course reading list.")}</p>
+          <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">${flags}</div>
+        </article>`;
     }
 
-    function getResourceRowHtml(r) {
-      const sqClass = r.badge_code === "SL" ? "type-sl" : (r.badge_code === "DOC" ? "type-doc" : "type-pdf");
-      return `
-        <article class="res-row-card" onclick="openResourceDetail(${r.id})">
-          <div class="type-square ${sqClass}">${r.badge_code || "PDF"}</div>
-          <div style="flex:1;">
-            <span style="font-size:0.75rem; font-weight:800; color:var(--green-text); letter-spacing:0.05em;">${r.course_code}</span>
-            <h3 style="margin:0.1rem 0 0.25rem 0; font-size:1.08rem;">${r.title}</h3>
-            <div style="font-size:0.84rem; color:var(--text-muted); margin-bottom:0.55rem;">${r.pages_label}</div>
-            <div style="display:flex; gap:0.45rem; align-items:center;">
-              ${r.is_official ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-gray">Community</span>'}
-              <span class="pill pill-gray">&#9733; ${r.avg_rating}</span>
-            </div>
-          </div>
-        </article>
-      `;
+    function emptyCard(msg) {
+      return `<div class="card" style="color:var(--text-muted); font-size:0.9rem;">${esc(msg)}</div>`;
     }
 
-    function renderHome() {
-      const collGrid = document.getElementById("homeCollectionsGrid");
-      collGrid.innerHTML = state.collections.slice(0, 3).map(getCollectionCardHtml).join("");
-
-      const resGrid = document.getElementById("homeRecentResourcesGrid");
-      resGrid.innerHTML = state.resources.slice(0, 2).map(getResourceRowHtml).join("");
+    // ---------------------------------------------------------------------
+    // Home — GET /collections, GET /resources
+    // ---------------------------------------------------------------------
+    async function loadHome() {
+      try {
+        const [colls, res] = await Promise.all([
+          api("/collections"),
+          api("/resources", { query: { sort_by: "newest", page_size: 4 } })
+        ]);
+        $("homeCollectionsGrid").innerHTML = colls.length
+          ? colls.slice(0, 3).map(collectionCardHtml).join("")
+          : emptyCard("No public collections yet.");
+        $("homeRecentResourcesGrid").innerHTML = res.items.length
+          ? res.items.map(resourceRowHtml).join("")
+          : emptyCard("No resources yet.");
+        $("homeViewAllBtn").textContent = "View all " + res.total + " resources →";
+      } catch (e) {
+        handleError(e, "Could not load home");
+      }
     }
 
     function handleHomeSearch() {
-      const q = document.getElementById("homeSearchInput").value.trim();
-      document.getElementById("exploreSearchInput").value = q;
+      $("exploreSearchInput").value = $("homeSearchInput").value.trim();
+      state.exploreDirty = true;
       navigateTo("explore");
-      renderExploreList();
+    }
+
+    // ---------------------------------------------------------------------
+    // Explore — GET /resources (server-side search, filters, sort, pagination)
+    // ---------------------------------------------------------------------
+    let _searchTimer = null;
+    function debouncedLoadResources() {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => loadResources(1), 300);
     }
 
     function setExploreCourseFilter(course) {
-      state.exploreCourseFilter = course;
-      document.querySelectorAll("[data-course]").forEach(btn => {
-        btn.classList.toggle("active", btn.getAttribute("data-course") === course);
-      });
-      const banner = document.getElementById("courseScopeAiBanner");
-      if (course) {
-        banner.style.display = "block";
-        document.getElementById("courseScopeAiTitle").textContent = "Ask AI across all resources in " + course;
-      } else {
-        banner.style.display = "none";
-      }
-      renderExploreList();
+      state.filters.course = course;
+      syncFilterButtons();
+      const banner = $("courseScopeAiBanner");
+      banner.style.display = course ? "block" : "none";
+      if (course) $("courseScopeAiTitle").textContent = "Ask AI across all resources in " + course;
+      $("courseAiAnswerBox").style.display = "none";
+      loadResources(1);
     }
-
     function setExploreTypeFilter(rtype) {
-      state.exploreTypeFilter = rtype;
-      document.querySelectorAll("[data-rtype]").forEach(btn => {
-        btn.classList.toggle("active", btn.getAttribute("data-rtype") === rtype);
-      });
-      renderExploreList();
+      state.filters.type = rtype;
+      syncFilterButtons();
+      loadResources(1);
+    }
+    function setExploreTagFilter(tag) {
+      state.filters.tag = tag;
+      syncFilterButtons();
+      loadResources(1);
     }
 
-    function renderExploreList() {
-      const q = (document.getElementById("exploreSearchInput").value || "").toLowerCase().trim();
-      const sortBy = document.getElementById("exploreSortSelect").value;
-      const verifiedOnly = document.getElementById("exploreVerifiedOnly").checked;
-
-      let filtered = state.resources.filter(r => {
-        if (state.exploreCourseFilter && r.course_code !== state.exploreCourseFilter) return false;
-        if (state.exploreTypeFilter && r.resource_type !== state.exploreTypeFilter) return false;
-        if (verifiedOnly && !r.is_official) return false;
-        if (q && !(r.title.toLowerCase().includes(q) || (r.tldr_summary || "").toLowerCase().includes(q) || r.course_code.toLowerCase().includes(q))) {
-          return false;
-        }
-        return true;
-      });
-
-      if (sortBy === "rating") {
-        filtered.sort((a, b) => b.avg_rating - a.avg_rating);
-      } else if (sortBy === "newest") {
-        filtered.sort((a, b) => b.id - a.id);
-      }
-
-      document.getElementById("exploreCountLabel").textContent =
-        (state.exploreCourseFilter || q ? filtered.length : 128) + " resources";
-      document.getElementById("exploreResultsContainer").innerHTML =
-        filtered.map(getResourceRowHtml).join("") || '<div class="card">No matching resources found. Try clearing a filter.</div>';
-    }
-
-    async function openResourceDetail(resId) {
-      state.selectedResourceId = resId;
-      let resObj = state.resources.find(r => r.id === resId) || state.resources[0];
-
-      if (state.apiAvailable) {
-        try {
-          const resp = await fetch("/api/v1/resources/" + resId);
-          if (resp.ok) {
-            const full = await resp.json();
-            resObj = Object.assign({}, resObj, full);
+    async function loadResources(page) {
+      state.page = page || 1;
+      const token = ++state.listToken;
+      const box = $("exploreResultsContainer");
+      box.innerHTML = emptyCard("Loading resources…");
+      try {
+        const data = await api("/resources", {
+          query: {
+            q: $("exploreSearchInput").value.trim(),
+            course_code: state.filters.course,
+            resource_type: state.filters.type,
+            tag: state.filters.tag,
+            official_only: $("exploreVerifiedOnly").checked,
+            sort_by: $("exploreSortSelect").value,
+            page: state.page,
+            page_size: PAGE_SIZE
           }
-          const cmResp = await fetch("/api/v1/resources/" + resId + "/comments");
-          if (cmResp.ok) {
-            resObj.comments = await cmResp.json();
-          }
-        } catch (e) {}
-      }
-
-      document.getElementById("detailBreadcrumb").textContent =
-        `Explore / ${resObj.course_code} / ${resObj.title}`;
-      document.getElementById("detail-res-title").textContent = resObj.title;
-      document.getElementById("detailMetaLine").textContent =
-        `${resObj.course_code} · Lecture notes · 18 pages · Uploaded by ${resObj.uploader_username || "A. Sharma"}`;
-      document.getElementById("detailRatingBadge").textContent = `★ ${resObj.avg_rating} rating`;
-      document.getElementById("detailChunksBadge").textContent = `${resObj.chunk_count || 4} indexed chunks`;
-      document.getElementById("detailParagraph2").textContent = resObj.content_text || resObj.tldr_summary;
-      document.getElementById("reportTargetTitle").textContent = resObj.title;
-
-      renderCommentsList(resObj.comments || []);
-      switchAiVisualState("answered");
-      navigateTo("resource-detail");
-    }
-
-    function renderCommentsList(comments) {
-      const container = document.getElementById("detailCommentsList");
-      if (!comments || comments.length === 0) {
-        container.innerHTML = '<div style="font-size:0.86rem; color:var(--text-muted);">No comments yet. Be the first to add a study note!</div>';
-        return;
-      }
-      container.innerHTML = comments.map(c => `
-        <div class="card" style="padding:0.75rem 1rem; margin-bottom:0.55rem; background:#fbfcfa;">
-          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.25rem;">
-            <strong style="color:var(--text-main);">@${c.username}</strong>
-            <span>${c.created_at || "Just now"}</span>
-          </div>
-          <div style="font-size:0.88rem;">${c.body}</div>
-        </div>
-      `).join("");
-    }
-
-    async function submitResourceComment() {
-      const input = document.getElementById("newCommentInput");
-      const body = input.value.trim();
-      if (!body) return;
-      const resObj = state.resources.find(r => r.id === state.selectedResourceId) || state.resources[0];
-
-      if (state.apiAvailable && state.csrfToken) {
-        try {
-          const resp = await fetch(`/api/v1/resources/${resObj.id}/comments`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
-            body: JSON.stringify({ body })
-          });
-          if (resp.ok) {
-            const created = await resp.json();
-            resObj.comments = [created, ...(resObj.comments || [])];
-            renderCommentsList(resObj.comments);
-            input.value = "";
-            showToast("Comment posted to database!");
-            return;
-          }
-        } catch (e) {}
-      }
-
-      resObj.comments = [{ id: Date.now(), username: state.currentUser.username, body, created_at: "Just now" }, ...(resObj.comments || [])];
-      renderCommentsList(resObj.comments);
-      input.value = "";
-      showToast("Comment added!");
-    }
-
-    async function rateCurrentResource(score) {
-      const resObj = state.resources.find(r => r.id === state.selectedResourceId) || state.resources[0];
-      if (state.apiAvailable && state.csrfToken) {
-        try {
-          const resp = await fetch(`/api/v1/resources/${resObj.id}/ratings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
-            body: JSON.stringify({ score })
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            resObj.avg_rating = data.avg_rating;
-            document.getElementById("detailRatingBadge").textContent = `★ ${data.avg_rating} rating`;
-            showToast(`Rated ${score}/5 stars (New average: ★ ${data.avg_rating})`);
-            return;
-          }
-        } catch (e) {}
-      }
-      resObj.avg_rating = 4.9;
-      document.getElementById("detailRatingBadge").textContent = `★ ${resObj.avg_rating} rating`;
-      showToast(`Saved your ${score}/5 star rating!`);
-    }
-
-    // AI States in Resource Detail (Exact match to Figma Flow 1 & Flow 2)
-    function switchAiVisualState(mode) {
-      document.getElementById("aiStateAnswered").style.display = mode === "answered" ? "block" : "none";
-      document.getElementById("aiStateNotFound").style.display = mode === "not_found" ? "block" : "none";
-      document.getElementById("aiStateFallback").style.display = mode === "fallback" ? "block" : "none";
-
-      const srcList = document.getElementById("aiSourcesList");
-      if (mode === "fallback") {
-        srcList.innerHTML = `<div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[1] Lecture notes · page 4 (FULLTEXT keyword match)</div>`;
-      } else {
-        srcList.innerHTML = `
-          <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[1] Lecture notes · page 4</div>
-          <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem;">[2] Course handout · page 2</div>
-        `;
+        });
+        if (token !== state.listToken) return;               // a newer request superseded this one
+        state.exploreLoaded = true;
+        state.exploreDirty = false;
+        $("exploreCountLabel").textContent = data.total + " resource" + (data.total === 1 ? "" : "s");
+        $("exploreSubLabel").textContent = "Page " + data.page + " of " + data.total_pages;
+        box.innerHTML = data.items.length
+          ? data.items.map(resourceRowHtml).join("")
+          : emptyCard("No matching resources found. Try clearing a filter.");
+        renderPager(data.page, data.total_pages);
+      } catch (e) {
+        if (token !== state.listToken) return;
+        box.innerHTML = emptyCard("Could not load resources: " + e.message);
       }
     }
 
-    async function runResourceAiQuery(defaultMode) {
-      const q = document.getElementById("resourceAiInput").value.trim();
-      if (!q) return;
-      if (q.length > 300) {
-        showToast("Guardrail: Questions are limited to 300 characters.");
-        return;
-      }
-
-      if (state.apiAvailable && state.csrfToken) {
-        try {
-          const resp = await fetch("/api/v1/ai/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
-            body: JSON.stringify({
-              question: q,
-              scope_type: "resource",
-              scope_id: String(state.selectedResourceId)
-            })
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            if (data.not_found) {
-              switchAiVisualState("not_found");
-              return;
-            }
-            if (data.fallback_used) {
-              switchAiVisualState("fallback");
-              return;
-            }
-            document.getElementById("aiAnswerText").textContent = data.answer;
-            if (data.citations && data.citations.length > 0) {
-              document.getElementById("aiAnswerHeader").textContent = `Answer · ${data.citations.length} Sources`;
-              document.getElementById("aiAnswerChips").innerHTML = data.citations.map((c, i) =>
-                `<span class="cite-chip">[${i + 1}] Chunk ${c.chunk_id} (${c.resource_title.slice(0, 24)})</span>`
-              ).join("");
-            }
-            switchAiVisualState("answered");
-            return;
-          }
-        } catch (e) {}
-      }
-
-      // Offline / Prototype evaluation logic
-      const lower = q.toLowerCase();
-      if (lower.includes("fee") || lower.includes("hostel") || lower.includes("fifa") || lower.includes("quantum")) {
-        switchAiVisualState("not_found");
-      } else {
-        switchAiVisualState(defaultMode || "answered");
-        showToast("Grounded answer generated with verified passage citations.");
-      }
+    function renderPager(page, totalPages) {
+      const pager = $("explorePager");
+      if (totalPages <= 1) { pager.innerHTML = ""; return; }
+      pager.innerHTML = `
+        <button type="button" class="btn btn-outline" ${page <= 1 ? "disabled" : ""} onclick="loadResources(${page - 1})">&larr; Prev</button>
+        <span style="font-size:0.88rem; color:var(--text-muted);">Page ${page} of ${totalPages}</span>
+        <button type="button" class="btn btn-outline" ${page >= totalPages ? "disabled" : ""} onclick="loadResources(${page + 1})">Next &rarr;</button>`;
     }
 
+    // Course-scope AI — POST /ai/ask { scope_type: "course", scope_id: <course code> }
     async function askCourseScopeAI() {
-      const q = document.getElementById("courseAiQuestionInput").value.trim();
-      if (!q) return;
-      const box = document.getElementById("courseAiAnswerBox");
+      if (!requireLogin("Sign in to use the AI study assistant.")) return;
+      const q = $("courseAiQuestionInput").value.trim();
+      const course = state.filters.course;
+      if (!q || !course) return;
+      if (q.length > 300) { showToast("Questions are limited to 300 characters.", true); return; }
+      const box = $("courseAiAnswerBox");
       box.style.display = "block";
-      box.innerHTML = `
-        <div class="ai-box-green" style="margin-top:0.4rem;">
-          <div style="font-size:0.72rem; font-weight:800; text-transform:uppercase; color:var(--green-text); margin-bottom:0.25rem;">
-            Multi-Document Course Answer (${state.exploreCourseFilter || "CS301"} · Max 3 chunks/resource)
-          </div>
-          <div>BFS guarantees shortest paths on unweighted graphs in O(V+E) time [Reading 01, Chunk 2], Dijkstra handles non-negative edge weights in O((V+E) log V) [Reading 02, Chunk 6], and Bellman-Ford handles negative edge weights and detects negative cycles in O(VE) time [Reading 02, Chunk 7].</div>
-        </div>
-      `;
+      box.innerHTML = emptyCard("Thinking…");
+      try {
+        const data = await api("/ai/ask", { method: "POST", body: { question: q, scope_type: "course", scope_id: course } });
+        box.innerHTML = renderMultiAnswerHtml(data, "Course answer (" + course + ")");
+      } catch (e) {
+        box.innerHTML = emptyCard(e.message);
+      }
+    }
+
+    // Replace "[Chunk 123]" tokens with numbered markers that match the citation list.
+    function numberCitations(answer, citations) {
+      let out = fmt(answer);
+      citations.forEach((c, i) => {
+        out = out.split("[Chunk " + c.chunk_id + "]").join("[" + (i + 1) + "]");
+      });
+      return out;
+    }
+
+    function citationListHtml(citations) {
+      if (!citations || !citations.length) return "";
+      return citations.map((c, i) => `
+        <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem; cursor:pointer;" onclick="openResourceDetail(${Number(c.resource_id)})">
+          <strong>[${i + 1}] ${fmt(c.resource_title)}</strong> <span style="color:var(--text-muted);">&middot; chunk ${Number(c.chunk_index) + 1}</span>
+          <div style="color:var(--text-muted); margin-top:0.2rem;">${fmt(c.snippet)}</div>
+        </div>`).join("");
+    }
+
+    function renderMultiAnswerHtml(data, heading) {
+      if (data.not_found) {
+        return `<div class="ai-box-amber"><strong>Not found in these documents</strong><p style="margin:0.25rem 0 0 0; font-size:0.86rem; color:var(--text-muted);">The assistant refuses to guess when the answer is absent from the selected sources.</p></div>`;
+      }
+      const notice = data.fallback_used
+        ? `<div style="font-size:0.8rem; color:var(--blue-text); margin-bottom:0.4rem;">${esc(data.fallback_notice || "AI unavailable, showing keyword matches.")}</div>` : "";
+      return `
+        <div class="ai-box-${data.fallback_used ? "blue" : "green"}" style="margin-top:0.4rem;">
+          <div style="font-size:0.72rem; font-weight:800; text-transform:uppercase; color:var(--green-text); margin-bottom:0.25rem;">${esc(heading)} &middot; ${data.citations.length} sources</div>
+          ${notice}
+          <div style="margin-bottom:0.6rem;">${numberCitations(data.answer, data.citations)}</div>
+          ${citationListHtml(data.citations)}
+        </div>`;
+    }
+
+    // ---------------------------------------------------------------------
+    // Resource detail — GET /resources/{id}, GET /resources/{id}/comments
+    // ---------------------------------------------------------------------
+    async function openResourceDetail(resId) {
+      try {
+        const [res, comments] = await Promise.all([
+          api("/resources/" + Number(resId)),
+          api("/resources/" + Number(resId) + "/comments")
+        ]);
+        state.currentResource = res;
+        state.currentComments = comments;
+        renderResourceDetail();
+        resetAiPanel();
+        navigateTo("resource-detail");
+        loadCollectionPicker();
+      } catch (e) {
+        handleError(e, "Could not open resource");
+      }
+    }
+
+    function renderResourceDetail() {
+      const r = state.currentResource;
+      $("detailBreadcrumb").textContent = "Explore / " + r.course_code + " / " + decodeText(r.title);
+      $("detail-res-title").textContent = decodeText(r.title);
+      const by = r.source_authors || r.uploader_username || "Unknown";
+      $("detailMetaLine").textContent =
+        [r.course_code, TYPE_LABELS[r.resource_type] || r.resource_type, decodeText(by), r.published_on ? "Published " + fmtDate(r.published_on) : ""]
+          .filter(Boolean).join(" · ");
+
+      const v = $("detailVerifiedBadge");
+      v.textContent = r.is_official ? "Verified source" : "Community upload";
+      v.className = "pill " + (r.is_official ? "pill-green" : "pill-gray");
+      $("detailRatingBadge").textContent = "★ " + Number(r.avg_rating || 0).toFixed(1) + " (" + (r.rating_count || 0) + " ratings)";
+      $("detailChunksBadge").textContent = (r.chunk_count || 0) + " indexed chunks";
+
+      $("detailParagraph1").textContent = decodeText(r.tldr_summary || "No summary available.");
+      $("detailTags").innerHTML = (r.tags || []).map((t) => `<span class="pill pill-blue">${esc(t)}</span>`).join("");
+      const full = decodeText(r.content_text || "");
+      $("detailParagraph2").textContent = full.length > 4000 ? full.slice(0, 4000) + "…" : full;
+      $("detailPageFooter").textContent =
+        "Source: " + (r.file_name || r.source_ref || "ScholarPulse library") + " · status: " + r.status + " · embeddings: " + r.embedding_status;
+      $("reportTargetTitle").textContent = decodeText(r.title);
+
+      const canDelete = state.user && (isModerator() || state.user.username === decodeText(r.uploader_username || ""));
+      $("detailDeleteBtn").style.display = canDelete ? "" : "none";
+      renderCommentsList();
+    }
+
+    function renderCommentsList() {
+      const box = $("detailCommentsList");
+      const list = state.currentComments;
+      if (!list.length) {
+        box.innerHTML = '<div style="font-size:0.86rem; color:var(--text-muted);">No comments yet. Be the first to add a study note!</div>';
+        return;
+      }
+      box.innerHTML = list.map((c) => {
+        const mine = state.user && c.user_id === state.user.id;
+        const canDel = mine || isModerator();
+        const actions = [
+          canDel ? `<button type="button" class="link-green" onclick="deleteComment(${Number(c.id)})">Delete</button>` : "",
+          (state.user && !mine) ? `<button type="button" class="link-green" onclick="reportComment(${Number(c.id)})">Report</button>` : ""
+        ].join(" ");
+        return `
+          <div class="card" style="padding:0.75rem 1rem; margin-bottom:0.55rem; background:#fbfcfa;">
+            <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.25rem;">
+              <strong style="color:var(--text-main);">@${fmt(c.username)}</strong>
+              <span>${esc(fmtDate(c.created_at))}</span>
+            </div>
+            <div style="font-size:0.88rem;">${fmt(c.body)}</div>
+            <div style="margin-top:0.35rem; font-size:0.78rem;">${actions}</div>
+          </div>`;
+      }).join("");
+    }
+
+    // POST /resources/{id}/comments
+    async function submitResourceComment() {
+      if (!requireLogin("Sign in to comment.")) return;
+      const input = $("newCommentInput");
+      const body = input.value.trim();
+      if (body.length < 2) { showToast("Comments need at least 2 characters.", true); return; }
+      try {
+        const created = await api("/resources/" + state.currentResource.id + "/comments", { method: "POST", body: { body } });
+        state.currentComments.unshift(created);
+        state.currentResource.comment_count = (state.currentResource.comment_count || 0) + 1;
+        renderCommentsList();
+        input.value = "";
+        state.exploreDirty = true;
+        showToast("Comment posted.");
+      } catch (e) { handleError(e, "Could not post comment"); }
+    }
+
+    // DELETE /comments/{id}
+    async function deleteComment(commentId) {
+      if (!confirm("Delete this comment?")) return;
+      try {
+        await api("/comments/" + Number(commentId), { method: "DELETE" });
+        state.currentComments = state.currentComments.filter((c) => c.id !== commentId);
+        renderCommentsList();
+        state.exploreDirty = true;
+        showToast("Comment deleted.");
+      } catch (e) { handleError(e, "Could not delete comment"); }
+    }
+
+    // POST /resources/{id}/ratings
+    async function rateCurrentResource(score) {
+      if (!requireLogin("Sign in to rate resources.")) return;
+      try {
+        const data = await api("/resources/" + state.currentResource.id + "/ratings", { method: "POST", body: { score } });
+        state.currentResource.avg_rating = data.avg_rating;
+        state.currentResource.rating_count = data.rating_count;
+        $("detailRatingBadge").textContent = "★ " + Number(data.avg_rating).toFixed(1) + " (" + data.rating_count + " ratings)";
+        state.exploreDirty = true;
+        showToast("Rated " + score + "/5 — new average ★ " + Number(data.avg_rating).toFixed(1));
+      } catch (e) { handleError(e, "Could not save rating"); }
+    }
+
+    // DELETE /resources/{id}
+    async function deleteCurrentResource() {
+      if (!confirm("Delete this resource permanently?")) return;
+      try {
+        await api("/resources/" + state.currentResource.id, { method: "DELETE" });
+        state.exploreDirty = true;
+        showToast("Resource deleted.");
+        navigateTo("explore");
+      } catch (e) { handleError(e, "Could not delete resource"); }
+    }
+
+    // GET /collections?mine=true → picker; POST /collections/{id}/items
+    async function loadCollectionPicker() {
+      const card = $("detailAddToCollectionCard");
+      if (!state.user) { card.style.display = "none"; return; }
+      try {
+        state.myCollections = await api("/collections", { query: { mine: true } });
+      } catch (e) { state.myCollections = []; }
+      card.style.display = "";
+      $("detailCollectionSelect").innerHTML = state.myCollections.length
+        ? state.myCollections.map((c) => `<option value="${Number(c.id)}">${fmt(c.title)}</option>`).join("")
+        : '<option value="">Create a collection first</option>';
+    }
+
+    async function addCurrentResourceToCollection() {
+      const cid = $("detailCollectionSelect").value;
+      if (!cid) { showToast("Create a collection first.", true); return; }
+      try {
+        await api("/collections/" + Number(cid) + "/items", { method: "POST", body: { resource_id: state.currentResource.id } });
+        showToast("Added to collection.");
+      } catch (e) { handleError(e, "Could not add to collection"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Resource AI — POST /ai/ask { scope_type: "resource" }
+    // ---------------------------------------------------------------------
+    function resetAiPanel() {
+      ["aiStateAnswered", "aiStateNotFound", "aiStateFallback"].forEach((id) => { $(id).style.display = "none"; });
+      $("aiStateIdle").style.display = "block";
+      $("aiSourcesList").innerHTML = '<div style="font-size:0.84rem; color:var(--text-muted);">No sources yet.</div>';
+      $("resourceAiInput").value = "";
+    }
+
+    function showAiState(which) {
+      $("aiStateIdle").style.display = which === "idle" ? "block" : "none";
+      $("aiStateAnswered").style.display = which === "answered" ? "block" : "none";
+      $("aiStateNotFound").style.display = which === "not_found" ? "block" : "none";
+      $("aiStateFallback").style.display = which === "fallback" ? "block" : "none";
+    }
+
+    async function runResourceAiQuery() {
+      if (!requireLogin("Sign in to use the AI study assistant.")) return;
+      const q = $("resourceAiInput").value.trim();
+      if (!q) return;
+      if (q.length > 300) { showToast("Questions are limited to 300 characters.", true); return; }
+      const btn = $("resourceAiBtn");
+      btn.disabled = true;
+      try {
+        const data = await api("/ai/ask", {
+          method: "POST",
+          body: {
+            question: q,
+            scope_type: "resource",
+            scope_id: String(state.currentResource.id),
+            simulate_failure: $("resourceAiKeywordOnly").checked
+          }
+        });
+        if (data.not_found) {
+          showAiState("not_found");
+          $("aiSourcesList").innerHTML = '<div style="font-size:0.84rem; color:var(--text-muted);">No supporting passages found.</div>';
+          return;
+        }
+        if (data.fallback_used) {
+          $("aiFallbackSubtext").textContent = data.fallback_notice || "These are keyword matches, not an AI-generated answer.";
+          $("aiFallbackAnswer").innerHTML = numberCitations(data.answer, data.citations);
+          showAiState("fallback");
+        } else {
+          $("aiAnswerHeader").textContent = "Answer · " + data.citations.length + " source" + (data.citations.length === 1 ? "" : "s") + (data.model_used ? " · " + data.model_used : "");
+          $("aiAnswerText").innerHTML = numberCitations(data.answer, data.citations);
+          $("aiAnswerChips").innerHTML = data.citations.map((c, i) =>
+            `<span class="cite-chip">[${i + 1}] chunk ${Number(c.chunk_index) + 1}</span>`).join("");
+          showAiState("answered");
+        }
+        $("aiSourcesList").innerHTML = citationListHtml(data.citations) ||
+          '<div style="font-size:0.84rem; color:var(--text-muted);">No sources.</div>';
+      } catch (e) {
+        handleError(e, "AI request failed");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // Collections — GET/POST /collections, GET/DELETE /collections/{id},
+    //               POST/DELETE /collections/{id}/items
+    // ---------------------------------------------------------------------
+    async function loadCollections() {
+      const scope = $("collectionScopeSelect").value;
+      if (scope === "mine" && !state.user) {
+        state.collections = [];
+        renderCollectionsHub();
+        $("collectionsHubGrid").innerHTML = emptyCard("Sign in to see your own collections.");
+        return;
+      }
+      try {
+        state.collections = await api("/collections", {
+          query: { mine: scope === "mine", official_only: scope === "official" }
+        });
+        renderCollectionsHub();
+      } catch (e) {
+        $("collectionsHubGrid").innerHTML = emptyCard("Could not load collections: " + e.message);
+      }
     }
 
     function renderCollectionsHub() {
-      const q = (document.getElementById("collectionSearchInput").value || "").toLowerCase().trim();
-      const filtered = state.collections.filter(c =>
-        !q || c.title.toLowerCase().includes(q) || (c.description || "").toLowerCase().includes(q)
-      );
-      document.getElementById("collectionsHubGrid").innerHTML = filtered.map(getCollectionCardHtml).join("");
+      const q = ($("collectionSearchInput").value || "").toLowerCase().trim();
+      const filtered = state.collections.filter((c) =>
+        !q || decodeText(c.title).toLowerCase().includes(q) || decodeText(c.description || "").toLowerCase().includes(q));
+      $("collectionsHubGrid").innerHTML = filtered.length
+        ? filtered.map(collectionCardHtml).join("")
+        : emptyCard("No collections found.");
     }
 
     function toggleCreateCollectionModal() {
-      const el = document.getElementById("createCollectionBox");
+      if (!state.user) { requireLogin("Sign in to create collections."); return; }
+      const el = $("createCollectionBox");
       el.style.display = el.style.display === "none" ? "block" : "none";
     }
 
     async function handleCreateCollection() {
-      const title = document.getElementById("newCollTitle").value.trim();
-      const desc = document.getElementById("newCollDesc").value.trim() || "Custom study reading list.";
-      const course = document.getElementById("newCollCourse").value;
-      if (!title) {
-        showToast("Please enter a collection title.");
-        return;
-      }
-      const newColl = {
-        id: state.collections.length + 1,
-        title,
-        description: desc,
-        course_code: course,
-        item_count: 4,
-        is_official: state.currentUser.role === "ta",
-        theme: "green"
-      };
-      state.collections.unshift(newColl);
-      document.getElementById("createCollectionBox").style.display = "none";
-      document.getElementById("newCollTitle").value = "";
-      renderCollectionsHub();
-      renderHome();
-      showToast("Collection created!");
+      if (!requireLogin("Sign in to create collections.")) return;
+      const title = $("newCollTitle").value.trim();
+      if (title.length < 3) { showToast("Collection titles need at least 3 characters.", true); return; }
+      try {
+        await api("/collections", {
+          method: "POST",
+          body: {
+            title,
+            description: $("newCollDesc").value.trim() || null,
+            course_code: $("newCollCourse").value || null,
+            is_public: $("newCollPublic").checked,
+            is_official: canPublishOfficial() && $("newCollOfficial").checked
+          }
+        });
+        $("createCollectionBox").style.display = "none";
+        $("newCollTitle").value = "";
+        $("newCollDesc").value = "";
+        $("collectionScopeSelect").value = "mine";
+        await loadCollections();
+        showToast("Collection created.");
+      } catch (e) { handleError(e, "Could not create collection"); }
     }
 
-    function openCollectionDetail(collId) {
-      state.selectedCollectionId = collId;
-      const coll = state.collections.find(c => c.id === collId) || state.collections[0];
-      document.getElementById("coll-detail-title").textContent = coll.title;
-      document.getElementById("collDetailMeta").textContent =
-        `${coll.item_count} readings · ${coll.course_code} · Updated this week`;
+    async function openCollectionDetail(collId) {
+      try {
+        const c = await api("/collections/" + Number(collId));
+        state.currentCollection = c;
+        renderCollectionDetail();
+        navigateTo("collection-detail");
+      } catch (e) { handleError(e, "Could not open collection"); }
+    }
 
-      const listItems = [
-        { pos: "01", id: 1, title: "Graph algorithms — Week 04", meta: "PDF · 18 pages · Verified" },
-        { pos: "02", id: 2, title: "Dynamic programming patterns", meta: "Slides · 32 slides · Verified" },
-        { pos: "03", id: 4, title: "Greedy algorithms and proof strategy", meta: "PDF · 12 pages · Verified" },
-        { pos: "04", id: 5, title: "Trees, traversals and invariants", meta: "Notes · 9 pages · Verified" }
-      ];
+    function renderCollectionDetail() {
+      const c = state.currentCollection;
+      $("coll-detail-title").textContent = decodeText(c.title);
+      $("collDetailBadge").textContent = c.is_official ? "Official TA reading list" : "Curated collection";
+      $("collDetailMeta").textContent =
+        c.item_count + " reading" + (c.item_count === 1 ? "" : "s") + " · " + (c.course_code || "All courses") + " · by " + decodeText(c.owner_username) +
+        (c.description ? " · " + decodeText(c.description) : "");
 
-      document.getElementById("collDetailItemsList").innerHTML = listItems.map(item => `
-        <article class="res-row-card" onclick="openResourceDetail(${item.id})">
-          <div class="type-square" style="background:var(--green-tint); color:var(--green-text);">${item.pos}</div>
-          <div>
-            <h3 style="margin:0 0 0.2rem 0; font-size:1.05rem;">${item.title}</h3>
-            <div style="font-size:0.84rem; color:var(--text-muted);">${item.meta}</div>
-          </div>
-        </article>
-      `).join("");
+      const canEdit = state.user && (state.user.id === c.owner_id || isModerator());
+      $("collDeleteBtn").style.display = canEdit ? "" : "none";
 
-      navigateTo("collection-detail");
+      $("collDetailItemsList").innerHTML = c.items.length ? c.items.map((it) => {
+        const r = it.resource;
+        return `
+          <article class="res-row-card" style="align-items:center;">
+            <div class="type-square" style="background:var(--green-tint); color:var(--green-text);" onclick="openResourceDetail(${Number(r.id)})">${String(it.position).padStart(2, "0")}</div>
+            <div style="flex:1; cursor:pointer;" onclick="openResourceDetail(${Number(r.id)})">
+              <h3 style="margin:0 0 0.2rem 0; font-size:1.05rem;">${fmt(r.title)}</h3>
+              <div style="font-size:0.84rem; color:var(--text-muted);">${esc(r.course_code)} &middot; ${esc(TYPE_LABELS[r.resource_type] || r.resource_type)} &middot; &#9733; ${Number(r.avg_rating || 0).toFixed(1)}${it.notes ? " &middot; " + fmt(it.notes) : ""}</div>
+            </div>
+            ${canEdit ? `<button type="button" class="btn btn-outline" style="padding:0.35rem 0.7rem;" onclick="removeCollectionItem(${Number(r.id)})">Remove</button>` : ""}
+          </article>`;
+      }).join("") : emptyCard("This collection has no readings yet. Open a resource and use “Save to a collection”.");
+
+      $("collAiResultBox").style.display = "none";
+      $("collAiInput").value = "";
+    }
+
+    async function removeCollectionItem(resourceId) {
+      try {
+        await api("/collections/" + state.currentCollection.id + "/items/" + Number(resourceId), { method: "DELETE" });
+        await openCollectionDetail(state.currentCollection.id);
+        showToast("Removed from collection.");
+      } catch (e) { handleError(e, "Could not remove item"); }
+    }
+
+    async function deleteCurrentCollection() {
+      if (!confirm("Delete this collection?")) return;
+      try {
+        await api("/collections/" + state.currentCollection.id, { method: "DELETE" });
+        showToast("Collection deleted.");
+        navigateTo("collections");
+      } catch (e) { handleError(e, "Could not delete collection"); }
     }
 
     async function runCollectionAiQuery() {
-      const q = document.getElementById("collAiInput").value.trim();
+      if (!requireLogin("Sign in to use the AI study assistant.")) return;
+      const q = $("collAiInput").value.trim();
       if (!q) return;
-      if (state.apiAvailable && state.csrfToken) {
-        try {
-          const resp = await fetch("/api/v1/ai/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRF-Token": state.csrfToken },
-            body: JSON.stringify({
-              question: q,
-              scope_type: "collection",
-              scope_id: String(state.selectedCollectionId)
-            })
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            document.getElementById("collAiAnswerText").textContent = data.answer;
-            showToast("Synthesized across collection sources!");
-            return;
-          }
-        } catch (e) {}
+      if (q.length > 300) { showToast("Questions are limited to 300 characters.", true); return; }
+      const box = $("collAiResultBox");
+      try {
+        const data = await api("/ai/ask", {
+          method: "POST",
+          body: { question: q, scope_type: "collection", scope_id: String(state.currentCollection.id) }
+        });
+        box.style.display = "block";
+        if (data.not_found) {
+          $("collAiAnswerText").textContent = "Not found in this collection's documents.";
+          $("collAiChips").innerHTML = "";
+        } else {
+          $("collAiAnswerText").innerHTML = numberCitations(data.answer, data.citations);
+          $("collAiChips").innerHTML =
+            (data.fallback_used ? `<div style="font-size:0.8rem; color:var(--blue-text); margin-bottom:0.4rem;">${esc(data.fallback_notice || "")}</div>` : "") +
+            citationListHtml(data.citations);
+        }
+      } catch (e) { handleError(e, "AI request failed"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Upload — POST /resources (multipart/form-data)
+    // ---------------------------------------------------------------------
+    function prepareUploadForm() {
+      updateAuthUI();
+    }
+
+    function resetUploadForm() {
+      state.uploadFile = null;
+      $("uploadFileInput").value = "";
+      $("uploadTitleInput").value = "";
+      $("uploadTagsInput").value = "";
+      $("uploadRightsConfirm").checked = false;
+      $("uploadOfficialInput").checked = false;
+      $("uploadReadyBadge").textContent = "No file selected";
+      $("uploadReadyBadge").className = "pill pill-gray";
+    }
+
+    function setPickedFile(f) {
+      state.uploadFile = f;
+      $("uploadReadyBadge").textContent = f.name + " · " + (f.size / 1048576).toFixed(2) + " MB · ready to upload";
+      $("uploadReadyBadge").className = "pill pill-green";
+      if (!$("uploadTitleInput").value.trim()) {
+        $("uploadTitleInput").value = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
       }
-      document.getElementById("collAiAnswerText").textContent =
-        "BFS is optimal for unweighted graphs in O(V+E) time using a FIFO queue, whereas Dijkstra handles non-negative weighted edges in O((V+E) log V) time using priority-queue edge relaxation.";
-      showToast("Synthesized answer across collection readings!");
     }
 
     function handleFilePicked() {
-      const input = document.getElementById("uploadFileInput");
-      if (input.files && input.files[0]) {
-        const f = input.files[0];
-        document.getElementById("uploadReadyBadge").textContent = `${f.name} · ready to upload`;
-        document.getElementById("uploadedFileNameDisplay").textContent = f.name;
+      const input = $("uploadFileInput");
+      if (input.files && input.files[0]) setPickedFile(input.files[0]);
+    }
+
+    function showUploadResult(ok, data) {
+      $("uploadSuccessCard").style.display = ok ? "" : "none";
+      $("uploadErrorCard").style.display = ok ? "none" : "";
+      if (ok) {
+        const badge = TYPE_BADGES[data.resource_type] || ["DOC", "type-doc"];
+        $("uploadedTypeBadge").textContent = badge[0];
+        $("uploadedTypeBadge").className = "type-square " + badge[1];
+        $("uploadedFileNameDisplay").textContent = decodeText(data.file_name || data.title);
+        $("uploadedFileMetaDisplay").textContent =
+          ((data.file_size_bytes || 0) / 1048576).toFixed(2) + " MB · " + data.course_code + " · " + data.chunk_count + " chunks indexed";
+      } else {
+        $("uploadErrorTitle").textContent = data.title;
+        $("uploadErrorBody").textContent = data.body;
       }
     }
 
-    function submitUploadForm() {
-      const title = document.getElementById("uploadTitleInput").value.trim() || "Graph algorithms — Week 04";
-      const course = document.getElementById("uploadCourseInput").value;
-      const rights = document.getElementById("uploadRightsConfirm").checked;
-      if (!rights) {
-        showToast("Please confirm you have the right to share this material.");
-        return;
+    const UPLOAD_ERRORS = {
+      INVALID_FILE_TYPE: "Choose a .pdf or .txt file.",
+      FILE_TOO_LARGE: "Choose a file of 5 MB or less.",
+      EMPTY_OR_SCANNED_FILE: "Use a PDF/.txt file with selectable text (scanned or empty PDFs can't be indexed).",
+      RIGHTS_NOT_CONFIRMED: "Tick the rights-confirmation box and try again.",
+      INVALID_COURSE: "Pick a valid course code.",
+      TA_ROLE_REQUIRED: "Only TAs and moderators can mark a resource as official."
+    };
+
+    async function submitUploadForm() {
+      if (!requireLogin("Sign in to upload resources.")) return;
+      const title = $("uploadTitleInput").value.trim();
+      if (!state.uploadFile) { showToast("Choose a PDF or .txt file first.", true); return; }
+      if (title.length < 3) { showToast("Please enter a descriptive title.", true); return; }
+      if (!$("uploadRightsConfirm").checked) { showToast("Please confirm you have the right to share this material.", true); return; }
+
+      const fd = new FormData();
+      fd.append("title", title);
+      fd.append("resource_type", $("uploadTypeInput").value);
+      fd.append("course_code", $("uploadCourseInput").value);
+      fd.append("tags", $("uploadTagsInput").value.trim());
+      fd.append("is_official", canPublishOfficial() && $("uploadOfficialInput").checked ? "true" : "false");
+      fd.append("rights_confirmed", "true");
+      fd.append("file", state.uploadFile, state.uploadFile.name);
+
+      const btn = $("uploadSubmitBtn");
+      btn.disabled = true;
+      try {
+        const data = await api("/resources", { method: "POST", form: fd });
+        state.lastUploadedResourceId = data.id;
+        state.exploreDirty = true;
+        showUploadResult(true, data);
+        navigateTo("upload-status");
+        showToast("Resource validated, chunked and indexed.");
+      } catch (e) {
+        if (e.status === 401) { handleError(e); return; }
+        showUploadResult(false, { title: e.message, body: UPLOAD_ERRORS[e.code] || "Fix the issue and try again." });
+        navigateTo("upload-status");
+      } finally {
+        btn.disabled = false;
       }
-      const newId = state.resources.length + 1;
-      state.lastUploadedResourceId = newId;
-      state.resources.unshift({
-        id: newId,
-        title,
-        course_code: course,
-        resource_type: "lecture_notes",
-        badge_code: "PDF",
-        pages_label: "14 pages · Uploaded just now",
-        uploader_username: state.currentUser.username,
-        is_official: state.currentUser.role === "ta",
-        avg_rating: 5.0,
-        rating_count: 1,
-        chunk_count: 4,
-        tldr_summary: "Newly uploaded course study notes validated, split into 800-char chunks, and embedded.",
-        content_text: "Uploaded study note content verified and indexed for grounded AI retrieval.",
-        comments: []
-      });
-      document.getElementById("uploadedFileMetaDisplay").textContent = `2.4 MB · ${course} · Validated & Indexed`;
-      renderAllViews();
-      navigateTo("upload-status");
-      showToast("Resource validated, chunked, and uploaded!");
+    }
+
+    // ---------------------------------------------------------------------
+    // Auth — POST /auth/login, /auth/register, /auth/logout; GET/PATCH/DELETE /auth/me;
+    //        PUT /auth/password
+    // ---------------------------------------------------------------------
+    function showAuthPanel(which) {
+      $("loginPanel").style.display = which === "login" ? "" : "none";
+      $("registerPanel").style.display = which === "register" ? "" : "none";
+    }
+
+    function showInlineError(id, msg) {
+      const el = $(id);
+      el.textContent = msg || "";
+      el.style.display = msg ? "block" : "none";
+    }
+
+    function applySession(user, csrf) {
+      state.user = user;
+      state.csrfToken = csrf || "";
+      state.exploreDirty = true;
+      updateAuthUI();
     }
 
     async function handleLoginSubmit() {
-      const email = document.getElementById("loginEmailInput").value.trim();
-      const password = document.getElementById("loginPasswordInput").value;
-      if (!email || !email.includes("@")) {
-        navigateTo("auth-status");
-        return;
+      const email = $("loginEmailInput").value.trim();
+      const password = $("loginPasswordInput").value;
+      showInlineError("loginError", "");
+      if (!email || !password) { showInlineError("loginError", "Enter your email and password."); return; }
+      try {
+        const data = await api("/auth/login", { method: "POST", body: { email, password }, silent401: true });
+        applySession(data.user, data.csrf_token);
+        $("loginPasswordInput").value = "";
+        showToast("Signed in as " + decodeText(data.user.username));
+        navigateTo("home");
+      } catch (e) {
+        showInlineError("loginError", e.message);
       }
-
-      if (state.apiAvailable) {
-        try {
-          const resp = await fetch("/api/v1/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            state.csrfToken = data.csrf_token;
-            state.currentUser = {
-              id: data.user.id,
-              username: data.user.username,
-              email: data.user.email,
-              role: data.user.role,
-              initials: data.user.username.slice(0, 2).toUpperCase()
-            };
-            updateProfileUI();
-            navigateTo("profile");
-            showToast("Signed in as " + data.user.username);
-            return;
-          }
-        } catch (e) {}
-      }
-
-      updateProfileUI();
-      navigateTo("profile");
-      showToast("Signed in as " + state.currentUser.username);
     }
 
-    function switchDemoRole(role) {
-      if (role === "ta") {
-        state.currentUser = { id: 3, username: "Snehadip Ghoshal", email: "snehadip.ghoshal@university.edu", role: "ta", initials: "SG" };
-      } else if (role === "moderator") {
-        state.currentUser = { id: 1, username: "Harshit Pant", email: "harshit.pant@university.edu", role: "moderator", initials: "HP" };
-      } else {
-        state.currentUser = { id: 7, username: "Sam Green", email: "sam.green@university.edu", role: "student", initials: "SG" };
-      }
-      updateProfileUI();
-      showToast("Switched active session role to " + role.toUpperCase());
-    }
-
-    function updateProfileUI() {
-      document.getElementById("profileAvatarBtn").textContent = state.currentUser.initials;
-      document.getElementById("profileCircleInitials").textContent = state.currentUser.initials;
-      document.getElementById("profileDisplayName").textContent = state.currentUser.username;
-      document.getElementById("profileEmailText").textContent = state.currentUser.email;
-      const roleLabels = {
-        student: "Student contributor",
-        ta: "Teaching Assistant (Official List Publisher)",
-        moderator: "Trust & Safety Moderator"
+    async function handleRegisterSubmit() {
+      showInlineError("registerError", "");
+      const body = {
+        username: $("regUsernameInput").value.trim(),
+        email: $("regEmailInput").value.trim(),
+        password: $("regPasswordInput").value,
+        bio: $("regBioInput").value.trim() || null,
+        consent_accepted: $("regConsentInput").checked
       };
-      document.getElementById("profileRoleBadge").textContent = roleLabels[state.currentUser.role] || "Student contributor";
+      if (!body.consent_accepted) { showInlineError("registerError", "You must accept the DPDP Act 2023 consent notice."); return; }
+      try {
+        const data = await api("/auth/register", { method: "POST", body, silent401: true });
+        const csrf = data.csrf_token;
+        delete data.csrf_token;
+        applySession(data, csrf);
+        $("regPasswordInput").value = "";
+        navigateTo("auth-status");
+      } catch (e) {
+        showInlineError("registerError", e.message);
+      }
+    }
+
+    async function handleLogout() {
+      try { await api("/auth/logout", { method: "POST", silent401: true }); } catch (e) { /* cookie may already be gone */ }
+      applySession(null, "");
+      state.myCollections = [];
+      showToast("Signed out.");
+      navigateTo("home");
+    }
+
+    function handleNavAuth() {
+      if (state.user) handleLogout(); else { showAuthPanel("login"); navigateTo("auth"); }
+    }
+
+    async function loadProfile() {
+      try {
+        const me = await api("/auth/me");
+        state.csrfToken = me.csrf_token || state.csrfToken;
+        state.user = me;
+        updateAuthUI();
+        $("editUsernameInput").value = decodeText(me.username);
+        $("editBioInput").value = decodeText(me.bio || "");
+        $("profileUploadsGrid").innerHTML = me.uploads.length
+          ? me.uploads.map(resourceRowHtml).join("")
+          : emptyCard("You haven't uploaded anything yet.");
+        const colls = await api("/collections", { query: { mine: true } });
+        $("profileCollectionsGrid").innerHTML = colls.length
+          ? colls.map(collectionCardHtml).join("")
+          : emptyCard("You haven't created any collections yet.");
+      } catch (e) { handleError(e, "Could not load profile"); }
     }
 
     function toggleEditProfileBox() {
-      const box = document.getElementById("editProfileDrawer");
+      const box = $("editProfileDrawer");
       box.style.display = box.style.display === "none" ? "block" : "none";
     }
 
-    function saveProfileEdits() {
-      const newName = document.getElementById("editUsernameInput").value.trim();
-      if (newName) {
-        state.currentUser.username = newName;
-        updateProfileUI();
-      }
-      document.getElementById("editProfileDrawer").style.display = "none";
-      showToast("Profile updated!");
+    async function saveProfileEdits() {
+      const username = $("editUsernameInput").value.trim();
+      const bio = $("editBioInput").value.trim();
+      try {
+        const updated = await api("/auth/me", { method: "PATCH", body: { username, bio } });
+        state.user = Object.assign({}, state.user, updated);
+        updateAuthUI();
+        showToast("Profile updated.");
+      } catch (e) { handleError(e, "Could not update profile"); }
     }
 
-    function renderProfile() {
-      document.getElementById("profileUploadsGrid").innerHTML = state.resources.slice(0, 2).map(getResourceRowHtml).join("");
-      document.getElementById("profileCollectionsGrid").innerHTML = state.collections.slice(0, 2).map(getCollectionCardHtml).join("");
+    async function changePassword() {
+      const current_password = $("currentPasswordInput").value;
+      const new_password = $("newPasswordInput").value;
+      if (!current_password || new_password.length < 8) { showToast("Enter your current password and a new one (min 8 characters).", true); return; }
+      try {
+        await api("/auth/password", { method: "PUT", body: { current_password, new_password } });
+        $("currentPasswordInput").value = "";
+        $("newPasswordInput").value = "";
+        showToast("Password updated.");
+      } catch (e) { handleError(e, "Could not change password"); }
     }
 
-    function submitContentReport() {
-      const reasonSelect = document.getElementById("reportReasonSelect").value;
-      const details = document.getElementById("reportDetailsInput").value.trim() || "Reported for moderator review.";
-      const resObj = state.resources.find(r => r.id === state.selectedResourceId) || state.resources[0];
+    async function deleteMyAccount() {
+      if (!confirm("This permanently deletes your account and all your data (DPDP Act 2023). Continue?")) return;
+      if (!confirm("Last chance: this cannot be undone. Delete everything?")) return;
+      try {
+        await api("/auth/me", { method: "DELETE" });
+        applySession(null, "");
+        showToast("Account and data deleted.");
+        navigateTo("home");
+      } catch (e) { handleError(e, "Could not delete account"); }
+    }
 
-      const reasonMap = {
-        incorrect_or_misleading: "Incorrect or misleading",
-        copyright_concern: "Copyright concern",
-        low_quality_or_spam: "Low-quality content"
+    // ---------------------------------------------------------------------
+    // Reports — POST /reports
+    // ---------------------------------------------------------------------
+    function openReportForm() {
+      if (!requireLogin("Sign in to report content.")) return;
+      const r = state.currentResource;
+      state.reportTarget = {
+        type: "resource", id: r.id, title: decodeText(r.title),
+        meta: [r.course_code, TYPE_LABELS[r.resource_type] || r.resource_type].join(" · ")
       };
-      const newId = 205 + state.reports.length;
-      state.reports.unshift({
-        id: newId,
-        code: "#RP-" + newId,
-        reason_title: reasonMap[reasonSelect] || "Incorrect or misleading",
-        target_title: resObj.title,
-        target_id: resObj.id,
-        quote: details,
-        status: "Open",
-        pill_class: "pill-amber"
-      });
-      state.selectedReportId = newId;
-      renderModerationQueue();
-      navigateTo("moderation");
-      showToast("Report submitted to the Moderation Queue.");
+      showReportTarget();
+      navigateTo("report-form");
     }
+
+    function reportComment(commentId) {
+      if (!requireLogin("Sign in to report content.")) return;
+      const c = state.currentComments.find((x) => x.id === commentId);
+      if (!c) return;
+      const body = decodeText(c.body);
+      state.reportTarget = {
+        type: "comment", id: c.id, title: body.length > 80 ? body.slice(0, 80) + "…" : body,
+        meta: "Comment by @" + decodeText(c.username)
+      };
+      showReportTarget();
+      navigateTo("report-form");
+    }
+
+    function showReportTarget() {
+      const t = state.reportTarget;
+      $("reportTargetKind").textContent = t.type === "comment" ? "Reported Comment" : "Reported Resource";
+      $("reportTargetTitle").textContent = t.title;
+      $("reportTargetMeta").textContent = t.meta;
+      $("reportDetailsInput").value = "";
+    }
+
+    async function submitContentReport() {
+      if (!requireLogin()) return;
+      const t = state.reportTarget;
+      if (!t) return;
+      try {
+        await api("/reports", {
+          method: "POST",
+          body: {
+            target_type: t.type,
+            target_id: t.id,
+            reason: $("reportReasonSelect").value,
+            details: $("reportDetailsInput").value.trim() || null
+          }
+        });
+        showToast("Report submitted to the moderation queue.");
+        navigateTo("resource-detail");
+      } catch (e) { handleError(e, "Could not submit report"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Moderation — GET /moderation/reports, PATCH /moderation/reports/{id}
+    // ---------------------------------------------------------------------
+    async function loadModeration() {
+      if (!isModerator()) return;
+      try {
+        state.reports = await api("/moderation/reports");
+        if (!state.reports.some((r) => r.id === state.selectedReportId)) {
+          state.selectedReportId = state.reports.length ? state.reports[0].id : null;
+        }
+        renderModerationQueue();
+      } catch (e) {
+        $("moderationReportsList").innerHTML = emptyCard("Could not load reports: " + e.message);
+      }
+    }
+
+    function reportPill(status) {
+      if (status === "open") return ["pill-amber", "Open"];
+      if (status === "resolved") return ["pill-green", "Resolved"];
+      if (status === "dismissed") return ["pill-gray", "Dismissed"];
+      return ["pill-gray", status];
+    }
+
+    function selectedReport() { return state.reports.find((r) => r.id === state.selectedReportId) || null; }
 
     function renderModerationQueue() {
-      const listEl = document.getElementById("moderationReportsList");
-      listEl.innerHTML = state.reports.map(rp => {
-        const isSel = rp.id === state.selectedReportId;
+      const all = state.reports;
+      const count = (s) => all.filter((r) => r.status === s).length;
+      $("modOpenCountBadge").textContent = count("open") + " OPEN";
+      $("modDismissedCountBadge").textContent = count("dismissed") + " DISMISSED";
+      $("modResolvedCountBadge").textContent = count("resolved") + " RESOLVED";
+
+      const filter = $("modStatusFilter").value;
+      const shown = filter ? all.filter((r) => r.status === filter) : all;
+      $("moderationReportsList").innerHTML = shown.length ? shown.map((rp) => {
+        const sel = rp.id === state.selectedReportId;
+        const [cls, label] = reportPill(rp.status);
         return `
-          <div class="card clickable" style="margin-bottom:0.75rem; border-color:${isSel ? 'var(--green-btn)' : 'var(--border-soft)'}; background:${isSel ? '#f4faf6' : '#ffffff'};" onclick="selectModerationReport(${rp.id})">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="card clickable" style="margin-bottom:0.75rem; border-color:${sel ? "var(--green-btn)" : "var(--border-soft)"}; background:${sel ? "#f4faf6" : "#ffffff"};" onclick="selectModerationReport(${Number(rp.id)})">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
               <div>
-                <span style="font-size:0.74rem; font-weight:700; color:var(--text-muted);">${rp.code}</span>
-                <strong style="display:block; font-size:1rem; margin:0.1rem 0;">${rp.reason_title}</strong>
-                <span style="font-size:0.84rem; color:var(--text-muted);">${rp.target_title}</span>
+                <span style="font-size:0.74rem; font-weight:700; color:var(--text-muted);">#RP-${Number(rp.id)} &middot; ${esc(rp.target_type)}</span>
+                <strong style="display:block; font-size:1rem; margin:0.1rem 0;">${esc(REASON_LABELS[rp.reason] || rp.reason)}</strong>
+                <span style="font-size:0.84rem; color:var(--text-muted);">${fmt(rp.target_title_or_preview)}</span>
               </div>
-              <span class="pill ${rp.pill_class}">${rp.status}</span>
+              <span class="pill ${cls}">${esc(label)}</span>
             </div>
-          </div>
-        `;
-      }).join("");
+          </div>`;
+      }).join("") : emptyCard("No reports match this filter.");
 
-      const sel = state.reports.find(r => r.id === state.selectedReportId) || state.reports[0];
+      const sel = selectedReport();
       if (sel) {
-        document.getElementById("selectedReportEyebrow").textContent = `Selected Report · ${sel.code}`;
-        document.getElementById("selectedReportReason").textContent = sel.reason_title;
-        document.getElementById("selectedReportTarget").textContent = sel.target_title;
-        document.getElementById("selectedReportQuote").textContent = `"${sel.quote}"`;
-
-        document.getElementById("confirmReportReasonTitle").textContent = sel.reason_title;
-        document.getElementById("confirmReportTargetTitle").textContent = sel.target_title;
-        document.getElementById("confirmReportQuoteText").textContent = `"${sel.quote}"`;
+        $("selectedReportEyebrow").textContent = "Selected Report · #RP-" + sel.id;
+        $("selectedReportReason").textContent = REASON_LABELS[sel.reason] || sel.reason;
+        $("selectedReportTarget").textContent = decodeText(sel.target_title_or_preview) + " (" + sel.target_type + " #" + sel.target_id + ")";
+        $("selectedReportQuote").textContent =
+          "“" + (sel.details ? decodeText(sel.details) : "No additional details.") + "” — @" + decodeText(sel.reporter_username) + ", " + fmtDate(sel.created_at) +
+          (sel.moderation_action ? " · action taken: " + sel.moderation_action : "");
+      } else {
+        $("selectedReportEyebrow").textContent = "Selected Report";
+        $("selectedReportReason").textContent = "No report selected";
+        $("selectedReportTarget").textContent = "";
+        $("selectedReportQuote").textContent = "";
       }
     }
 
@@ -2205,32 +2535,71 @@
       renderModerationQueue();
     }
 
-    function applyModerationAction(action) {
-      const sel = state.reports.find(r => r.id === state.selectedReportId) || state.reports[0];
-      if (!sel) return;
-      if (action === "dismiss") {
-        sel.status = "Dismissed";
-        sel.pill_class = "pill-gray";
-      } else {
-        sel.status = "Resolved (" + action + ")";
-        sel.pill_class = "pill-green";
-      }
-      renderModerationQueue();
-      navigateTo("moderation");
-      showToast(`Moderation action '${action.toUpperCase()}' logged on ${sel.code}.`);
+    function startModerationAction(action) {
+      const sel = selectedReport();
+      if (!sel) { showToast("Select a report first.", true); return; }
+      state.pendingModAction = action;
+      const meta = MOD_ACTIONS[action];
+      const [cls, label] = reportPill(sel.status);
+
+      $("review-confirm-title").textContent = "Review report #RP-" + sel.id;
+      $("confirmReportStatusPill").textContent = label + " report";
+      $("confirmReportStatusPill").className = "pill " + cls;
+      $("confirmReportReasonTitle").textContent = REASON_LABELS[sel.reason] || sel.reason;
+      $("confirmReportTargetTitle").textContent = decodeText(sel.target_title_or_preview);
+      $("confirmReportQuoteText").textContent = "“" + (sel.details ? decodeText(sel.details) : "No additional details.") + "”";
+      $("confirmActionPill").textContent = meta.pill;
+      $("confirmActionTitle").textContent = meta.title;
+      $("confirmActionDescription").textContent = meta.text;
+      $("confirmActionBtn").textContent = meta.btn;
+      $("confirmActionBtn").className = "btn " + meta.cls;
+      $("moderationNoteInput").value = "";
+      navigateTo("review-confirm");
     }
 
-    function renderAllViews() {
-      renderHome();
-      renderExploreList();
-      renderCollectionsHub();
-      renderProfile();
-      renderModerationQueue();
+    async function applyModerationAction() {
+      const sel = selectedReport();
+      const action = state.pendingModAction;
+      if (!sel || !action) return;
+      try {
+        await api("/moderation/reports/" + sel.id, {
+          method: "PATCH",
+          body: { action, note: $("moderationNoteInput").value.trim() || null }
+        });
+        state.exploreDirty = true;
+        showToast("Action '" + action + "' logged on #RP-" + sel.id + ".");
+        navigateTo("moderation");
+      } catch (e) { handleError(e, "Could not apply action"); }
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      renderAllViews();
-      syncWithBackend();
+    // ---------------------------------------------------------------------
+    // Init
+    // ---------------------------------------------------------------------
+    function wireStaticEvents() {
+      // Event delegation for dynamically generated filter buttons (values come from the API).
+      $("courseFilterList").addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-course]");
+        if (b) setExploreCourseFilter(b.getAttribute("data-course"));
+      });
+      $("tagFilterList").addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-tag]");
+        if (b) setExploreTagFilter(b.getAttribute("data-tag"));
+      });
+
+      const dz = $("uploadDropzone");
+      ["dragenter", "dragover"].forEach((n) => dz.addEventListener(n, (e) => { e.preventDefault(); dz.style.borderColor = "var(--green-btn)"; }));
+      ["dragleave", "drop"].forEach((n) => dz.addEventListener(n, (e) => { e.preventDefault(); dz.style.borderColor = ""; }));
+      dz.addEventListener("drop", (e) => {
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) setPickedFile(f);
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      wireStaticEvents();
+      syncFilterButtons();
+      await Promise.all([checkHealth(), restoreSession(), loadCategories(), loadTags()]);
+      loadHome();
     });
   </script>
 </body>

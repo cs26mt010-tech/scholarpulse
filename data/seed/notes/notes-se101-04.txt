@@ -1,0 +1,15 @@
+TITLE: Automated Testing, Mocking External APIs, Docker Compose & CI Pipelines
+COURSE: SE101 | TYPE: lecture_notes | AUTHORS: Ritik Kumar, Gangadevi Venkata Siva krishna
+==============================================================================
+
+## 1. Reproducible Development with Docker Compose Healthchecks
+ScholarPulse starts the entire stack with a single `docker compose up --build`. Because a MySQL 8 container takes several seconds to initialize its InnoDB data dictionary after its TCP port opens, `docker-compose.yml` configures a `mysqladmin ping` healthcheck on `db` and `depends_on: db: condition: service_healthy` on `backend`, ensuring `alembic upgrade head` and `scripts/seed_db.py` never fail with connection-refused race conditions.
+
+## 2. Mocking External LLM Clients in Unit and Integration Tests
+Continuous Integration (CI) pipelines must be deterministic, fast, and free of external network dependencies or API quota consumption. In ScholarPulse's `pytest` suite, both the embedding client (`gemini-embedding-001`) and generation client (`gemini-2.5-flash`) are injected via a clean service interface and mocked during unit and integration tests, including simulated timeouts and HTTP 429 errors to test the keyword fallback path.
+
+## 3. Testing Role-Based Access Control (RBAC) Matrix
+Automated tests verify every role boundary: Visitors can browse/search (`200 OK`) but receive `401 Unauthorized` on upload, rating, comment, or AI ask; Students receive `403 Forbidden` when attempting to mark a collection `is_official=true` or access `/api/v1/moderation/reports`; TAs can publish official lists; and Moderators can hide, restore, remove, or dismiss reports.
+
+## 4. GitHub Actions CI with MySQL Service Container and Ruff Linting
+Every pull request to `main` triggers the GitHub Actions workflow, which runs `ruff check` for static linting, boots a MySQL 8.0 service container, executes `alembic upgrade head`, seeds the committed dataset subset (`data/seed/arxiv_subset.jsonl`), and runs `pytest --cov=app`.

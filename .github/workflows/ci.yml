@@ -1,0 +1,69 @@
+name: ScholarPulse CI (MS-3 / MS-4 Pipeline)
+
+on:
+  push:
+    branches: [ main, "ms3*", "feature/*" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: scholarpulse_root_secret
+          MYSQL_DATABASE: scholarpulse
+          MYSQL_USER: sp_user
+          MYSQL_PASSWORD: sp_password_2026
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -pscholarpulse_root_secret"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Lint with Ruff
+        run: |
+          ruff check backend scripts
+
+      - name: Validate OpenAPI 3.0.3 YAML Specification
+        run: |
+          python -c "import yaml; s = yaml.safe_load(open('docs/openapi.yaml')); assert s['openapi'] == '3.0.3'; print('OpenAPI paths:', len(s['paths']))"
+
+      - name: Run Alembic Database Migrations (12 Tables)
+        env:
+          DATABASE_URL: mysql+pymysql://sp_user:sp_password_2026@127.0.0.1:3306/scholarpulse?charset=utf8mb4
+        run: |
+          cd backend && alembic upgrade head
+
+      - name: Run Deterministic Seed Script (600 CS arXiv + 30 Notes)
+        env:
+          DATABASE_URL: mysql+pymysql://sp_user:sp_password_2026@127.0.0.1:3306/scholarpulse?charset=utf8mb4
+        run: |
+          python scripts/seed_db.py
+          python scripts/seed_db.py  # Verify idempotency on second run
+
+      - name: Run Pytest Suite & RAG Evaluation Benchmark (Mocked External AI)
+        env:
+          DATABASE_URL: mysql+pymysql://sp_user:sp_password_2026@127.0.0.1:3306/scholarpulse?charset=utf8mb4
+        run: |
+          pytest backend/tests/test_ms3_stack.py -v
+          python scripts/evaluate_rag.py

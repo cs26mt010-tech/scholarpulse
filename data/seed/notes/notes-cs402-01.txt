@@ -1,0 +1,15 @@
+TITLE: Relational Algebra, Normalization (BCNF / 3NF) & Schema Design
+COURSE: CS402 | TYPE: lecture_notes | AUTHORS: Harshit Pant, Gangadevi Venkata Siva krishna
+==============================================================================
+
+## 1. Relational Algebra Operators and Equivalences
+Codd's relational algebra comprises six fundamental operators: selection (sigma), projection (pi), Cartesian product (x), union (U), set difference (-), and rename (rho), from which natural join, theta-join, and division are derived. Pushing selections below joins (sigma_{p}(R join S) = (sigma_p(R)) join S when p references only attributes of R) is the foundational algebraic rewrite for reducing intermediate tuple cardinality.
+
+## 2. Functional Dependencies and Armstrong's Axioms
+A Functional Dependency (FD) X -> Y holds on relation schema R if any two tuples agreeing on attribute set X must also agree on Y. Armstrong's axioms (Reflexivity, Augmentation, and Transitivity) are sound and complete for inferring the closure F+ of a set of FDs. Computing the attribute closure X+ takes linear O(|F|) time and tests whether X is a superkey (X+ = R).
+
+## 3. Boyce-Codd Normal Form (BCNF) vs Third Normal Form (3NF)
+A relation schema R is in Boyce-Codd Normal Form (BCNF) if for every non-trivial FD X -> Y in F+, X is a superkey of R. BCNF completely eliminates redundancy caused by functional dependencies and guarantees a lossless-join decomposition (R1 intersect R2 -> R1 or R2), but BCNF decomposition is NOT always dependency-preserving. Third Normal Form (3NF) relaxes BCNF by permitting X -> A if A is a prime attribute (part of some candidate key); using a canonical cover F_c, the 3NF synthesis algorithm guarantees BOTH lossless-join AND dependency preservation.
+
+## 4. Practical Application in the ScholarPulse 12-Table Schema
+In ScholarPulse, separating `tags` and `resource_tags` from `resources` eliminates repeating comma-separated tag groups (satisfying 1NF) and avoids update anomalies. Similarly, storing chunk vectors in `resource_chunks` and user ratings in `ratings` with a unique constraint on `(resource_id, user_id)` satisfies BCNF.

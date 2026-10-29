@@ -1,0 +1,15 @@
+TITLE: Concurrency: Mutexes, Condition Variables, Semaphores & Mesa Semantics
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Snehadip Ghoshal
+==============================================================================
+
+## 1. Hardware Atomic Primitives: Compare-And-Swap (CAS) and Load-Linked/Store-Conditional
+Correct mutual exclusion requires hardware support beyond disabling interrupts on multiprocessors. Atomic `Compare-And-Swap (CAS)` and `Fetch-And-Add` instructions enable ticket spinlocks and futexes (fast userspace mutexes that avoid kernel transitions in the uncontended case and sleep in a kernel wait queue under contention).
+
+## 2. Condition Variables and Why `while` Loops are Mandatory (Mesa vs Hoare Semantics)
+When waiting on a condition variable (`pthread_cond_wait(&cv, &mutex)`), threads MUST re-check the state predicate inside a `while (!ready)` loop rather than an `if` statement. Almost all production operating systems implement Mesa semantics: `signal()` merely moves a waiting thread to the ready queue without immediately transferring the lock, so another thread may run and falsify the condition before the woken thread re-acquires the mutex (or a spurious wakeup may occur).
+
+## 3. Bounded Producer-Consumer Buffer with Two Condition Variables
+A correct single-mutex bounded buffer uses two distinct condition variables (`not_full` and `not_empty`). Producers wait on `not_full` while `count == BUFFER_SIZE` and signal `not_empty` after inserting; consumers wait on `not_empty` while `count == 0` and signal `not_full` after removing. Using a single condition variable with `signal()` can deadlock when a consumer wakes another consumer instead of a waiting producer.
+
+## 4. Dijkstra Semaphores and Reader-Writer Starvation Prevention
+A semaphore S is an integer synchronization object with atomic `wait/P` (decrement and block if negative) and `post/V` (increment and wake). In Reader-Writer locks, naive reader preference allows a continuous stream of readers to starve waiting writers; fair Reader-Writer locks use a turnstile mutex or writer-pending flag to block new readers once a writer arrives.

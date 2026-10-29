@@ -1,0 +1,1617 @@
+openapi: 3.0.3
+info:
+  title: 'ScholarPulse: AI-Enabled Academic Knowledge Hub API'
+  version: 1.0.0-ms3
+  description: 'REST API specification for ScholarPulse (Course Project 2026 | Theme 4: Knowledge Hub).
+    Supports multi-role academic resource sharing (Visitor, Student, TA, Moderator), curated reading list
+    collections, community ratings and comments, content moderation with audit logging, and a grounded
+    AI Study Assistant (Google Gemini API `gemini-embedding-001` and `gemini-2.5-flash`) with single-resource,
+    collection-wide (up to 20 resources), and course-wide retrieval-augmented generation (RAG) plus MySQL
+    FULLTEXT keyword fallback.'
+  contact:
+    name: ScholarPulse Team (Harshit Pant, Snehadip Ghoshal, Gangadevi Venkata Siva krishna, Ritik Kumar)
+    url: https://github.com/cs26mt010-tech/scholarpulse
+  license:
+    name: CC0-1.0 (Dataset) / MIT (Code)
+    url: https://creativecommons.org/publicdomain/zero/1.0/
+servers:
+- url: http://localhost:8000
+  description: Local Docker Compose Development Server
+- url: https://scholarpulse.example.edu
+  description: Production HTTPS Deployment
+tags:
+- name: System
+  description: Health check, database status, and OpenAPI schema endpoints
+- name: Auth
+  description: Registration (with DPDP Act 2023 consent), Argon2id login, logout, session & CSRF token
+- name: Users
+  description: User profile management, personal uploads/ratings/collections, password update, and full
+    account deletion
+- name: Categories
+  description: Course codes (CS301, CS402, CS205, SE101) and popular tags
+- name: Resources
+  description: Browse, search, filter, sort, upload (.pdf/.txt <= 5MB), view, edit, and delete study resources
+- name: Ratings & Comments
+  description: 1-5 star ratings and community discussion comments on resources
+- name: Collections
+  description: Public and official TA reading lists, item ordering, and curation
+- name: AI Study Assistant
+  description: Grounded RAG Q&A (single resource, collection, or course scope) with citations, refusal,
+    and FULLTEXT keyword fallback
+- name: Moderation
+  description: Content reporting (copyright/inappropriate/misleading) and moderator review queue with
+    logged actions
+components:
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: sp_session
+      description: HttpOnly, SameSite=Lax, Secure (in prod) server-side session cookie (24-hour expiry).
+    CsrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+      description: Synchronizer CSRF token required on all state-changing requests (POST, PUT, PATCH,
+        DELETE).
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+      - error
+      - message
+      properties:
+        error:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: File exceeds 5 MB limit or contains no extractable text.
+        details:
+          type: object
+          nullable: true
+    RoleEnum:
+      type: string
+      enum:
+      - student
+      - ta
+      - moderator
+      description: Authenticated user role (Visitors are unauthenticated).
+    ResourceTypeEnum:
+      type: string
+      enum:
+      - paper_summary
+      - lecture_notes
+      - slides
+      - assignment
+      description: Type of study material.
+    ResourceStatusEnum:
+      type: string
+      enum:
+      - active
+      - hidden
+      - removed
+      description: Moderation visibility status. Hidden/removed resources are excluded from public browse
+        and AI retrieval.
+    EmbeddingStatusEnum:
+      type: string
+      enum:
+      - pending
+      - completed
+      - failed
+      description: Status of chunk embedding generation (`gemini-embedding-001`). Failed uploads are retried
+        by background job.
+    AIScopeTypeEnum:
+      type: string
+      enum:
+      - resource
+      - collection
+      - course
+      description: Scope of AI question answering.
+    UserRegisterRequest:
+      type: object
+      required:
+      - username
+      - email
+      - password
+      - consent_accepted
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: sam_green
+        email:
+          type: string
+          format: email
+          maxLength: 120
+          example: sam.green@university.edu
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          example: StrongPass!2026
+        bio:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: M.Tech CS student focusing on Graph Algorithms and Distributed Systems.
+        consent_accepted:
+          type: boolean
+          description: Explicit DPDP Act 2023 consent notice confirmation.
+          example: true
+    UserLoginRequest:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: sam.green@university.edu
+        password:
+          type: string
+          example: StrongPass!2026
+        remember_me:
+          type: boolean
+          default: false
+    UserPublic:
+      type: object
+      required:
+      - id
+      - username
+      - email
+      - role
+      - created_at
+      properties:
+        id:
+          type: integer
+          example: 4
+        username:
+          type: string
+          example: sam_green
+        email:
+          type: string
+          format: email
+          example: sam.green@university.edu
+        bio:
+          type: string
+          nullable: true
+          example: CS undergraduate preparing for Operating Systems and DB exams.
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        consent_accepted:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+    UserUpdateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        bio:
+          type: string
+          maxLength: 500
+    PasswordChangeRequest:
+      type: object
+      required:
+      - current_password
+      - new_password
+      properties:
+        current_password:
+          type: string
+        new_password:
+          type: string
+          minLength: 8
+          maxLength: 128
+    CategorySummary:
+      type: object
+      required:
+      - id
+      - course_code
+      - course_name
+      - department
+      properties:
+        id:
+          type: integer
+          example: 1
+        course_code:
+          type: string
+          example: CS301
+        course_name:
+          type: string
+          example: Design and Analysis of Algorithms
+        department:
+          type: string
+          example: Computer Science & Engineering
+        description:
+          type: string
+          nullable: true
+        resource_count:
+          type: integer
+          example: 165
+    TagSummary:
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: cs.DB
+        slug:
+          type: string
+          example: cs-db
+        usage_count:
+          type: integer
+          example: 92
+    ResourceSummary:
+      type: object
+      required:
+      - id
+      - title
+      - resource_type
+      - course_code
+      - is_official
+      - status
+      - avg_rating
+      - rating_count
+      - comment_count
+      - created_at
+      properties:
+        id:
+          type: integer
+          example: 101
+        title:
+          type: string
+          maxLength: 200
+          example: 'Graph Algorithms — Week 04: BFS, DFS & Shortest Paths'
+        resource_type:
+          $ref: '#/components/schemas/ResourceTypeEnum'
+        course_code:
+          type: string
+          example: CS301
+        source_authors:
+          type: string
+          nullable: true
+          example: A. Sharma, Harshit Pant
+        source_ref:
+          type: string
+          nullable: true
+          example: notes-cs301-01
+        published_on:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-10-15'
+        tldr_summary:
+          type: string
+          nullable: true
+          example: Covers Breadth-First Search (BFS) layer-by-layer traversal in O(V+E), Dijkstra's shortest
+            path with binary heaps, and Bellman-Ford negative cycle detection.
+        is_official:
+          type: boolean
+          example: true
+        status:
+          $ref: '#/components/schemas/ResourceStatusEnum'
+        embedding_status:
+          $ref: '#/components/schemas/EmbeddingStatusEnum'
+        avg_rating:
+          type: number
+          format: float
+          example: 4.8
+        rating_count:
+          type: integer
+          example: 14
+        comment_count:
+          type: integer
+          example: 5
+        tags:
+          type: array
+          items:
+            type: string
+          example:
+          - cs.DS
+          - algorithms
+          - graph-theory
+        uploader_username:
+          type: string
+          nullable: true
+          example: ta_arjun
+        created_at:
+          type: string
+          format: date-time
+    ResourceDetail:
+      allOf:
+      - $ref: '#/components/schemas/ResourceSummary'
+      - type: object
+        required:
+        - content_text
+        - chunk_count
+        properties:
+          content_text:
+            type: string
+            description: Escaped plain text extracted from the study note or arXiv abstract.
+          chunk_count:
+            type: integer
+            example: 9
+          file_name:
+            type: string
+            nullable: true
+            example: graph-algorithms-week04.pdf
+          file_size_bytes:
+            type: integer
+            nullable: true
+            example: 2411724
+    PaginatedResources:
+      type: object
+      required:
+      - items
+      - total
+      - page
+      - page_size
+      - total_pages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceSummary'
+        total:
+          type: integer
+          example: 630
+        page:
+          type: integer
+          example: 1
+        page_size:
+          type: integer
+          example: 20
+        total_pages:
+          type: integer
+          example: 32
+    RatingRequest:
+      type: object
+      required:
+      - score
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+    RatingResponse:
+      type: object
+      required:
+      - resource_id
+      - user_id
+      - score
+      - avg_rating
+      - rating_count
+      properties:
+        resource_id:
+          type: integer
+          example: 101
+        user_id:
+          type: integer
+          example: 4
+        score:
+          type: integer
+          example: 5
+        avg_rating:
+          type: number
+          format: float
+          example: 4.85
+        rating_count:
+          type: integer
+          example: 15
+    CommentCreateRequest:
+      type: object
+      required:
+      - body
+      properties:
+        body:
+          type: string
+          minLength: 2
+          maxLength: 2000
+          example: Section 4's explanation of BFS level-order queue invariants really helped me for the
+            CS301 midterm!
+    CommentItem:
+      type: object
+      required:
+      - id
+      - resource_id
+      - user_id
+      - username
+      - body
+      - status
+      - created_at
+      properties:
+        id:
+          type: integer
+          example: 42
+        resource_id:
+          type: integer
+          example: 101
+        user_id:
+          type: integer
+          example: 4
+        username:
+          type: string
+          example: sam_green
+        body:
+          type: string
+        status:
+          $ref: '#/components/schemas/ResourceStatusEnum'
+        created_at:
+          type: string
+          format: date-time
+    CollectionSummary:
+      type: object
+      required:
+      - id
+      - title
+      - owner_id
+      - owner_username
+      - is_official
+      - is_public
+      - item_count
+      - created_at
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          maxLength: 150
+          example: Algorithms, Clearly Explained (Official CS301 Reading List)
+        description:
+          type: string
+          nullable: true
+          example: Core concepts, proofs, and worked examples curated for CS301.
+        course_code:
+          type: string
+          nullable: true
+          example: CS301
+        owner_id:
+          type: integer
+          example: 2
+        owner_username:
+          type: string
+          example: ta_arjun
+        is_official:
+          type: boolean
+          example: true
+        is_public:
+          type: boolean
+          example: true
+        item_count:
+          type: integer
+          example: 12
+        created_at:
+          type: string
+          format: date-time
+    CollectionItemEntry:
+      type: object
+      required:
+      - position
+      - resource
+      properties:
+        position:
+          type: integer
+          example: 1
+        notes:
+          type: string
+          nullable: true
+          example: Read before Week 4 tutorial.
+        resource:
+          $ref: '#/components/schemas/ResourceSummary'
+    CollectionDetail:
+      allOf:
+      - $ref: '#/components/schemas/CollectionSummary'
+      - type: object
+        required:
+        - items
+        properties:
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/CollectionItemEntry'
+    CollectionCreateRequest:
+      type: object
+      required:
+      - title
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        course_code:
+          type: string
+          example: CS301
+        is_public:
+          type: boolean
+          default: true
+        is_official:
+          type: boolean
+          default: false
+          description: Only users with the `ta` or `moderator` role can set `is_official=true`.
+    AIAskRequest:
+      type: object
+      required:
+      - question
+      - scope_type
+      - scope_id
+      properties:
+        question:
+          type: string
+          minLength: 3
+          maxLength: 300
+          description: Student question (capped at 300 characters per guardrail policy).
+          example: Why does Breadth-First Search (BFS) guarantee shortest paths in unweighted graphs?
+        scope_type:
+          $ref: '#/components/schemas/AIScopeTypeEnum'
+        scope_id:
+          type: string
+          description: Resource ID (e.g. '101'), Collection ID (e.g. '1'), or Course Code (e.g. 'CS301').
+          example: '101'
+    AICitation:
+      type: object
+      required:
+      - chunk_id
+      - resource_id
+      - resource_title
+      - chunk_index
+      - snippet
+      properties:
+        chunk_id:
+          type: integer
+          example: 412
+        resource_id:
+          type: integer
+          example: 101
+        resource_title:
+          type: string
+          example: 'Graph Algorithms — Week 04: BFS, DFS & Shortest Paths'
+        chunk_index:
+          type: integer
+          example: 0
+        similarity_score:
+          type: number
+          format: float
+          nullable: true
+          example: 0.842
+        snippet:
+          type: string
+          example: BFS explores vertices in increasing distance layers from the source s using a FIFO
+            queue, visiting each vertex at most once in O(V + E) time.
+    AIAskResponse:
+      type: object
+      required:
+      - query_id
+      - question
+      - scope_type
+      - scope_id
+      - answer
+      - not_found
+      - fallback_used
+      - citations
+      - latency_ms
+      properties:
+        query_id:
+          type: integer
+          example: 88
+        question:
+          type: string
+        scope_type:
+          $ref: '#/components/schemas/AIScopeTypeEnum'
+        scope_id:
+          type: string
+          example: '101'
+        answer:
+          type: string
+          description: Grounded answer with cited chunk IDs, or 'Not found in this document' when unsupported,
+            or fallback notice when AI service is unavailable.
+          example: BFS visits vertices in concentric distance layers using a FIFO queue, so the first
+            time a vertex v is reached, it is via the minimum number of edges from the source [Chunk 412].
+        not_found:
+          type: boolean
+          description: True when the retrieved passages do not contain the answer.
+          example: false
+        fallback_used:
+          type: boolean
+          description: True when Gemini API timed out (10s + 1 retry) or quota was exhausted, falling
+            back to MySQL FULLTEXT keyword search.
+          example: false
+        fallback_notice:
+          type: string
+          nullable: true
+          example: null
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AICitation'
+        latency_ms:
+          type: integer
+          example: 420
+    ReportCreateRequest:
+      type: object
+      required:
+      - target_type
+      - target_id
+      - reason
+      properties:
+        target_type:
+          type: string
+          enum:
+          - resource
+          - comment
+          example: resource
+        target_id:
+          type: integer
+          example: 101
+        reason:
+          type: string
+          enum:
+          - copyright_concern
+          - incorrect_or_misleading
+          - low_quality_or_spam
+          - inappropriate_content
+          example: incorrect_or_misleading
+        details:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: The complexity stated in section 4 may be incorrect.
+    ReportItem:
+      type: object
+      required:
+      - id
+      - reporter_id
+      - target_type
+      - target_id
+      - reason
+      - status
+      - created_at
+      properties:
+        id:
+          type: integer
+          example: 204
+        reporter_id:
+          type: integer
+          example: 4
+        reporter_username:
+          type: string
+          example: sam_green
+        target_type:
+          type: string
+          enum:
+          - resource
+          - comment
+        target_id:
+          type: integer
+          example: 101
+        target_title_or_preview:
+          type: string
+          example: Graph Algorithms — Week 04
+        reason:
+          type: string
+          example: incorrect_or_misleading
+        details:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - open
+          - reviewing
+          - resolved
+          - dismissed
+          example: open
+        moderator_id:
+          type: integer
+          nullable: true
+        moderation_action:
+          type: string
+          enum:
+          - hide
+          - restore
+          - remove
+          - dismiss
+          nullable: true
+        moderation_note:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+    ModerationActionRequest:
+      type: object
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - hide
+          - restore
+          - remove
+          - dismiss
+          description: Action taken by moderator (`hide`, `restore`, `remove` target content, or `dismiss`
+            report).
+        note:
+          type: string
+          maxLength: 500
+          example: Verified against CLRS 4th Ed; restored resource.
+paths:
+  /api/v1/health:
+    get:
+      tags:
+      - System
+      summary: Health and database readiness check
+      operationId: getHealth
+      responses:
+        '200':
+          description: Stack is healthy and database is reachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: ScholarPulse Backend
+                  milestone:
+                    type: string
+                    example: MS-3
+                  database:
+                    type: string
+                    example: connected
+                  counts:
+                    type: object
+                    properties:
+                      users:
+                        type: integer
+                        example: 20
+                      resources:
+                        type: integer
+                        example: 630
+                      resource_chunks:
+                        type: integer
+                        example: 1480
+                      collections:
+                        type: integer
+                        example: 15
+                      ratings:
+                        type: integer
+                        example: 800
+                      comments:
+                        type: integer
+                        example: 300
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Auth
+      summary: Register a new student account (Argon2id hash + DPDP consent)
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+      responses:
+        '201':
+          description: Account created and session cookie issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '400':
+          description: Consent not accepted or duplicate username/email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Authenticate user and set HttpOnly session cookie + CSRF token
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly, SameSite=Lax session cookie (`sp_session`)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserPublic'
+                  csrf_token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Clear server-side session and expire cookie
+      operationId: logoutUser
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      responses:
+        '200':
+          description: Logged out
+  /api/v1/auth/me:
+    get:
+      tags:
+      - Users
+      summary: Get currently authenticated user profile and activity summary
+      operationId: getCurrentUser
+      security:
+      - SessionCookie: []
+      responses:
+        '200':
+          description: Authenticated user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '401':
+          description: Not authenticated
+    patch:
+      tags:
+      - Users
+      summary: Update own username or bio
+      operationId: updateCurrentUser
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '401':
+          description: Not authenticated
+    delete:
+      tags:
+      - Users
+      summary: Delete own account and all associated personal data (DPDP Act 2023 compliance)
+      operationId: deleteCurrentUser
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      responses:
+        '200':
+          description: Account and personal data permanently deleted
+        '401':
+          description: Not authenticated
+  /api/v1/auth/password:
+    put:
+      tags:
+      - Users
+      summary: Change user password (re-hashes with Argon2id)
+      operationId: changePassword
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChangeRequest'
+      responses:
+        '200':
+          description: Password updated
+        '400':
+          description: Current password incorrect
+        '401':
+          description: Not authenticated
+  /api/v1/categories:
+    get:
+      tags:
+      - Categories
+      summary: List all academic courses (CS301, CS402, CS205, SE101) and resource counts
+      operationId: listCategories
+      responses:
+        '200':
+          description: Course categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategorySummary'
+  /api/v1/tags:
+    get:
+      tags:
+      - Categories
+      summary: List popular tags and arXiv CS categories
+      operationId: listTags
+      responses:
+        '200':
+          description: Tags list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagSummary'
+  /api/v1/resources:
+    get:
+      tags:
+      - Resources
+      summary: Browse, search, filter, and sort study resources (Visitor accessible)
+      operationId: listResources
+      parameters:
+      - name: q
+        in: query
+        description: Keyword search across title, content, and tags
+        schema:
+          type: string
+      - name: course_code
+        in: query
+        description: Filter by course code (e.g. CS301, CS402, CS205, SE101)
+        schema:
+          type: string
+      - name: tag
+        in: query
+        description: Filter by tag name or slug (e.g. cs.DB, algorithms)
+        schema:
+          type: string
+      - name: resource_type
+        in: query
+        description: Filter by material type
+        schema:
+          $ref: '#/components/schemas/ResourceTypeEnum'
+      - name: official_only
+        in: query
+        description: Filter to TA-verified official resources only
+        schema:
+          type: boolean
+          default: false
+      - name: sort_by
+        in: query
+        description: Sort order
+        schema:
+          type: string
+          enum:
+          - rating
+          - newest
+          - comments
+          default: rating
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: page_size
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      responses:
+        '200':
+          description: Paginated resource catalogue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResources'
+    post:
+      tags:
+      - Resources
+      summary: Upload a new study resource (.pdf or .txt <= 5 MB) with chunking, embedding, and TL;DR
+        generation
+      operationId: uploadResource
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - title
+              - resource_type
+              - course_code
+              - rights_confirmed
+              - file
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                resource_type:
+                  $ref: '#/components/schemas/ResourceTypeEnum'
+                course_code:
+                  type: string
+                  example: CS301
+                tags:
+                  type: string
+                  description: Comma-separated tags
+                  example: cs.DS,graph-algorithms
+                is_official:
+                  type: boolean
+                  default: false
+                  description: TA role required to mark official
+                rights_confirmed:
+                  type: boolean
+                  description: Uploader confirms right to share material
+                file:
+                  type: string
+                  format: binary
+                  description: PDF or .txt file (max 5 MB, must contain extractable text)
+      responses:
+        '201':
+          description: Resource uploaded, chunked (~800 chars, 100 overlap), and indexed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetail'
+        '400':
+          description: File > 5 MB, unsupported format, rights not confirmed, or scanned PDF with no extractable
+            text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+        '403':
+          description: Only TAs can mark uploads as official
+  /api/v1/resources/{resource_id}:
+    get:
+      tags:
+      - Resources
+      summary: Get full resource details, preview text, TL;DR summary, tags, and ratings
+      operationId: getResource
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Resource detail view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetail'
+        '404':
+          description: Resource not found or hidden/removed by moderator
+    patch:
+      tags:
+      - Resources
+      summary: Edit resource metadata (owner or moderator only)
+      operationId: updateResource
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                course_code:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Resource updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceDetail'
+        '403':
+          description: Not resource owner
+    delete:
+      tags:
+      - Resources
+      summary: Delete own uploaded resource
+      operationId: deleteResource
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Resource deleted
+        '403':
+          description: Not resource owner
+  /api/v1/resources/{resource_id}/ratings:
+    post:
+      tags:
+      - Ratings & Comments
+      summary: Create or update 1-5 star rating for a resource (login required)
+      operationId: rateResource
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingRequest'
+      responses:
+        '200':
+          description: Rating saved and new average returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingResponse'
+        '401':
+          description: Login required
+  /api/v1/resources/{resource_id}/comments:
+    get:
+      tags:
+      - Ratings & Comments
+      summary: List active comments for a resource
+      operationId: listResourceComments
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentItem'
+    post:
+      tags:
+      - Ratings & Comments
+      summary: Post a comment on a resource (login required)
+      operationId: createComment
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentItem'
+        '401':
+          description: Login required
+  /api/v1/comments/{comment_id}:
+    delete:
+      tags:
+      - Ratings & Comments
+      summary: Delete own comment (or moderator removal)
+      operationId: deleteComment
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: comment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Comment deleted
+        '403':
+          description: Forbidden
+  /api/v1/collections:
+    get:
+      tags:
+      - Collections
+      summary: List public reading lists with official TA lists ordered first
+      operationId: listCollections
+      parameters:
+      - name: course_code
+        in: query
+        schema:
+          type: string
+      - name: official_only
+        in: query
+        schema:
+          type: boolean
+      - name: mine
+        in: query
+        description: Only collections owned by the signed-in user, including private ones (requires session).
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Collections list (official first)
+        '401':
+          description: '`mine=true` was requested without a session'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollectionSummary'
+    post:
+      tags:
+      - Collections
+      summary: Create a new reading list collection (only TAs can mark `is_official=true`)
+      operationId: createCollection
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCreateRequest'
+      responses:
+        '201':
+          description: Collection created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionSummary'
+        '403':
+          description: Only TAs can publish official course reading lists
+  /api/v1/collections/{collection_id}:
+    get:
+      tags:
+      - Collections
+      summary: Get collection details and ordered resource items
+      operationId: getCollection
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Collection detail with ordered items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionDetail'
+        '404':
+          description: Collection not found
+    patch:
+      tags:
+      - Collections
+      summary: Update collection title, description, or item ordering (owner only)
+      operationId: updateCollection
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 150
+                description:
+                  type: string
+                ordered_resource_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: New order of resource IDs in this collection
+      responses:
+        '200':
+          description: Collection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionDetail'
+        '403':
+          description: Not collection owner
+    delete:
+      tags:
+      - Collections
+      summary: Delete collection (owner only)
+      operationId: deleteCollection
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Collection deleted
+  /api/v1/collections/{collection_id}/items:
+    post:
+      tags:
+      - Collections
+      summary: Add a resource to a collection (capped at 20 resources for multi-doc AI scope)
+      operationId: addCollectionItem
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - resource_id
+              properties:
+                resource_id:
+                  type: integer
+                  example: 101
+                position:
+                  type: integer
+                  nullable: true
+                notes:
+                  type: string
+                  maxLength: 300
+                  nullable: true
+      responses:
+        '201':
+          description: Item added to collection
+        '400':
+          description: Collection limit exceeded (20 resources)
+        '404':
+          description: Collection or resource not found
+        '409':
+          description: Resource is already in the collection
+  /api/v1/collections/{collection_id}/items/{resource_id}:
+    delete:
+      tags:
+      - Collections
+      summary: Remove a resource from a collection
+      operationId: removeCollectionItem
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: resource_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Item removed
+  /api/v1/ai/ask:
+    post:
+      tags:
+      - AI Study Assistant
+      summary: Ask a grounded question over a single resource, a collection (<=20 resources), or a course
+        code
+      description: 'Executes the ScholarPulse RAG pipeline: embeds the question with `gemini-embedding-001`,
+        computes cosine similarity over active (non-hidden/non-removed) chunks in scope (top 5 for single
+        resource; top 8 with max 3 per resource for collection/course scope), wraps untrusted document
+        chunks in strict delimiters against prompt injection, calls `gemini-2.5-flash` with a 10-second
+        timeout and 1 retry, validates that every cited chunk ID was retrieved, and returns the grounded
+        answer or ''Not found in this document''. Automatically falls back to MySQL FULLTEXT keyword search
+        on timeout or quota exhaustion. Rate limited to 20 questions/hour per user, max 300 chars.'
+      operationId: askStudyAssistant
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIAskRequest'
+      responses:
+        '200':
+          description: Grounded answer with verified chunk citations (or keyword fallback passages)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIAskResponse'
+        '400':
+          description: Question exceeds 300 characters or invalid scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Login required to ask AI
+        '429':
+          description: Rate limit exceeded (max 20 questions per hour per user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/reports:
+    post:
+      tags:
+      - Moderation
+      summary: Report a resource or comment for copyright, inaccuracy, or abuse
+      operationId: createReport
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreateRequest'
+      responses:
+        '201':
+          description: Report submitted to moderation queue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportItem'
+        '401':
+          description: Login required
+  /api/v1/moderation/reports:
+    get:
+      tags:
+      - Moderation
+      summary: List content reports in the moderation queue (Moderator role only)
+      operationId: listModerationReports
+      security:
+      - SessionCookie: []
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - open
+          - reviewing
+          - resolved
+          - dismissed
+      responses:
+        '200':
+          description: Moderation report queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportItem'
+        '403':
+          description: Moderator role required
+  /api/v1/moderation/reports/{report_id}:
+    patch:
+      tags:
+      - Moderation
+      summary: Execute a logged moderation action (hide, restore, remove, dismiss) on a report (Moderator
+        only)
+      operationId: resolveModerationReport
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationActionRequest'
+      responses:
+        '200':
+          description: Moderation action applied and logged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportItem'
+        '403':
+          description: Moderator role required
+        '404':
+          description: Report not found

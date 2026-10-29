@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: scholarpulse-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-scholarpulse_root_secret}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-scholarpulse}
+      MYSQL_USER: ${MYSQL_USER:-sp_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-sp_password_2026}
+    ports:
+      - "${MYSQL_PORT_HOST:-3306}:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-ft-min-token-size=2
+      - --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-scholarpulse_root_secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    networks:
+      - scholarpulse-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: scholarpulse-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-ScholarPulse}
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: ${DATABASE_URL:-mysql+pymysql://sp_user:sp_password_2026@db:3306/scholarpulse?charset=utf8mb4}
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY:-dev_session_secret_replace_in_prod_9f8a7b6c5d4e3f2a1b0c}
+      CSRF_SECRET_KEY: ${CSRF_SECRET_KEY:-dev_csrf_secret_replace_in_prod_1a2b3c4d5e6f7a8b9c0d}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL:-gemini-embedding-001}
+      GEMINI_GENERATION_MODEL: ${GEMINI_GENERATION_MODEL:-gemini-2.5-flash}
+      AI_REQUEST_TIMEOUT_SECONDS: ${AI_REQUEST_TIMEOUT_SECONDS:-10}
+      AI_MAX_RETRIES: ${AI_MAX_RETRIES:-1}
+      AUTO_SEED_ON_STARTUP: ${AUTO_SEED_ON_STARTUP:-true}
+      SEED_RANDOM_SEED: ${SEED_RANDOM_SEED:-2026}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./data:/app/data
+      - ./docs:/app/docs
+      - ./scripts:/app/scripts
+      - ./frontend:/app/frontend
+      - uploads_data:/app/uploads
+    networks:
+      - scholarpulse-net
+
+volumes:
+  mysql_data:
+  uploads_data:
+
+networks:
+  scholarpulse-net:
+    driver: bridge
