@@ -1,0 +1,15 @@
+TITLE: Dynamic Programming Patterns: Memoization, Tabulation & Space Optimization
+COURSE: CS301 | TYPE: slides | AUTHORS: A. Sharma, Ritik Kumar
+==============================================================================
+
+## 1. Core Conditions: Optimal Substructure and Overlapping Subproblems
+Dynamic Programming (DP) applies when a problem exhibits both optimal substructure (an optimal solution contains optimal solutions to subproblems) and overlapping subproblems (the recursive state space revisits the same subproblems repeatedly). Unlike divide-and-conquer where subproblems are disjoint, DP caches subproblem results via top-down memoization or builds them iteratively via bottom-up tabulation.
+
+## 2. Sequence Alignment, LCS, and Hirschberg's Linear-Space Reduction
+Given strings X of length m and Y of length n, the Longest Common Subsequence (LCS) recurrence defines dp[i][j] = 1 + dp[i-1][j-1] if X[i] == Y[j], and max(dp[i-1][j], dp[i][j-1]) otherwise. Standard tabulation takes Theta(mn) time and Theta(mn) space. If only the length is needed, rolling two rows reduces space to Theta(min(m, n)). Hirschberg's divide-and-conquer DP combines forward and backward linear-space passes to reconstruct the full LCS alignment path in Theta(mn) time and Theta(m + n) space.
+
+## 3. 0/1 Knapsack Pseudopolynomial Complexity and FPTAS
+In the 0/1 Knapsack problem with n items and capacity W, the state dp[i][w] takes O(nW) time. Because W is encoded in log2(W) bits, O(nW) is pseudopolynomial rather than strictly polynomial in input size. By scaling and rounding item values v_i down to floor(v_i / K) where K = (epsilon * V_max) / n, we obtain a Fully Polynomial-Time Approximation Scheme (FPTAS) running in O(n^3 / epsilon) time with value at least (1 - epsilon) * OPT.
+
+## 4. Matrix-Chain Multiplication and Interval DP
+Parenthesizing a chain of n matrices A_1..A_n minimizes scalar multiplications via interval DP: m[i, j] = min_{i <= k < j} (m[i, k] + m[k+1, j] + p_{i-1} p_k p_j), evaluated in increasing order of chain length L = j - i + 1 in Theta(n^3) time and Theta(n^2) space.

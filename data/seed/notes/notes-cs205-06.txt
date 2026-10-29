@@ -1,0 +1,15 @@
+TITLE: Inter-Process Communication (IPC), Epoll Non-Blocking I/O & io_uring
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Snehadip Ghoshal
+==============================================================================
+
+## 1. Pipes, UNIX Domain Sockets, and POSIX Shared Memory
+Anonymous pipes (`pipe()`) provide unidirectional kernel-buffered byte streams between related processes, whereas UNIX domain sockets (`AF_UNIX`) support bidirectional communication and passing open file descriptors across unrelated processes via `SCM_RIGHTS` ancillary messages. POSIX shared memory (`shm_open` + `mmap`) achieves zero-copy IPC by mapping the same physical page frames into multiple virtual address spaces.
+
+## 2. C10K Problem: `select`/`poll` O(N) Scans vs `epoll` O(1) Readiness
+Legacy `select()` and `poll()` pass the entire array of monitored file descriptors from user space to the kernel on every call, scanning all N descriptors in O(N) time. Linux `epoll` maintains an in-kernel Red-Black Tree of registered descriptors (`epoll_ctl`) and a doubly linked ready list populated via socket wakeup callbacks, allowing `epoll_wait` to return active events in O(k) time proportional only to the number of ready descriptors.
+
+## 3. Level-Triggered (LT) vs Edge-Triggered (ET) Epoll Semantics
+Under Level-Triggered (`EPOLLLT`, default), `epoll_wait` continues reporting a descriptor as long as unread data remains in its socket buffer. Under Edge-Triggered (`EPOLLET`), `epoll_wait` notifies only when the socket transitions from unreadable to readable, requiring the application to use non-blocking sockets (`O_NONBLOCK`) and read in a loop until `EAGAIN`/`EWOULDBLOCK` is returned.
+
+## 4. Asynchronous Ring Buffers with Linux `io_uring`
+Linux `io_uring` maps two lockless ring buffers — the Submission Queue (SQ) and Completion Queue (CQ) — into shared memory between user space and kernel space, enabling true asynchronous file and network I/O with zero system-call transitions in polling mode.

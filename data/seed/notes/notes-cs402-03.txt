@@ -1,0 +1,15 @@
+TITLE: Transaction Management: ACID, Serializability & Two-Phase Locking (2PL)
+COURSE: CS402 | TYPE: lecture_notes | AUTHORS: Gangadevi Venkata Siva krishna, Harshit Pant
+==============================================================================
+
+## 1. ACID Properties and Schedule Anomalies
+Database transactions guarantee Atomicity (all-or-nothing execution via undo logging), Consistency (preserving integrity constraints), Isolation (concurrent execution appears serial), and Durability (committed changes survive crashes via redo logging). Uncontrolled interleaving causes Dirty Reads (WR conflict), Unrepeatable Reads (RW conflict), Lost Updates (WW conflict), and Phantom Reads.
+
+## 2. Conflict Serializability and Precedence Graphs
+Two operations conflict if they belong to different transactions, access the same data item, and at least one is a write. A schedule S is conflict serializable if it is conflict-equivalent to some serial schedule, which holds if and only if its conflict precedence (serialization) graph is acyclic (checked via DFS cycle detection in O(V + E) time).
+
+## 3. Strict Two-Phase Locking (Strict 2PL) and Cascading Aborts
+Basic Two-Phase Locking (2PL) requires each transaction to acquire all shared (S) and exclusive (X) locks during a growing phase before releasing any lock in the shrinking phase, guaranteeing acyclic precedence graphs. However, basic 2PL is vulnerable to cascading aborts if a transaction reads uncommitted data after another transaction unlocks early. Strict 2PL holds all exclusive (X) locks until transaction commit or abort, guaranteeing both conflict serializability and strict recoverability.
+
+## 4. Deadlock Handling: Wait-For Graphs, Wait-Die, and Wound-Wait
+Because 2PL can deadlock, DBMS engines either detect cycles in a Wait-For Graph periodically and abort a victim transaction, or prevent deadlocks using timestamp ordering: in Wait-Die (non-preemptive), an older transaction waits for a younger one whereas a younger one aborts (dies); in Wound-Wait (preemptive), an older transaction wounds (aborts) a younger lock holder.

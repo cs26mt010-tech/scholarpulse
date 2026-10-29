@@ -1,0 +1,15 @@
+TITLE: Network Flow, Max-Flow Min-Cut Theorem & Bipartite Matching
+COURSE: CS301 | TYPE: lecture_notes | AUTHORS: Harshit Pant, Ritik Kumar
+==============================================================================
+
+## 1. Flow Networks, Residual Graphs, and Augmenting Paths
+A flow network G = (V, E) has source s, sink t, and non-negative edge capacities c(u, v) >= 0. A feasible flow f satisfies capacity constraints (0 <= f(u, v) <= c(u, v)) and flow conservation at all internal vertices. Given flow f, the residual network G_f has residual capacity c_f(u, v) = c(u, v) - f(u, v) on forward edges and c_f(v, u) = f(u, v) on backward edges, allowing the algorithm to undo earlier routing decisions.
+
+## 2. Ford-Fulkerson and the Max-Flow Min-Cut Theorem
+The Ford-Fulkerson method repeatedly augments flow along an s-t path in G_f until no augmenting path remains. The Max-Flow Min-Cut Theorem proves that the following three statements are equivalent: (1) f is a maximum flow in G; (2) the residual network G_f contains no augmenting path; and (3) |f| = c(S, T) for some s-t cut (S, T) of G.
+
+## 3. Edmonds-Karp and Dinic's Blocking Flow Algorithms
+If augmenting paths are chosen arbitrarily with irrational capacities, Ford-Fulkerson may fail to terminate; with integer capacities and max flow F*, it takes O(E * F*) time. Edmonds-Karp selects the shortest augmenting path in G_f via BFS (unit edge count), guaranteeing at most O(V * E) augmentations and O(V * E^2) total time. Dinic's algorithm builds a level graph via BFS and finds blocking flows via DFS with current-arc pointers in O(V^2 * E) time, or O(E sqrt(V)) on unit-capacity bipartite networks.
+
+## 4. Maximum Bipartite Matching and Integrity Theorem
+By the Integrality Theorem, if all capacities are integers, Ford-Fulkerson produces an integral maximum flow. Reducing Maximum Bipartite Matching on G = (L union R, E) to max flow by adding supersource s connected to L and supersink t connected from R with unit capacities finds a maximum matching in O(E sqrt(V)) time (Hopcroft-Karp).

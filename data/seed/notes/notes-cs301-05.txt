@@ -1,0 +1,15 @@
+TITLE: Balanced Search Trees, Red-Black Invariants & Amortized Analysis
+COURSE: CS301 | TYPE: lecture_notes | AUTHORS: Snehadip Ghoshal
+==============================================================================
+
+## 1. Red-Black Tree Five Invariants and Height Bound
+A Red-Black Tree is a binary search tree where every node is colored RED or BLACK subject to five invariants: (1) every node is red or black; (2) the root is black; (3) every NIL leaf is black; (4) if a node is red, both its children are black (no two consecutive red nodes); and (5) for each node, all simple paths to descendant NIL leaves contain the same number of black nodes, called its black-height bh(x). By invariant (4) and (5), a red-black tree with n internal nodes has height at most 2 log2(n + 1), guaranteeing O(log n) worst-case search, insert, and delete.
+
+## 2. Rotations and Constant-Rotation Rebalancing
+Left and right tree rotations preserve the in-order binary search tree key ordering in O(1) pointer updates. After a standard BST insertion colors the new node RED, RB-INSERT-FIXUP restores invariants using recoloring and at most 2 rotations. RB-DELETE-FIXUP restores black-height balance using at most 3 rotations, a key advantage over AVL trees (which may require O(log n) rotations on deletion) in persistent or concurrent trees.
+
+## 3. Amortized Analysis: Aggregate, Accounting, and Potential Methods
+Amortized analysis bounds the average cost per operation over any worst-case sequence of n operations, without probability. In the potential method, we define a potential function Phi(D_i) >= Phi(D_0) on data structure state D_i. The amortized cost of operation i is c_hat_i = c_i + Phi(D_i) - Phi(D_{i-1}), ensuring sum(c_i) <= sum(c_hat_i).
+
+## 4. Dynamic Array Doubling and Disjoint-Set Forests
+When a dynamic table doubles its capacity upon overflow and halves when load drops below 1/4 (using Phi = 2 * num - size for alpha >= 1/2), insertions and deletions run in O(1) amortized time without thrashing around the boundary. In Disjoint-Set Union (DSU) forests combining union-by-rank and path compression, m operations on n elements run in O(m alpha(n)) worst-case time, where alpha(n) <= 4 is the inverse Ackermann function.

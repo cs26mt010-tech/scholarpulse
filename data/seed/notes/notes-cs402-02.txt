@@ -1,0 +1,15 @@
+TITLE: B+Tree Indexing, Composite Key Ordering & MySQL FULLTEXT Search
+COURSE: CS402 | TYPE: lecture_notes | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. B+Tree Internal Nodes and Doubly Linked Leaf Pages
+Unlike standard B-Trees that store data pointers in both internal and leaf nodes, a B+Tree stores all record payloads (or primary key row pointers in secondary indexes) exclusively in leaf pages, while internal nodes store only routing separator keys. This maximizes the branching factor (fanout f typically 100 to 500 per 16 KB InnoDB page), keeping tree height h = ceil(log_f(N)) <= 3 or 4 even for hundreds of millions of rows. Leaf pages are connected in a doubly linked list, enabling sequential range scans without re-traversing the tree.
+
+## 2. Leftmost Prefix Rule for Composite B+Tree Indexes
+A composite B+Tree index on `(category_id, status, avg_rating)` sorts keys lexicographically first by `category_id`, then by `status`, and finally by `avg_rating`. By the Leftmost Prefix Rule, this index accelerates queries filtering on `(category_id)`, `(category_id, status)`, or `(category_id, status) ORDER BY avg_rating DESC`, but cannot be used for a standalone predicate on `avg_rating` alone without a full index scan.
+
+## 3. Clustered vs Secondary Indexes in MySQL InnoDB
+In MySQL 8 InnoDB, the primary key is the clustered index: leaf pages of the primary key B+Tree physically store the entire table row. Secondary indexes store the indexed column values together with the primary key value (`id`), meaning a non-covering secondary index lookup requires a bookmark lookup back into the clustered index unless all selected columns are covered by the index.
+
+## 4. MySQL FULLTEXT Inverted Indexes and BM25 Keyword Fallback
+Standard `LIKE '%keyword%'` queries cannot use a B+Tree prefix and force an O(N) full table scan. A MySQL InnoDB `FULLTEXT` index tokenizes text into an inverted index mapping each term to a posting list of `(doc_id, term_frequency, byte_offset)`. Executing `MATCH(chunk_text) AGAINST(:query IN NATURAL LANGUAGE MODE)` computes relevance scores using a TF-IDF / BM25 variant in sub-millisecond time, serving as ScholarPulse's deterministic keyword baseline and AI outage fallback.
