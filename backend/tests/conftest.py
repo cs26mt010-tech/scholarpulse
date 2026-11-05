@@ -38,6 +38,7 @@ sys.path.insert(0, str(BACKEND))
 
 from alembic import command  # noqa: E402
 from alembic.config import Config  # noqa: E402
+
 from scripts.seed_db import run_seed  # noqa: E402
 
 alembic_cfg = Config(str(BACKEND / "alembic.ini"))
