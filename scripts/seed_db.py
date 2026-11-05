@@ -14,11 +14,10 @@ Per MS-1 Section 2 & Section 8.1 (MS-3):
   sample content moderation reports (`#RP-201`..`#RP-204`), and sample `ai_queries`.
 - Strictly idempotent: safe to run repeatedly on container restart without duplicating data.
 """
-import os
-import sys
 import json
+import os
 import random
-from datetime import datetime, timedelta
+import sys
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(BASE_DIR, "backend"))

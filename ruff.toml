@@ -1,0 +1,11 @@
+target-version = "py311"
+line-length = 120
+extend-exclude = ["backend/alembic/versions"]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[lint.per-file-ignores]
+# These files deliberately adjust sys.path / env vars before importing app modules.
+"scripts/*.py" = ["E402"]
+"backend/tests/*.py" = ["E402"]

@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScholarPulse — AI-Enabled Academic Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-page: #f4f6f0;
+      --bg-card: #ffffff;
+      --bg-hero: #084c3a;
+      --bg-hero-pill: #286655;
+      --green-btn: #166e48;
+      --green-btn-hover: #0f5637;
+      --green-tint: #eaf4ee;
+      --green-border: #b8dcc8;
+      --green-text: #11623f;
+      --amber-tint: #fcf6e8;
+      --amber-border: #f0dfad;
+      --amber-btn: #e6ba65;
+      --amber-text: #8c5d0b;
+      --blue-tint: #eef5fc;
+      --blue-border: #c5ddf5;
+      --blue-text: #1d5a96;
+      --red-tint: #fdf2f2;
+      --red-border: #f5c2c0;
+      --red-btn: #c81e1e;
+      --red-text: #9b1c1c;
+      --text-main: #111915;
+      --text-muted: #55625b;
+      --border-soft: #e2e7df;
+      --shadow-sm: 0 2px 6px rgba(15, 35, 25, 0.04);
+      --shadow-md: 0 8px 24px rgba(15, 35, 25, 0.08);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar (Exact Figma Match) */
+    header.topbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0 2rem;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--green-btn);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    nav.primary-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      color: var(--text-main);
+      background: #f1f5f2;
+    }
+    .nav-btn.active {
+      color: var(--green-text);
+      background: var(--green-tint);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .conn-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: var(--green-tint);
+      color: var(--green-text);
+      border: 1px solid var(--green-border);
+    }
+    .avatar-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--green-tint);
+      color: var(--green-text);
+      border: 1px solid var(--green-border);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease;
+    }
+    .avatar-btn:hover { transform: scale(1.04); }
+
+    /* Main Container */
+    main.page-wrap {
+      max-width: 1120px;
+      margin: 1.5rem auto 3.5rem auto;
+      padding: 0 1.25rem;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Common UI Elements */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .back-btn:hover { background: #f8faf8; }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--green-text);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0 0 0.25rem 0;
+      letter-spacing: -0.02em;
+    }
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      margin: 0 0 1.5rem 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.65rem 1.2rem;
+      border-radius: 9px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-green {
+      background: var(--green-btn);
+      color: #ffffff;
+    }
+    .btn-green:hover { background: var(--green-btn-hover); }
+    .btn-amber {
+      background: var(--amber-btn);
+      color: #1c1912;
+    }
+    .btn-amber:hover { filter: brightness(0.96); }
+    .btn-outline {
+      background: #ffffff;
+      color: var(--text-main);
+      border-color: var(--border-soft);
+    }
+    .btn-outline:hover { background: #f5f7f5; }
+    .btn-danger {
+      background: var(--red-btn);
+      color: #ffffff;
+    }
+    .btn-danger:hover { filter: brightness(0.93); }
+    .btn-danger-outline {
+      background: #ffffff;
+      color: var(--red-text);
+      border-color: var(--red-border);
+    }
+
+    /* Pills & Badges */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .pill-green { background: var(--green-tint); color: var(--green-text); }
+    .pill-amber { background: var(--amber-tint); color: var(--amber-text); }
+    .pill-blue  { background: var(--blue-tint); color: var(--blue-text); }
+    .pill-gray  { background: #eef1ee; color: #434e47; }
+    .pill-red   { background: var(--red-tint); color: var(--red-text); }
+
+    /* Hero Banner (Home / Collection Detail) */
+    .hero-box {
+      background: var(--bg-hero);
+      color: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 2.25rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--bg-hero-pill);
+      color: #d8eee5;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      margin-bottom: 0.85rem;
+    }
+    .hero-box h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .hero-box p {
+      margin: 0 0 1.4rem 0;
+      color: #cbe0d8;
+      font-size: 0.98rem;
+    }
+    .hero-search-row {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .hero-search-input {
+      flex: 1;
+      min-width: 240px;
+      padding: 0.75rem 1rem;
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 0.92rem;
+      background: #ffffff;
+      color: var(--text-main);
+    }
+
+    /* Section Headers */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 1.5rem 0 0.9rem 0;
+    }
+    .sec-head h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .link-green {
+      color: var(--green-text);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .link-green:hover { text-decoration: underline; }
+
+    /* Grids & Cards */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1.15rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 1.15rem;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .card.clickable { cursor: pointer; }
+    .card.clickable:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .card-green-tint { background: #eef7f1; border-color: #cde6d6; }
+    .card-amber-tint { background: #fdf8eb; border-color: #f0dfad; }
+    .card-blue-tint  { background: #eff6fc; border-color: #cbe0f5; }
+
+    /* Collection Card Top Row */
+    .coll-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.1rem;
+    }
+    .spark-icon {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .readings-box {
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      padding: 0.25rem 0.6rem;
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      line-height: 1.15;
+    }
+    .readings-box strong {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    /* Resource Card Layout */
+    .res-row-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      margin-bottom: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .res-row-card:hover {
+      border-color: var(--green-border);
+      box-shadow: var(--shadow-sm);
+    }
+    .type-square {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.74rem;
+      flex-shrink: 0;
+    }
+    .type-pdf { background: #fdeaea; color: #b42318; }
+    .type-sl  { background: #fef4e6; color: #b54708; }
+    .type-doc { background: #e8f5ee; color: #067647; }
+
+    /* Two-column layouts for Explore, Resource Detail, Collection Detail, Moderation */
+    .layout-sidebar-main {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .layout-split-detail {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .layout-sidebar-main, .layout-split-detail, .auth-split {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* Auth Split Layout (Flow 1 / Flow 2 Sign-in) */
+    .auth-split {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 2rem;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      background: #ffffff;
+      color: var(--text-main);
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: 2px solid var(--green-btn);
+      border-color: transparent;
+    }
+
+    /* AI Assistant Answer Callout Boxes */
+    .ai-box-green {
+      background: var(--green-tint);
+      border: 1px solid var(--green-border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .ai-box-amber {
+      background: var(--amber-tint);
+      border: 1px solid var(--amber-border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .ai-box-blue {
+      background: var(--blue-tint);
+      border: 1px solid var(--blue-border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .cite-chip {
+      display: inline-block;
+      background: #ffffff;
+      border: 1px solid var(--green-border);
+      color: var(--green-text);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin: 0.35rem 0.35rem 0 0;
+    }
+
+    /* Filter Chips in Sidebar */
+    .filter-group-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 1rem 0 0.45rem 0;
+    }
+    .filter-opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0.45rem 0.7rem;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      margin-bottom: 0.25rem;
+    }
+    .filter-opt:hover { background: #f2f5f2; }
+    .filter-opt.active {
+      background: var(--green-tint);
+      color: var(--green-text);
+      border-color: var(--green-border);
+    }
+
+    /* Upload Dropzone */
+    .dropzone {
+      border: 2px dashed var(--green-border);
+      background: #f8fbf9;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Toast Notification */
+    #toastBanner {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #112a20;
+      color: #ffffff;
+      padding: 0.75rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar" role="banner">
+    <a class="brand-wrap" onclick="navigateTo('home')" aria-label="ScholarPulse Home">
+      <span class="brand-icon">*</span>
+      <span>ScholarPulse</span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Main Navigation">
+      <button type="button" class="nav-btn active" id="nav-home" onclick="navigateTo('home')">Home</button>
+      <button type="button" class="nav-btn" id="nav-explore" onclick="navigateTo('explore')">Explore</button>
+      <button type="button" class="nav-btn" id="nav-collections" onclick="navigateTo('collections')">Collections</button>
+      <button type="button" class="nav-btn" id="nav-upload" onclick="navigateTo('upload')">Upload</button>
+      <button type="button" class="nav-btn" id="nav-moderation" onclick="navigateTo('moderation')" style="display:none;">Moderation</button>
+      <button type="button" class="nav-btn" id="nav-auth" onclick="handleNavAuth()">Sign in</button>
+    </nav>
+
+    <div class="topbar-right">
+      <span class="conn-pill" id="apiStatusBadge">Connecting to API&hellip;</span>
+      <button type="button" class="avatar-btn" id="profileAvatarBtn" onclick="navigateTo('profile')" title="Open my profile">?</button>
+    </div>
+  </header>
+
+  <main class="page-wrap">
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 01: HOME DASHBOARD                                             -->
+    <!-- ===================================================================== -->
+    <section id="screen-home" class="screen active" aria-labelledby="home-hero-title">
+      <div class="hero-box">
+        <span class="hero-badge">Verified Learning Space</span>
+        <h1 id="home-hero-title">Your knowledge. Connected. Verified.</h1>
+        <p>Find trusted course notes, build reading lists, and get AI answers grounded in your documents.</p>
+        <div class="hero-search-row">
+          <input type="search" id="homeSearchInput" class="hero-search-input" placeholder="Ask a question or search academic resources..." aria-label="Ask a question or search academic resources" />
+          <button type="button" class="btn btn-amber" onclick="handleHomeSearch()">Explore resources</button>
+          <button type="button" class="btn btn-outline" onclick="navigateTo('collections')">My collections</button>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <h2>Featured collections</h2>
+        <button type="button" class="link-green" onclick="navigateTo('collections')">Browse all &rarr;</button>
+      </div>
+      <div class="grid-3" id="homeCollectionsGrid"></div>
+
+      <div class="sec-head" style="margin-top: 2rem;">
+        <h2>Recently added resources</h2>
+        <button type="button" class="link-green" id="homeViewAllBtn" onclick="navigateTo('explore')">View all resources &rarr;</button>
+      </div>
+      <div class="grid-2" id="homeRecentResourcesGrid"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 02: EXPLORE RESOURCES                                          -->
+    <!-- ===================================================================== -->
+    <section id="screen-explore" class="screen" aria-labelledby="explore-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <span class="eyebrow">Resource Library</span>
+      <h1 class="page-title" id="explore-title">Explore resources</h1>
+      <p class="page-subtitle">Search trusted notes across courses, topics, and formats.</p>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <input type="search" id="exploreSearchInput" class="form-input" style="flex:1; min-width:260px;" placeholder="graph algorithms, dynamic programming, B+Tree, MVCC..." oninput="debouncedLoadResources()" aria-label="Search resources" />
+        <select id="exploreSortSelect" class="form-select" style="width:220px;" onchange="loadResources(1)" aria-label="Sort resources">
+          <option value="rating">Sort by: Top rated</option>
+          <option value="newest">Sort by: Newest</option>
+          <option value="comments">Sort by: Most discussed</option>
+        </select>
+      </div>
+
+      <div class="layout-sidebar-main">
+        <aside class="card">
+          <h3 style="margin:0 0 0.5rem 0; font-size:1rem;">Filters</h3>
+
+          <div class="filter-group-title">Course</div>
+          <div id="courseFilterList">
+            <button type="button" class="filter-opt active" data-course="" onclick="setExploreCourseFilter('')">All Courses</button>
+          </div>
+
+          <div class="filter-group-title">Resource Type</div>
+          <button type="button" class="filter-opt active" data-rtype="" onclick="setExploreTypeFilter('')">All Types</button>
+          <button type="button" class="filter-opt" data-rtype="lecture_notes" onclick="setExploreTypeFilter('lecture_notes')">Lecture notes</button>
+          <button type="button" class="filter-opt" data-rtype="slides" onclick="setExploreTypeFilter('slides')">Slides</button>
+          <button type="button" class="filter-opt" data-rtype="assignment" onclick="setExploreTypeFilter('assignment')">Assignments</button>
+          <button type="button" class="filter-opt" data-rtype="paper_summary" onclick="setExploreTypeFilter('paper_summary')">arXiv Paper Summaries</button>
+
+          <div class="filter-group-title">Popular tags</div>
+          <div id="tagFilterList">
+            <button type="button" class="filter-opt active" data-tag="" onclick="setExploreTagFilter('')">All Tags</button>
+          </div>
+
+          <div class="filter-group-title">Quality</div>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.86rem; font-weight:600; color:var(--green-text); cursor:pointer; padding:0.35rem 0;">
+            <input type="checkbox" id="exploreVerifiedOnly" onchange="loadResources(1)" />
+            Verified only
+          </label>
+        </aside>
+
+        <div>
+          <div style="margin-bottom:0.9rem;">
+            <strong style="font-size:1.1rem;" id="exploreCountLabel">Loading&hellip;</strong>
+            <span style="display:block; font-size:0.84rem; color:var(--text-muted);" id="exploreSubLabel"></span>
+          </div>
+
+          <div id="courseScopeAiBanner" class="card card-green-tint" style="margin-bottom:1rem; display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+              <div>
+                <span class="eyebrow" style="margin:0;">Course-Wide Grounded AI</span>
+                <strong id="courseScopeAiTitle">Ask AI across all resources in this course</strong>
+              </div>
+              <div style="display:flex; gap:0.5rem; flex:1; min-width:260px;">
+                <input type="text" id="courseAiQuestionInput" class="form-input" maxlength="300" placeholder="Compare BFS, Dijkstra, and Bellman-Ford..." onkeydown="if(event.key==='Enter')askCourseScopeAI()" />
+                <button type="button" class="btn btn-green" onclick="askCourseScopeAI()">Ask Course AI</button>
+              </div>
+            </div>
+            <div id="courseAiAnswerBox" style="display:none; margin-top:0.75rem; font-size:0.88rem;"></div>
+          </div>
+
+          <div id="exploreResultsContainer"></div>
+          <div id="explorePager" style="display:flex; gap:0.6rem; align-items:center; justify-content:center; margin-top:1rem;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 03 / 10 / 11: RESOURCE DETAIL + ASK AI + NOT FOUND + FALLBACK  -->
+    <!-- ===================================================================== -->
+    <section id="screen-resource-detail" class="screen" aria-labelledby="detail-res-title">
+      <button type="button" class="back-btn" onclick="navigateTo('explore')">&larr; Back</button>
+      <div style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.3rem;" id="detailBreadcrumb"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem;">
+        <div>
+          <h1 class="page-title" id="detail-res-title">Resource</h1>
+          <p style="margin:0.2rem 0 0.65rem 0; color:var(--text-muted); font-size:0.9rem;" id="detailMetaLine"></p>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <span class="pill pill-green" id="detailVerifiedBadge">Verified source</span>
+            <span class="pill pill-gray" id="detailRatingBadge">&#9733; &ndash;</span>
+            <span class="pill pill-blue" id="detailChunksBadge">0 indexed chunks</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center;">
+          <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">Rate:</span>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(1)" aria-label="Rate 1 star">1&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(2)" aria-label="Rate 2 stars">2&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(3)" aria-label="Rate 3 stars">3&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(4)" aria-label="Rate 4 stars">4&#9733;</button>
+          <button type="button" class="btn btn-outline" style="padding:0.4rem 0.65rem;" onclick="rateCurrentResource(5)" aria-label="Rate 5 stars">5&#9733;</button>
+          <button type="button" class="btn btn-danger-outline" onclick="openReportForm()">&#9873; Report content</button>
+          <button type="button" class="btn btn-danger-outline" id="detailDeleteBtn" style="display:none;" onclick="deleteCurrentResource()">Delete</button>
+        </div>
+      </div>
+
+      <div class="layout-split-detail">
+        <div>
+          <div class="card" style="margin-bottom:1.25rem;">
+            <span class="eyebrow" style="color:var(--text-muted);">Document Preview</span>
+            <h2 style="margin:0.25rem 0 1rem 0; font-size:1.35rem;" id="detailPreviewHeading">Summary</h2>
+
+            <div class="card" style="background:#fbfcfa; margin-bottom:0.9rem;">
+              <strong style="display:block; margin-bottom:0.3rem;">TL;DR</strong>
+              <p style="margin:0; font-size:0.92rem; color:var(--text-muted);" id="detailParagraph1"></p>
+            </div>
+
+            <div style="margin-bottom:0.9rem; display:flex; gap:0.4rem; flex-wrap:wrap;" id="detailTags"></div>
+
+            <div class="card" style="background:#fbfcfa;">
+              <strong style="display:block; margin-bottom:0.3rem;">Full text excerpt</strong>
+              <p style="margin:0; font-size:0.9rem; color:var(--text-muted); white-space:pre-line; max-height:340px; overflow:auto;" id="detailParagraph2"></p>
+            </div>
+
+            <div style="margin-top:1rem; font-size:0.8rem; color:var(--text-muted);" id="detailPageFooter"></div>
+          </div>
+
+          <div class="card" style="margin-bottom:1.25rem;" id="detailAddToCollectionCard">
+            <h3 style="margin:0 0 0.65rem 0; font-size:1.05rem;">Save to a collection</h3>
+            <div style="display:flex; gap:0.5rem;">
+              <select id="detailCollectionSelect" class="form-select" aria-label="Choose one of your collections"></select>
+              <button type="button" class="btn btn-outline" onclick="addCurrentResourceToCollection()">Add</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin:0 0 0.75rem 0; font-size:1.05rem;">Student Comments &amp; Discussion</h3>
+            <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+              <input type="text" id="newCommentInput" class="form-input" maxlength="2000" placeholder="Share a revision note or flag an equation..." onkeydown="if(event.key==='Enter')submitResourceComment()" />
+              <button type="button" class="btn btn-green" onclick="submitResourceComment()">Post</button>
+            </div>
+            <div id="detailCommentsList"></div>
+          </div>
+        </div>
+
+        <aside class="card">
+          <span class="eyebrow">&#10022; ScholarPulse AI</span>
+          <h2 style="margin:0.15rem 0 0.25rem 0; font-size:1.3rem;">Ask this document</h2>
+          <p style="margin:0 0 0.9rem 0; font-size:0.86rem; color:var(--text-muted);">
+            Answers grounded in the source with numbered citations. Limit: 300 characters, 20 questions per hour.
+          </p>
+
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <input type="text" id="resourceAiInput" class="form-input" maxlength="300" placeholder="Ask a question about this document..." aria-label="Ask AI about this resource" onkeydown="if(event.key==='Enter')runResourceAiQuery()" />
+            <button type="button" class="btn btn-green" id="resourceAiBtn" onclick="runResourceAiQuery()">Ask</button>
+          </div>
+          <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; cursor:pointer;">
+            <input type="checkbox" id="resourceAiKeywordOnly" /> Keyword search only (skip AI)
+          </label>
+
+          <div id="aiStateIdle" class="card" style="background:#fbfcfa; font-size:0.86rem; color:var(--text-muted);">
+            Ask a question to get an answer with citations from this document.
+          </div>
+
+          <div id="aiStateAnswered" class="ai-box-green" style="display:none;" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--green-text); margin-bottom:0.35rem;" id="aiAnswerHeader">Answer</div>
+            <p style="margin:0 0 0.6rem 0; font-size:0.92rem; font-weight:500;" id="aiAnswerText"></p>
+            <div id="aiAnswerChips"></div>
+          </div>
+
+          <div id="aiStateNotFound" class="ai-box-amber" style="display:none;" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--amber-text); margin-bottom:0.3rem;">Not Found</div>
+            <strong style="display:block; font-size:0.98rem; margin-bottom:0.25rem;">Not found in this document</strong>
+            <p style="margin:0; font-size:0.86rem; color:var(--text-muted);">
+              Try a different question or search related resources. The assistant refuses to guess when the answer is absent from the document.
+            </p>
+          </div>
+
+          <div id="aiStateFallback" class="ai-box-blue" style="display:none;" aria-live="polite">
+            <div style="font-size:0.72rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; color:var(--blue-text); margin-bottom:0.3rem;">Keyword Matches</div>
+            <strong style="display:block; font-size:0.98rem; margin-bottom:0.25rem;">AI unavailable, showing keyword matches</strong>
+            <p style="margin:0 0 0.5rem 0; font-size:0.86rem; color:var(--text-muted);" id="aiFallbackSubtext"></p>
+            <p style="margin:0; font-size:0.88rem;" id="aiFallbackAnswer"></p>
+          </div>
+
+          <div style="margin-top:1.1rem;">
+            <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:0.45rem;">Sources</div>
+            <div id="aiSourcesList"><div style="font-size:0.84rem; color:var(--text-muted);">No sources yet.</div></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 04: COLLECTIONS HUB                                            -->
+    <!-- ===================================================================== -->
+    <section id="screen-collections" class="screen" aria-labelledby="collections-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+        <div>
+          <span class="eyebrow">Your Library</span>
+          <h1 class="page-title" id="collections-title">Collections</h1>
+          <p class="page-subtitle" style="margin:0;">Purposeful reading lists for revision, projects, and deep work.</p>
+        </div>
+        <button type="button" class="btn btn-green" onclick="toggleCreateCollectionModal()">Create collection</button>
+      </div>
+
+      <div id="createCollectionBox" class="card card-green-tint" style="display:none; margin-bottom:1.25rem;">
+        <h3 style="margin:0 0 0.75rem 0; font-size:1.05rem;">Create a new reading list collection</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 160px auto; gap:0.65rem; align-items:end;">
+          <div>
+            <label class="form-label" for="newCollTitle">Collection title</label>
+            <input type="text" id="newCollTitle" class="form-input" maxlength="150" placeholder="e.g. Midterm Graph & DP Revision" />
+          </div>
+          <div>
+            <label class="form-label" for="newCollDesc">Short description</label>
+            <input type="text" id="newCollDesc" class="form-input" maxlength="1000" placeholder="Core concepts, proofs and worked examples." />
+          </div>
+          <div>
+            <label class="form-label" for="newCollCourse">Course</label>
+            <select id="newCollCourse" class="form-select"></select>
+          </div>
+          <button type="button" class="btn btn-green" onclick="handleCreateCollection()">Save list</button>
+        </div>
+        <div style="display:flex; gap:1.25rem; margin-top:0.75rem; font-size:0.84rem; color:var(--text-muted); flex-wrap:wrap;">
+          <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" id="newCollPublic" checked /> Public</label>
+          <label id="newCollOfficialRow" style="display:none; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" id="newCollOfficial" /> Official TA reading list</label>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <input type="search" id="collectionSearchInput" class="form-input" style="flex:1; min-width:220px;" placeholder="Search collections..." oninput="renderCollectionsHub()" aria-label="Search collections" />
+        <select id="collectionScopeSelect" class="form-select" style="width:auto;" onchange="loadCollections()" aria-label="Which collections to show">
+          <option value="public">All public collections</option>
+          <option value="official">Official TA lists</option>
+          <option value="mine">My collections</option>
+        </select>
+      </div>
+
+      <div class="grid-3" id="collectionsHubGrid"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 05: COLLECTION DETAIL + ASK ACROSS THIS LIST                   -->
+    <!-- ===================================================================== -->
+    <section id="screen-collection-detail" class="screen" aria-labelledby="coll-detail-title">
+      <button type="button" class="back-btn" onclick="navigateTo('collections')">&larr; Back</button>
+
+      <div class="hero-box">
+        <span class="hero-badge" id="collDetailBadge">Collection</span>
+        <h1 id="coll-detail-title">Collection</h1>
+        <p style="margin:0; color:#d0e6dd;" id="collDetailMeta"></p>
+        <div style="margin-top:0.85rem;">
+          <button type="button" class="btn btn-outline" id="collDeleteBtn" style="display:none;" onclick="deleteCurrentCollection()">Delete collection</button>
+        </div>
+      </div>
+
+      <div class="layout-split-detail">
+        <div>
+          <h2 style="margin:0 0 0.9rem 0; font-size:1.25rem;">Reading list</h2>
+          <div id="collDetailItemsList"></div>
+        </div>
+
+        <aside class="card">
+          <span class="eyebrow">&#10022; Collection AI</span>
+          <h2 style="margin:0.15rem 0 0.25rem 0; font-size:1.25rem;">Ask across this list</h2>
+          <p style="margin:0 0 0.9rem 0; font-size:0.86rem; color:var(--text-muted);">
+            Compare concepts across saved readings (capped at 20 resources, max 3 chunks per source).
+          </p>
+
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <input type="text" id="collAiInput" class="form-input" maxlength="300" placeholder="Compare two concepts across this list..." aria-label="Ask AI across this collection" onkeydown="if(event.key==='Enter')runCollectionAiQuery()" />
+            <button type="button" class="btn btn-green" onclick="runCollectionAiQuery()">Ask</button>
+          </div>
+
+          <div class="ai-box-green" id="collAiResultBox" aria-live="polite" style="display:none;">
+            <p style="margin:0 0 0.65rem 0; font-size:0.92rem; font-weight:500;" id="collAiAnswerText"></p>
+            <div id="collAiChips"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 06: UPLOAD STUDY NOTES                                         -->
+    <!-- ===================================================================== -->
+    <section id="screen-upload" class="screen" aria-labelledby="upload-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <span class="eyebrow">Contribute</span>
+      <h1 class="page-title" id="upload-title">Upload study notes</h1>
+      <p class="page-subtitle">Share useful material with your course community.</p>
+
+      <div class="layout-split-detail">
+        <div class="card">
+          <span class="eyebrow" style="color:var(--text-muted); margin-bottom:0.6rem;">Select a Document</span>
+          <div class="dropzone" id="uploadDropzone">
+            <div style="font-size:1.5rem; color:var(--green-text); margin-bottom:0.35rem;">&uarr;</div>
+            <strong style="display:block; font-size:1.02rem; margin-bottom:0.2rem;">Drag your file here, or browse</strong>
+            <span style="display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:0.9rem;">PDF or .TXT &middot; Maximum 5 MB (server validated)</span>
+            <input type="file" id="uploadFileInput" accept=".pdf,.txt" style="display:none;" onchange="handleFilePicked()" />
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('uploadFileInput').click()">Choose file</button>
+          </div>
+
+          <span class="eyebrow" style="color:var(--text-muted); margin-bottom:0.6rem;">Resource Details</span>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.85rem; margin-bottom:1rem;">
+            <div>
+              <label class="form-label" for="uploadTitleInput">Resource title</label>
+              <input type="text" id="uploadTitleInput" class="form-input" maxlength="200" placeholder="e.g. Graph algorithms — Week 04" />
+            </div>
+            <div>
+              <label class="form-label" for="uploadCourseInput">Course code</label>
+              <select id="uploadCourseInput" class="form-select"></select>
+            </div>
+            <div>
+              <label class="form-label" for="uploadTypeInput">Resource type</label>
+              <select id="uploadTypeInput" class="form-select">
+                <option value="lecture_notes">Lecture notes</option>
+                <option value="slides">Slides</option>
+                <option value="assignment">Assignment</option>
+                <option value="paper_summary">Paper summary</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="uploadTagsInput">Tags (comma separated)</label>
+              <input type="text" id="uploadTagsInput" class="form-input" placeholder="graphs, bfs, shortest-paths" />
+            </div>
+          </div>
+
+          <label id="uploadOfficialRow" style="display:none; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted); margin-bottom:0.8rem; cursor:pointer;">
+            <input type="checkbox" id="uploadOfficialInput" />
+            Mark as an official (verified) course resource &mdash; TAs and moderators only.
+          </label>
+
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted); margin-bottom:1.1rem; cursor:pointer;">
+            <input type="checkbox" id="uploadRightsConfirm" />
+            I confirm that I have the right to share this study material and it contains no private student data.
+          </label>
+
+          <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+            <span class="pill pill-gray" id="uploadReadyBadge" style="padding:0.45rem 0.85rem;">No file selected</span>
+            <button type="button" class="btn btn-green" id="uploadSubmitBtn" onclick="submitUploadForm()">Upload resource</button>
+          </div>
+        </div>
+
+        <aside class="card" style="background:#fbfcfa;">
+          <h3 style="margin:0 0 0.75rem 0; font-size:1rem;">Submission Checklist</h3>
+          <div class="card" style="padding:0.65rem 0.9rem; margin-bottom:0.55rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Use a descriptive title</div>
+          <div class="card" style="padding:0.65rem 0.9rem; margin-bottom:0.55rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Choose the correct course</div>
+          <div class="card" style="padding:0.65rem 0.9rem; margin-bottom:0.55rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Share only permitted material</div>
+          <div class="card" style="padding:0.65rem 0.9rem; font-size:0.88rem; color:var(--green-text); font-weight:600;">&#10003; Remove private student data</div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 14: UPLOAD STATUS (CHECK YOUR FILE — SUCCESS & ERROR STATES)   -->
+    <!-- ===================================================================== -->
+    <section id="screen-upload-status" class="screen" aria-labelledby="upload-status-title">
+      <button type="button" class="back-btn" onclick="navigateTo('upload')">&larr; Back</button>
+      <span class="eyebrow">Upload Status</span>
+      <h1 class="page-title" id="upload-status-title">Check your file</h1>
+      <p class="page-subtitle">Validation feedback from the server.</p>
+
+      <div class="grid-2">
+        <div class="card" id="uploadSuccessCard" style="display:none;">
+          <span class="pill pill-green" style="margin-bottom:0.65rem;">Success</span>
+          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Resource uploaded</h2>
+          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">
+            Your notes are chunked (~800 chars, 100 overlap), embedded, and available to the course community.
+          </p>
+
+          <div class="res-row-card" style="cursor:default; background:#f8fbf9;">
+            <div class="type-square type-doc" id="uploadedTypeBadge">DOC</div>
+            <div>
+              <strong style="display:block;" id="uploadedFileNameDisplay"></strong>
+              <span style="font-size:0.82rem; color:var(--text-muted);" id="uploadedFileMetaDisplay"></span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:0.65rem; margin-top:1rem;">
+            <button type="button" class="btn btn-green" onclick="openResourceDetail(state.lastUploadedResourceId)">View resource</button>
+            <button type="button" class="btn btn-outline" onclick="resetUploadForm(); navigateTo('upload')">Upload another</button>
+          </div>
+        </div>
+
+        <div class="card" id="uploadErrorCard" style="display:none;">
+          <span class="pill pill-red" style="margin-bottom:0.65rem;">Needs Attention</span>
+          <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">We couldn't upload this file yet</h2>
+          <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">Fix the issue below and try again.</p>
+
+          <div class="card" style="background:var(--red-tint); border-color:var(--red-border); margin-bottom:1.15rem;">
+            <strong style="display:block; color:var(--red-text); font-size:0.92rem;" id="uploadErrorTitle"></strong>
+            <span style="font-size:0.84rem; color:var(--red-text);" id="uploadErrorBody"></span>
+          </div>
+
+          <button type="button" class="btn btn-green" onclick="navigateTo('upload')">Choose another file</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 07: AUTHENTICATION (WELCOME BACK / SIGN IN)                    -->
+    <!-- ===================================================================== -->
+    <section id="screen-auth" class="screen" aria-labelledby="auth-welcome-title">
+      <div class="auth-split">
+        <div style="display:flex; flex-direction:column; justify-content:center;">
+          <span class="eyebrow">Your Academic Workspace</span>
+          <h1 style="font-size:2.4rem; font-weight:800; line-height:1.15; margin:0.25rem 0 0.85rem 0;">
+            Make every study session count.
+          </h1>
+          <p style="color:var(--text-muted); font-size:1rem; margin:0 0 1.5rem 0; max-width:440px;">
+            Find trusted notes, build focused collections, and ask better questions with cited AI answers.
+          </p>
+          <div style="display:flex; flex-direction:column; gap:0.6rem; align-items:flex-start;">
+            <span class="pill pill-green" style="padding:0.45rem 0.85rem; font-size:0.84rem;">&#10003; Verified course resources</span>
+            <span class="pill pill-green" style="padding:0.45rem 0.85rem; font-size:0.84rem;">&#10022; All answers with citations</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding:2rem;">
+          <!-- Sign in -->
+          <div id="loginPanel">
+            <h2 id="auth-welcome-title" style="margin:0 0 0.25rem 0; font-size:1.5rem;">Welcome back</h2>
+            <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Sign in to continue to ScholarPulse.</p>
+
+            <div class="form-group">
+              <label class="form-label" for="loginEmailInput">University email</label>
+              <input type="email" id="loginEmailInput" class="form-input" placeholder="name@university.edu" autocomplete="username" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loginPasswordInput">Password</label>
+              <input type="password" id="loginPasswordInput" class="form-input" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLoginSubmit()" />
+            </div>
+
+            <div id="loginError" style="display:none; font-size:0.84rem; color:var(--red-text); background:var(--red-tint); border:1px solid var(--red-border); padding:0.6rem 0.75rem; border-radius:8px; margin-bottom:0.85rem;" role="alert"></div>
+
+            <button type="button" class="btn btn-green" style="width:100%; margin-bottom:0.85rem;" onclick="handleLoginSubmit()">Sign in</button>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.85rem;">
+              Seeded demo accounts: <code>sam.green@university.edu</code> (student), <code>snehadip.ghoshal@university.edu</code> (TA), <code>harshit.pant@university.edu</code> (moderator). Password: <code>ScholarPulse!2026</code>
+            </div>
+            <div style="text-align:center; font-size:0.86rem;">
+              New to ScholarPulse? <button type="button" class="link-green" onclick="showAuthPanel('register')">Create account &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Register -->
+          <div id="registerPanel" style="display:none;">
+            <h2 style="margin:0 0 0.25rem 0; font-size:1.5rem;">Create your account</h2>
+            <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Use your university email.</p>
+
+            <div class="form-group">
+              <label class="form-label" for="regUsernameInput">Username (3&ndash;50 characters)</label>
+              <input type="text" id="regUsernameInput" class="form-input" maxlength="50" autocomplete="username" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regEmailInput">University email</label>
+              <input type="email" id="regEmailInput" class="form-input" placeholder="name@university.edu" autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPasswordInput">Password (min 8 characters)</label>
+              <input type="password" id="regPasswordInput" class="form-input" autocomplete="new-password" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regBioInput">Short bio (optional)</label>
+              <input type="text" id="regBioInput" class="form-input" maxlength="500" />
+            </div>
+
+            <div style="font-size:0.82rem; color:var(--text-muted); background:#f8fbf9; padding:0.65rem; border-radius:8px; margin-bottom:0.85rem;">
+              <strong>DPDP Act 2023 Consent Notice:</strong> We collect only your university email, username, and uploaded study notes to provide course library and session authentication services. You can delete your account and all associated data anytime from your Profile.
+              <label style="display:flex; align-items:center; gap:0.4rem; margin-top:0.5rem; cursor:pointer;">
+                <input type="checkbox" id="regConsentInput" /> I accept this notice.
+              </label>
+            </div>
+
+            <div id="registerError" style="display:none; font-size:0.84rem; color:var(--red-text); background:var(--red-tint); border:1px solid var(--red-border); padding:0.6rem 0.75rem; border-radius:8px; margin-bottom:0.85rem;" role="alert"></div>
+
+            <button type="button" class="btn btn-green" style="width:100%; margin-bottom:0.85rem;" onclick="handleRegisterSubmit()">Create account</button>
+            <div style="text-align:center; font-size:0.86rem;">
+              Already registered? <button type="button" class="link-green" onclick="showAuthPanel('login')">Sign in</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 15: ACCOUNT STATUS (YOU'RE ALMOST THERE — ERROR & CREATED)     -->
+    <!-- ===================================================================== -->
+    <section id="screen-auth-status" class="screen" aria-labelledby="auth-status-title">
+      <span class="eyebrow">Account Status</span>
+      <h1 class="page-title" id="auth-status-title">You're almost there</h1>
+      <p class="page-subtitle">Your account was created and you are signed in.</p>
+
+      <div class="card" style="max-width:560px;">
+        <span class="pill pill-green" style="margin-bottom:0.65rem;">Account Created</span>
+        <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Welcome to ScholarPulse</h2>
+        <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">
+          Your workspace is ready. Start by exploring trusted course resources or saving a reading list.
+        </p>
+        <div style="display:flex; gap:0.65rem;">
+          <button type="button" class="btn btn-green" onclick="navigateTo('explore')">Explore resources</button>
+          <button type="button" class="btn btn-outline" onclick="navigateTo('profile')">Open my profile</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 08: MY PROFILE (SAM GREEN)                                     -->
+    <!-- ===================================================================== -->
+    <section id="screen-profile" class="screen" aria-labelledby="profile-title">
+      <button type="button" class="back-btn" onclick="navigateTo('home')">&larr; Back</button>
+      <span class="eyebrow">Your Workspace</span>
+      <h1 class="page-title" id="profile-title">My profile</h1>
+      <p class="page-subtitle">Your contributions and saved learning paths in one place.</p>
+
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.75rem;">
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div style="width:60px; height:60px; border-radius:50%; background:var(--green-tint); color:var(--green-text); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.25rem;" id="profileCircleInitials">?</div>
+          <div>
+            <h2 style="margin:0; font-size:1.3rem;" id="profileDisplayName"></h2>
+            <p style="margin:0.15rem 0 0.4rem 0; font-size:0.88rem; color:var(--text-muted);" id="profileEmailText"></p>
+            <span class="pill pill-green" id="profileRoleBadge"></span>
+            <p style="margin:0.5rem 0 0 0; font-size:0.86rem; color:var(--text-muted);" id="profileBioText"></p>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline" onclick="toggleEditProfileBox()">Edit profile</button>
+          <button type="button" class="btn btn-outline" onclick="handleLogout()">Sign out</button>
+        </div>
+      </div>
+
+      <div id="editProfileDrawer" class="card card-green-tint" style="display:none; margin-bottom:1.5rem;">
+        <h3 style="margin:0 0 0.65rem 0; font-size:1rem;">Update Profile</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end; margin-bottom:1.25rem;">
+          <div>
+            <label class="form-label" for="editUsernameInput">Username</label>
+            <input type="text" id="editUsernameInput" class="form-input" maxlength="50" />
+          </div>
+          <div>
+            <label class="form-label" for="editBioInput">Academic bio</label>
+            <input type="text" id="editBioInput" class="form-input" maxlength="500" />
+          </div>
+          <button type="button" class="btn btn-green" onclick="saveProfileEdits()">Save changes</button>
+        </div>
+
+        <h3 style="margin:0 0 0.65rem 0; font-size:1rem;">Change password</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end; margin-bottom:1.25rem;">
+          <div>
+            <label class="form-label" for="currentPasswordInput">Current password</label>
+            <input type="password" id="currentPasswordInput" class="form-input" autocomplete="current-password" />
+          </div>
+          <div>
+            <label class="form-label" for="newPasswordInput">New password (min 8)</label>
+            <input type="password" id="newPasswordInput" class="form-input" autocomplete="new-password" />
+          </div>
+          <button type="button" class="btn btn-outline" onclick="changePassword()">Update password</button>
+        </div>
+
+        <h3 style="margin:0 0 0.4rem 0; font-size:1rem;">DPDP Act 2023 &mdash; delete my data</h3>
+        <p style="margin:0 0 0.6rem 0; font-size:0.84rem; color:var(--text-muted);">Permanently deletes your account, uploads, ratings, comments, collections and AI query history.</p>
+        <button type="button" class="btn btn-danger" onclick="deleteMyAccount()">Delete my account</button>
+      </div>
+
+      <h2 style="font-size:1.15rem; margin:0 0 0.85rem 0;">My uploads</h2>
+      <div class="grid-2" id="profileUploadsGrid" style="margin-bottom:1.75rem;"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:0.85rem;">
+        <h2 style="font-size:1.15rem; margin:0;">My collections</h2>
+        <button type="button" class="btn btn-outline" id="profileModerationBtn" style="display:none;" onclick="navigateTo('moderation')">Open moderation queue</button>
+      </div>
+      <div class="grid-2" id="profileCollectionsGrid"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 12: REPORT CONTENT FORM                                        -->
+    <!-- ===================================================================== -->
+    <section id="screen-report-form" class="screen" aria-labelledby="report-modal-title">
+      <button type="button" class="back-btn" onclick="navigateTo('resource-detail')">&larr; Back</button>
+
+      <div class="card" style="max-width:640px; margin:0 auto; padding:2rem;">
+        <span class="eyebrow">Report Content</span>
+        <h1 class="page-title" id="report-modal-title" style="font-size:1.65rem;">Help keep ScholarPulse trustworthy</h1>
+        <p class="page-subtitle">Tell our moderation team what needs a closer look.</p>
+
+        <div class="card" style="background:#f8fbf9; margin-bottom:1.15rem;">
+          <span class="eyebrow" style="color:var(--text-muted);" id="reportTargetKind">Reported Resource</span>
+          <strong style="display:block; font-size:1.02rem;" id="reportTargetTitle"></strong>
+          <span style="font-size:0.84rem; color:var(--text-muted);" id="reportTargetMeta"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reportReasonSelect">Reason for report</label>
+          <select id="reportReasonSelect" class="form-select">
+            <option value="incorrect_or_misleading">Incorrect or misleading information</option>
+            <option value="copyright_concern">Copyright or privacy concern</option>
+            <option value="low_quality_or_spam">Low-quality content or spam</option>
+            <option value="inappropriate_content">Inappropriate content</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reportDetailsInput">Additional details (optional)</label>
+          <textarea id="reportDetailsInput" class="form-textarea" rows="3" maxlength="1000" placeholder="Describe the issue for the reviewer..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.25rem;">
+          <button type="button" class="btn btn-outline" onclick="navigateTo('resource-detail')">Cancel</button>
+          <button type="button" class="btn btn-green" onclick="submitContentReport()">Submit report</button>
+        </div>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.85rem;">
+          Reports are reviewed by the ScholarPulse moderation team.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 09: MODERATION QUEUE                                           -->
+    <!-- ===================================================================== -->
+    <section id="screen-moderation" class="screen" aria-labelledby="moderation-title">
+      <button type="button" class="back-btn" onclick="navigateTo('profile')">&larr; Back</button>
+      <span class="eyebrow">Trust &amp; Safety</span>
+      <h1 class="page-title" id="moderation-title">Moderation queue</h1>
+      <p class="page-subtitle">Review reported resources and take clear, auditable actions.</p>
+
+      <div style="display:flex; gap:0.65rem; flex-wrap:wrap; margin-bottom:1.25rem; align-items:center;">
+        <span class="pill pill-amber" style="padding:0.4rem 0.85rem;" id="modOpenCountBadge">0 OPEN</span>
+        <span class="pill pill-gray" style="padding:0.4rem 0.85rem;" id="modDismissedCountBadge">0 DISMISSED</span>
+        <span class="pill pill-green" style="padding:0.4rem 0.85rem;" id="modResolvedCountBadge">0 RESOLVED</span>
+        <select id="modStatusFilter" class="form-select" style="width:auto; margin-left:auto;" onchange="loadModeration()" aria-label="Filter reports by status">
+          <option value="">All reports</option>
+          <option value="open">Open</option>
+          <option value="resolved">Resolved</option>
+          <option value="dismissed">Dismissed</option>
+        </select>
+      </div>
+
+      <div class="layout-split-detail">
+        <div class="card">
+          <h2 style="margin:0 0 0.85rem 0; font-size:1.15rem;">Reported content</h2>
+          <div id="moderationReportsList"></div>
+        </div>
+
+        <aside class="card">
+          <span class="eyebrow" id="selectedReportEyebrow">Selected Report</span>
+          <h2 style="margin:0.2rem 0 0.35rem 0; font-size:1.4rem;" id="selectedReportReason">No report selected</h2>
+          <p style="margin:0 0 0.85rem 0; font-size:0.9rem; color:var(--text-muted);" id="selectedReportTarget"></p>
+
+          <div class="card" style="background:#fbfcfa; margin-bottom:1.25rem;">
+            <p style="margin:0; font-size:0.9rem; color:var(--text-muted); font-style:italic;" id="selectedReportQuote"></p>
+          </div>
+
+          <div style="font-size:0.84rem; font-weight:700; margin-bottom:0.6rem;">Choose an action</div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.65rem;">
+            <button type="button" class="btn btn-outline" onclick="startModerationAction('hide')">Hide</button>
+            <button type="button" class="btn btn-green" onclick="startModerationAction('restore')">Restore</button>
+            <button type="button" class="btn btn-danger" onclick="startModerationAction('remove')">Remove permanently</button>
+            <button type="button" class="btn btn-outline" onclick="startModerationAction('dismiss')">Dismiss report</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SCREEN 13: REVIEW REPORT #RP-204 DESTRUCTIVE CONFIRMATION             -->
+    <!-- ===================================================================== -->
+    <section id="screen-review-confirm" class="screen" aria-labelledby="review-confirm-title">
+      <button type="button" class="back-btn" onclick="navigateTo('moderation')">&larr; Back</button>
+      <span class="eyebrow">Trust &amp; Safety</span>
+      <h1 class="page-title" id="review-confirm-title">Review report</h1>
+      <p class="page-subtitle">Review the evidence and confirm the appropriate action.</p>
+
+      <div class="layout-split-detail">
+        <div class="card">
+          <span class="pill pill-amber" style="margin-bottom:0.65rem;" id="confirmReportStatusPill">Open Report</span>
+          <h2 style="margin:0 0 0.35rem 0; font-size:1.4rem;" id="confirmReportReasonTitle"></h2>
+          <p style="margin:0 0 0.85rem 0; font-size:0.92rem; color:var(--text-muted);" id="confirmReportTargetTitle"></p>
+
+          <div class="card" style="background:#fbfcfa; margin-bottom:1.15rem;">
+            <p style="margin:0; font-size:0.9rem; color:var(--text-muted);" id="confirmReportQuoteText"></p>
+          </div>
+
+          <h3 style="font-size:0.92rem; margin:0 0 0.5rem 0;">Review checklist</h3>
+          <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.86rem; color:var(--green-text); font-weight:600;">&#10003; Open the cited section</div>
+          <div class="card" style="padding:0.6rem 0.85rem; font-size:0.86rem; color:var(--green-text); font-weight:600;">&#10003; Compare against course sources</div>
+        </div>
+
+        <aside class="card">
+          <span class="pill pill-red" style="margin-bottom:0.65rem;" id="confirmActionPill">Action</span>
+          <h2 style="margin:0 0 0.35rem 0; font-size:1.35rem;" id="confirmActionTitle">Confirm action</h2>
+          <p style="margin:0 0 1.15rem 0; font-size:0.9rem; color:var(--text-muted);" id="confirmActionDescription"></p>
+
+          <div class="form-group">
+            <label class="form-label" for="moderationNoteInput">Audit note (optional)</label>
+            <textarea id="moderationNoteInput" class="form-textarea" rows="2" maxlength="500" placeholder="Why are you taking this action?"></textarea>
+          </div>
+
+          <div style="display:flex; gap:0.6rem;">
+            <button type="button" class="btn btn-outline" onclick="navigateTo('moderation')">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmActionBtn" onclick="applyModerationAction()">Confirm</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toastBanner" role="status" aria-live="polite"></div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION LOGIC — LIVE BACKEND INTEGRATION (`/api/v1/*`)               -->
+  <!-- Every screen reads/writes through the REST API documented in            -->
+  <!-- docs/API_ENDPOINTS.md. No mock data: the page is served by FastAPI at   -->
+  <!-- `/` so all calls are same-origin (cookie session + X-CSRF-Token).       -->
+  <!-- ======================================================================= -->
+  <script>
+    "use strict";
+
+    // ---------------------------------------------------------------------
+    // Constants & global state
+    // ---------------------------------------------------------------------
+    const API = "/api/v1";
+    const PAGE_SIZE = 15;
+
+    const TYPE_LABELS = {
+      lecture_notes: "Lecture notes",
+      slides: "Slides",
+      assignment: "Assignment",
+      paper_summary: "Paper summary"
+    };
+    const TYPE_BADGES = {
+      lecture_notes: ["NOTES", "type-pdf"],
+      slides: ["SL", "type-sl"],
+      assignment: ["HW", "type-pdf"],
+      paper_summary: ["ARX", "type-doc"]
+    };
+    const ROLE_LABELS = {
+      student: "Student contributor",
+      ta: "Teaching Assistant (Official List Publisher)",
+      moderator: "Trust & Safety Moderator"
+    };
+    const REASON_LABELS = {
+      incorrect_or_misleading: "Incorrect or misleading",
+      copyright_concern: "Copyright or privacy concern",
+      low_quality_or_spam: "Low-quality content or spam",
+      inappropriate_content: "Inappropriate content"
+    };
+    const MOD_ACTIONS = {
+      hide:    { pill: "Reversible", title: "Hide this content?", btn: "Hide", cls: "btn-outline",
+                 text: "Hidden content disappears from browse, search and AI retrieval. You can restore it later." },
+      restore: { pill: "Reversible", title: "Restore this content?", btn: "Restore", cls: "btn-green",
+                 text: "The content becomes visible again and is eligible for AI retrieval." },
+      remove:  { pill: "Destructive Action", title: "Permanently remove this content?", btn: "Remove permanently", cls: "btn-danger",
+                 text: "This removes the content from the library and excludes it from AI retrieval. Confirm only after review." },
+      dismiss: { pill: "No content change", title: "Dismiss this report?", btn: "Dismiss report", cls: "btn-outline",
+                 text: "The report is closed and the reported content is left untouched." }
+    };
+
+    const state = {
+      user: null,              // signed-in user (from /auth/login, /auth/register or /auth/me)
+      csrfToken: "",
+      categories: [],
+      filters: { course: "", type: "", tag: "" },
+      page: 1,
+      exploreLoaded: false,
+      exploreDirty: true,
+      listToken: 0,            // guards against out-of-order explore responses
+      collections: [],
+      currentResource: null,
+      currentComments: [],
+      currentCollection: null,
+      myCollections: [],
+      reportTarget: null,      // { type, id, title, meta }
+      reports: [],
+      selectedReportId: null,
+      pendingModAction: null,
+      lastUploadedResourceId: null,
+      uploadFile: null
+    };
+
+    // ---------------------------------------------------------------------
+    // Small helpers
+    // ---------------------------------------------------------------------
+    const $ = (id) => document.getElementById(id);
+    const decodeBox = document.createElement("textarea");
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (ch) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+    // The backend stores user text HTML-escaped; decode once, then escape for display.
+    function fmt(s) {
+      decodeBox.innerHTML = String(s == null ? "" : s);
+      return esc(decodeBox.value);
+    }
+    function fmtDate(s) { return s ? String(s).slice(0, 10) : ""; }
+    function isModerator() { return !!state.user && state.user.role === "moderator"; }
+    function canPublishOfficial() { return !!state.user && (state.user.role === "ta" || state.user.role === "moderator"); }
+
+    function showToast(msg, isError) {
+      const el = $("toastBanner");
+      el.textContent = msg;
+      el.style.background = isError ? "#8a1c14" : "#112a20";
+      el.style.display = "block";
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 4200);
+    }
+
+    // ---------------------------------------------------------------------
+    // API client
+    // ---------------------------------------------------------------------
+    class ApiError extends Error {
+      constructor(status, code, message) {
+        super(message);
+        this.status = status;
+        this.code = code;
+      }
+    }
+
+    function parseErrorBody(status, data) {
+      let code = "HTTP_" + status;
+      let message = "Request failed (" + status + ").";
+      if (data && data.detail !== undefined) {
+        const d = data.detail;
+        if (typeof d === "string") {
+          message = d;
+        } else if (Array.isArray(d)) {                       // FastAPI 422 validation errors
+          code = "VALIDATION_ERROR";
+          message = d.map((x) => {
+            const field = Array.isArray(x.loc) ? x.loc.filter((p) => p !== "body").join(".") : "";
+            return (field ? field + ": " : "") + x.msg;
+          }).join("; ");
+        } else if (d && typeof d === "object") {             // { error, message }
+          code = d.error || code;
+          message = d.message || message;
+        }
+      } else if (data && data.message) {
+        code = data.error || code;
+        message = data.message;
+      }
+      return new ApiError(status, code, message);
+    }
+
+    /**
+     * api(path, { method, query, body, form })
+     *  - same-origin fetch with the sp_session cookie
+     *  - JSON body, or FormData for multipart uploads
+     *  - X-CSRF-Token attached automatically on state-changing requests
+     *  - resolves with parsed JSON; rejects with ApiError
+     */
+    async function api(path, opts) {
+      opts = opts || {};
+      const method = (opts.method || "GET").toUpperCase();
+      const headers = { "Accept": "application/json" };
+      const init = { method, headers, credentials: "same-origin" };
+
+      if (method !== "GET" && state.csrfToken) headers["X-CSRF-Token"] = state.csrfToken;
+      if (opts.form) {
+        init.body = opts.form;                               // browser sets multipart boundary
+      } else if (opts.body !== undefined) {
+        headers["Content-Type"] = "application/json";
+        init.body = JSON.stringify(opts.body);
+      }
+
+      let url = API + path;
+      if (opts.query) {
+        const qs = new URLSearchParams();
+        Object.keys(opts.query).forEach((k) => {
+          const v = opts.query[k];
+          if (v !== "" && v !== null && v !== undefined && v !== false) qs.set(k, String(v));
+        });
+        const s = qs.toString();
+        if (s) url += "?" + s;
+      }
+
+      let res;
+      try {
+        res = await fetch(url, init);
+      } catch (e) {
+        throw new ApiError(0, "NETWORK_ERROR", "Cannot reach the ScholarPulse server. Is the backend running?");
+      }
+
+      const text = await res.text();
+      let data = null;
+      if (text) { try { data = JSON.parse(text); } catch (e) { data = null; } }
+
+      if (!res.ok) {
+        const err = parseErrorBody(res.status, data);
+        if (res.status === 401 && !opts.silent401 && state.user) {
+          // Session expired or cookie cleared: drop local auth state.
+          state.user = null;
+          state.csrfToken = "";
+          updateAuthUI();
+        }
+        throw err;
+      }
+      return data;
+    }
+
+    function handleError(e, prefix) {
+      if (e && e.status === 401) {
+        showToast("Please sign in to continue.", true);
+        navigateTo("auth");
+        return;
+      }
+      showToast((prefix ? prefix + ": " : "") + (e && e.message ? e.message : "Something went wrong."), true);
+    }
+
+    function requireLogin(msg) {
+      if (state.user) return true;
+      showToast(msg || "Please sign in to do that.", true);
+      navigateTo("auth");
+      return false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Navigation
+    // ---------------------------------------------------------------------
+    const NAV_MAP = {
+      "home": "nav-home",
+      "explore": "nav-explore",
+      "resource-detail": "nav-explore",
+      "report-form": "nav-explore",
+      "collections": "nav-collections",
+      "collection-detail": "nav-collections",
+      "upload": "nav-upload",
+      "upload-status": "nav-upload",
+      "moderation": "nav-moderation",
+      "review-confirm": "nav-moderation",
+      "auth": "nav-auth",
+      "auth-status": "nav-auth"
+    };
+
+    function navigateTo(screenId) {
+      if ((screenId === "upload" || screenId === "profile") && !state.user) {
+        showToast("Please sign in first.", true);
+        screenId = "auth";
+      }
+      if ((screenId === "moderation" || screenId === "review-confirm") && !isModerator()) {
+        showToast("Moderator role required.", true);
+        screenId = state.user ? "home" : "auth";
+      }
+
+      document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+      const target = $("screen-" + screenId);
+      if (target) target.classList.add("active");
+
+      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+      const navBtn = $(NAV_MAP[screenId]);
+      if (navBtn) navBtn.classList.add("active");
+
+      // Per-screen data loaders
+      if (screenId === "home") loadHome();
+      else if (screenId === "explore") { if (!state.exploreLoaded || state.exploreDirty) loadResources(state.page); }
+      else if (screenId === "collections") loadCollections();
+      else if (screenId === "profile") loadProfile();
+      else if (screenId === "moderation") loadModeration();
+      else if (screenId === "upload") prepareUploadForm();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateAuthUI() {
+      const u = state.user;
+      $("nav-auth").textContent = u ? "Sign out" : "Sign in";
+      $("nav-moderation").style.display = isModerator() ? "" : "none";
+      $("profileModerationBtn").style.display = isModerator() ? "" : "none";
+      $("uploadOfficialRow").style.display = canPublishOfficial() ? "flex" : "none";
+      $("newCollOfficialRow").style.display = canPublishOfficial() ? "flex" : "none";
+
+      const initials = u ? u.username.replace(/[^A-Za-z0-9 ]/g, " ").trim().split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase() : "?";
+      $("profileAvatarBtn").textContent = initials || "?";
+      $("profileAvatarBtn").title = u ? "Open my profile (" + u.username + ")" : "Sign in";
+      $("profileAvatarBtn").setAttribute("onclick", u ? "navigateTo('profile')" : "navigateTo('auth')");
+
+      if (u) {
+        $("profileCircleInitials").textContent = initials;
+        $("profileDisplayName").textContent = decodeText(u.username);
+        $("profileEmailText").textContent = u.email;
+        $("profileRoleBadge").textContent = ROLE_LABELS[u.role] || ROLE_LABELS.student;
+        $("profileBioText").textContent = decodeText(u.bio || "");
+      }
+    }
+    function decodeText(s) { decodeBox.innerHTML = String(s == null ? "" : s); return decodeBox.value; }
+
+    // ---------------------------------------------------------------------
+    // Boot: health check, session restore, reference data
+    // ---------------------------------------------------------------------
+    async function checkHealth() {
+      const badge = $("apiStatusBadge");
+      try {
+        const h = await api("/health");
+        state.resourceTotal = h.counts ? h.counts.resources : null;
+        badge.textContent = "Live API connected" + (state.resourceTotal != null ? " (" + state.resourceTotal + " resources)" : "");
+        badge.style.background = "";
+      } catch (e) {
+        badge.textContent = "API offline";
+        badge.style.background = "#fdeaea";
+        showToast(e.message, true);
+      }
+    }
+
+    // GET /auth/me restores the session after a page reload (cookie is HttpOnly) and
+    // returns a fresh CSRF token.
+    async function restoreSession() {
+      try {
+        const me = await api("/auth/me", { silent401: true });
+        state.user = me;
+        state.csrfToken = me.csrf_token || "";
+      } catch (e) {
+        state.user = null;
+        state.csrfToken = "";
+      }
+      updateAuthUI();
+    }
+
+    async function loadCategories() {
+      try {
+        state.categories = await api("/categories");
+      } catch (e) { state.categories = []; }
+      const opts = state.categories.map((c) =>
+        `<option value="${esc(c.course_code)}">${esc(c.course_code)} — ${fmt(c.course_name)}</option>`).join("");
+      $("uploadCourseInput").innerHTML = opts;
+      $("newCollCourse").innerHTML = opts;
+      renderCourseFilters();
+    }
+
+    function renderCourseFilters() {
+      const box = $("courseFilterList");
+      box.innerHTML =
+        `<button type="button" class="filter-opt" data-course="">All Courses</button>` +
+        state.categories.map((c) =>
+          `<button type="button" class="filter-opt" data-course="${esc(c.course_code)}">${esc(c.course_code)} &middot; ${fmt(c.course_name)} (${Number(c.resource_count) || 0})</button>`
+        ).join("");
+      syncFilterButtons();
+    }
+
+    async function loadTags() {
+      let tags = [];
+      try { tags = await api("/tags"); } catch (e) { /* non-fatal */ }
+      $("tagFilterList").innerHTML =
+        `<button type="button" class="filter-opt" data-tag="">All Tags</button>` +
+        tags.slice(0, 12).map((t) =>
+          `<button type="button" class="filter-opt" data-tag="${esc(t.name)}">${esc(t.name)} (${Number(t.usage_count) || 0})</button>`
+        ).join("");
+      syncFilterButtons();
+    }
+
+    function syncFilterButtons() {
+      document.querySelectorAll("[data-course]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-course") === state.filters.course));
+      document.querySelectorAll("[data-rtype]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-rtype") === state.filters.type));
+      document.querySelectorAll("[data-tag]").forEach((b) => b.classList.toggle("active", b.getAttribute("data-tag") === state.filters.tag));
+    }
+
+    // ---------------------------------------------------------------------
+    // Reusable renderers
+    // ---------------------------------------------------------------------
+    function resourceRowHtml(r) {
+      const badge = TYPE_BADGES[r.resource_type] || ["DOC", "type-doc"];
+      const by = r.uploader_username || r.source_authors || "Unknown";
+      const when = fmtDate(r.published_on || r.created_at);
+      return `
+        <article class="res-row-card" onclick="openResourceDetail(${Number(r.id)})" tabindex="0" onkeydown="if(event.key==='Enter')openResourceDetail(${Number(r.id)})">
+          <div class="type-square ${badge[1]}">${badge[0]}</div>
+          <div style="flex:1;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--green-text); letter-spacing:0.05em;">${esc(r.course_code)}</span>
+            <h3 style="margin:0.1rem 0 0.25rem 0; font-size:1.08rem;">${fmt(r.title)}</h3>
+            <div style="font-size:0.84rem; color:var(--text-muted); margin-bottom:0.55rem;">${esc(TYPE_LABELS[r.resource_type] || r.resource_type)} &middot; ${fmt(by)}${when ? " &middot; " + esc(when) : ""}</div>
+            <div style="display:flex; gap:0.45rem; align-items:center; flex-wrap:wrap;">
+              ${r.is_official ? '<span class="pill pill-green">Verified</span>' : '<span class="pill pill-gray">Community</span>'}
+              <span class="pill pill-gray">&#9733; ${Number(r.avg_rating || 0).toFixed(1)} (${Number(r.rating_count) || 0})</span>
+              <span class="pill pill-gray">${Number(r.comment_count) || 0} comments</span>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    function collectionCardHtml(c, idx) {
+      const themes = ["green", "amber", "blue"];
+      const theme = themes[(idx || 0) % 3];
+      const tintClass = theme === "amber" ? "card-amber-tint" : (theme === "blue" ? "card-blue-tint" : "card-green-tint");
+      const iconColor = theme === "amber" ? "#b54708" : (theme === "blue" ? "#1d5a96" : "#11623f");
+      const flags = [
+        c.is_official ? '<span class="pill pill-green">Official</span>' : "",
+        c.is_public ? "" : '<span class="pill pill-gray">Private</span>',
+        c.course_code ? `<span class="pill pill-gray">${esc(c.course_code)}</span>` : ""
+      ].join(" ");
+      return `
+        <article class="card clickable ${tintClass}" onclick="openCollectionDetail(${Number(c.id)})" tabindex="0" onkeydown="if(event.key==='Enter')openCollectionDetail(${Number(c.id)})">
+          <div class="coll-card-top">
+            <span class="spark-icon" style="color:${iconColor};">&#10022;</span>
+            <div class="readings-box"><strong>${Number(c.item_count) || 0}</strong>READINGS</div>
+          </div>
+          <h3 style="margin:0 0 0.35rem 0; font-size:1.12rem;">${fmt(c.title)}</h3>
+          <p style="margin:0 0 0.5rem 0; font-size:0.88rem; color:var(--text-muted);">${fmt(c.description || "Curated course reading list.")}</p>
+          <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">${flags}</div>
+        </article>`;
+    }
+
+    function emptyCard(msg) {
+      return `<div class="card" style="color:var(--text-muted); font-size:0.9rem;">${esc(msg)}</div>`;
+    }
+
+    // ---------------------------------------------------------------------
+    // Home — GET /collections, GET /resources
+    // ---------------------------------------------------------------------
+    async function loadHome() {
+      try {
+        const [colls, res] = await Promise.all([
+          api("/collections"),
+          api("/resources", { query: { sort_by: "newest", page_size: 4 } })
+        ]);
+        $("homeCollectionsGrid").innerHTML = colls.length
+          ? colls.slice(0, 3).map(collectionCardHtml).join("")
+          : emptyCard("No public collections yet.");
+        $("homeRecentResourcesGrid").innerHTML = res.items.length
+          ? res.items.map(resourceRowHtml).join("")
+          : emptyCard("No resources yet.");
+        $("homeViewAllBtn").textContent = "View all " + res.total + " resources →";
+      } catch (e) {
+        handleError(e, "Could not load home");
+      }
+    }
+
+    function handleHomeSearch() {
+      $("exploreSearchInput").value = $("homeSearchInput").value.trim();
+      state.exploreDirty = true;
+      navigateTo("explore");
+    }
+
+    // ---------------------------------------------------------------------
+    // Explore — GET /resources (server-side search, filters, sort, pagination)
+    // ---------------------------------------------------------------------
+    let _searchTimer = null;
+    function debouncedLoadResources() {
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => loadResources(1), 300);
+    }
+
+    function setExploreCourseFilter(course) {
+      state.filters.course = course;
+      syncFilterButtons();
+      const banner = $("courseScopeAiBanner");
+      banner.style.display = course ? "block" : "none";
+      if (course) $("courseScopeAiTitle").textContent = "Ask AI across all resources in " + course;
+      $("courseAiAnswerBox").style.display = "none";
+      loadResources(1);
+    }
+    function setExploreTypeFilter(rtype) {
+      state.filters.type = rtype;
+      syncFilterButtons();
+      loadResources(1);
+    }
+    function setExploreTagFilter(tag) {
+      state.filters.tag = tag;
+      syncFilterButtons();
+      loadResources(1);
+    }
+
+    async function loadResources(page) {
+      state.page = page || 1;
+      const token = ++state.listToken;
+      const box = $("exploreResultsContainer");
+      box.innerHTML = emptyCard("Loading resources…");
+      try {
+        const data = await api("/resources", {
+          query: {
+            q: $("exploreSearchInput").value.trim(),
+            course_code: state.filters.course,
+            resource_type: state.filters.type,
+            tag: state.filters.tag,
+            official_only: $("exploreVerifiedOnly").checked,
+            sort_by: $("exploreSortSelect").value,
+            page: state.page,
+            page_size: PAGE_SIZE
+          }
+        });
+        if (token !== state.listToken) return;               // a newer request superseded this one
+        state.exploreLoaded = true;
+        state.exploreDirty = false;
+        $("exploreCountLabel").textContent = data.total + " resource" + (data.total === 1 ? "" : "s");
+        $("exploreSubLabel").textContent = "Page " + data.page + " of " + data.total_pages;
+        box.innerHTML = data.items.length
+          ? data.items.map(resourceRowHtml).join("")
+          : emptyCard("No matching resources found. Try clearing a filter.");
+        renderPager(data.page, data.total_pages);
+      } catch (e) {
+        if (token !== state.listToken) return;
+        box.innerHTML = emptyCard("Could not load resources: " + e.message);
+      }
+    }
+
+    function renderPager(page, totalPages) {
+      const pager = $("explorePager");
+      if (totalPages <= 1) { pager.innerHTML = ""; return; }
+      pager.innerHTML = `
+        <button type="button" class="btn btn-outline" ${page <= 1 ? "disabled" : ""} onclick="loadResources(${page - 1})">&larr; Prev</button>
+        <span style="font-size:0.88rem; color:var(--text-muted);">Page ${page} of ${totalPages}</span>
+        <button type="button" class="btn btn-outline" ${page >= totalPages ? "disabled" : ""} onclick="loadResources(${page + 1})">Next &rarr;</button>`;
+    }
+
+    // Course-scope AI — POST /ai/ask { scope_type: "course", scope_id: <course code> }
+    async function askCourseScopeAI() {
+      if (!requireLogin("Sign in to use the AI study assistant.")) return;
+      const q = $("courseAiQuestionInput").value.trim();
+      const course = state.filters.course;
+      if (!q || !course) return;
+      if (q.length > 300) { showToast("Questions are limited to 300 characters.", true); return; }
+      const box = $("courseAiAnswerBox");
+      box.style.display = "block";
+      box.innerHTML = emptyCard("Thinking…");
+      try {
+        const data = await api("/ai/ask", { method: "POST", body: { question: q, scope_type: "course", scope_id: course } });
+        box.innerHTML = renderMultiAnswerHtml(data, "Course answer (" + course + ")");
+      } catch (e) {
+        box.innerHTML = emptyCard(e.message);
+      }
+    }
+
+    // Replace "[Chunk 123]" tokens with numbered markers that match the citation list.
+    function numberCitations(answer, citations) {
+      let out = fmt(answer);
+      citations.forEach((c, i) => {
+        out = out.split("[Chunk " + c.chunk_id + "]").join("[" + (i + 1) + "]");
+      });
+      return out;
+    }
+
+    function citationListHtml(citations) {
+      if (!citations || !citations.length) return "";
+      return citations.map((c, i) => `
+        <div class="card" style="padding:0.6rem 0.85rem; margin-bottom:0.45rem; font-size:0.85rem; cursor:pointer;" onclick="openResourceDetail(${Number(c.resource_id)})">
+          <strong>[${i + 1}] ${fmt(c.resource_title)}</strong> <span style="color:var(--text-muted);">&middot; chunk ${Number(c.chunk_index) + 1}</span>
+          <div style="color:var(--text-muted); margin-top:0.2rem;">${fmt(c.snippet)}</div>
+        </div>`).join("");
+    }
+
+    function renderMultiAnswerHtml(data, heading) {
+      if (data.not_found) {
+        return `<div class="ai-box-amber"><strong>Not found in these documents</strong><p style="margin:0.25rem 0 0 0; font-size:0.86rem; color:var(--text-muted);">The assistant refuses to guess when the answer is absent from the selected sources.</p></div>`;
+      }
+      const notice = data.fallback_used
+        ? `<div style="font-size:0.8rem; color:var(--blue-text); margin-bottom:0.4rem;">${esc(data.fallback_notice || "AI unavailable, showing keyword matches.")}</div>` : "";
+      return `
+        <div class="ai-box-${data.fallback_used ? "blue" : "green"}" style="margin-top:0.4rem;">
+          <div style="font-size:0.72rem; font-weight:800; text-transform:uppercase; color:var(--green-text); margin-bottom:0.25rem;">${esc(heading)} &middot; ${data.citations.length} sources</div>
+          ${notice}
+          <div style="margin-bottom:0.6rem;">${numberCitations(data.answer, data.citations)}</div>
+          ${citationListHtml(data.citations)}
+        </div>`;
+    }
+
+    // ---------------------------------------------------------------------
+    // Resource detail — GET /resources/{id}, GET /resources/{id}/comments
+    // ---------------------------------------------------------------------
+    async function openResourceDetail(resId) {
+      try {
+        const [res, comments] = await Promise.all([
+          api("/resources/" + Number(resId)),
+          api("/resources/" + Number(resId) + "/comments")
+        ]);
+        state.currentResource = res;
+        state.currentComments = comments;
+        renderResourceDetail();
+        resetAiPanel();
+        navigateTo("resource-detail");
+        loadCollectionPicker();
+      } catch (e) {
+        handleError(e, "Could not open resource");
+      }
+    }
+
+    function renderResourceDetail() {
+      const r = state.currentResource;
+      $("detailBreadcrumb").textContent = "Explore / " + r.course_code + " / " + decodeText(r.title);
+      $("detail-res-title").textContent = decodeText(r.title);
+      const by = r.source_authors || r.uploader_username || "Unknown";
+      $("detailMetaLine").textContent =
+        [r.course_code, TYPE_LABELS[r.resource_type] || r.resource_type, decodeText(by), r.published_on ? "Published " + fmtDate(r.published_on) : ""]
+          .filter(Boolean).join(" · ");
+
+      const v = $("detailVerifiedBadge");
+      v.textContent = r.is_official ? "Verified source" : "Community upload";
+      v.className = "pill " + (r.is_official ? "pill-green" : "pill-gray");
+      $("detailRatingBadge").textContent = "★ " + Number(r.avg_rating || 0).toFixed(1) + " (" + (r.rating_count || 0) + " ratings)";
+      $("detailChunksBadge").textContent = (r.chunk_count || 0) + " indexed chunks";
+
+      $("detailParagraph1").textContent = decodeText(r.tldr_summary || "No summary available.");
+      $("detailTags").innerHTML = (r.tags || []).map((t) => `<span class="pill pill-blue">${esc(t)}</span>`).join("");
+      const full = decodeText(r.content_text || "");
+      $("detailParagraph2").textContent = full.length > 4000 ? full.slice(0, 4000) + "…" : full;
+      $("detailPageFooter").textContent =
+        "Source: " + (r.file_name || r.source_ref || "ScholarPulse library") + " · status: " + r.status + " · embeddings: " + r.embedding_status;
+      $("reportTargetTitle").textContent = decodeText(r.title);
+
+      const canDelete = state.user && (isModerator() || state.user.username === decodeText(r.uploader_username || ""));
+      $("detailDeleteBtn").style.display = canDelete ? "" : "none";
+      renderCommentsList();
+    }
+
+    function renderCommentsList() {
+      const box = $("detailCommentsList");
+      const list = state.currentComments;
+      if (!list.length) {
+        box.innerHTML = '<div style="font-size:0.86rem; color:var(--text-muted);">No comments yet. Be the first to add a study note!</div>';
+        return;
+      }
+      box.innerHTML = list.map((c) => {
+        const mine = state.user && c.user_id === state.user.id;
+        const canDel = mine || isModerator();
+        const actions = [
+          canDel ? `<button type="button" class="link-green" onclick="deleteComment(${Number(c.id)})">Delete</button>` : "",
+          (state.user && !mine) ? `<button type="button" class="link-green" onclick="reportComment(${Number(c.id)})">Report</button>` : ""
+        ].join(" ");
+        return `
+          <div class="card" style="padding:0.75rem 1rem; margin-bottom:0.55rem; background:#fbfcfa;">
+            <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.25rem;">
+              <strong style="color:var(--text-main);">@${fmt(c.username)}</strong>
+              <span>${esc(fmtDate(c.created_at))}</span>
+            </div>
+            <div style="font-size:0.88rem;">${fmt(c.body)}</div>
+            <div style="margin-top:0.35rem; font-size:0.78rem;">${actions}</div>
+          </div>`;
+      }).join("");
+    }
+
+    // POST /resources/{id}/comments
+    async function submitResourceComment() {
+      if (!requireLogin("Sign in to comment.")) return;
+      const input = $("newCommentInput");
+      const body = input.value.trim();
+      if (body.length < 2) { showToast("Comments need at least 2 characters.", true); return; }
+      try {
+        const created = await api("/resources/" + state.currentResource.id + "/comments", { method: "POST", body: { body } });
+        state.currentComments.unshift(created);
+        state.currentResource.comment_count = (state.currentResource.comment_count || 0) + 1;
+        renderCommentsList();
+        input.value = "";
+        state.exploreDirty = true;
+        showToast("Comment posted.");
+      } catch (e) { handleError(e, "Could not post comment"); }
+    }
+
+    // DELETE /comments/{id}
+    async function deleteComment(commentId) {
+      if (!confirm("Delete this comment?")) return;
+      try {
+        await api("/comments/" + Number(commentId), { method: "DELETE" });
+        state.currentComments = state.currentComments.filter((c) => c.id !== commentId);
+        renderCommentsList();
+        state.exploreDirty = true;
+        showToast("Comment deleted.");
+      } catch (e) { handleError(e, "Could not delete comment"); }
+    }
+
+    // POST /resources/{id}/ratings
+    async function rateCurrentResource(score) {
+      if (!requireLogin("Sign in to rate resources.")) return;
+      try {
+        const data = await api("/resources/" + state.currentResource.id + "/ratings", { method: "POST", body: { score } });
+        state.currentResource.avg_rating = data.avg_rating;
+        state.currentResource.rating_count = data.rating_count;
+        $("detailRatingBadge").textContent = "★ " + Number(data.avg_rating).toFixed(1) + " (" + data.rating_count + " ratings)";
+        state.exploreDirty = true;
+        showToast("Rated " + score + "/5 — new average ★ " + Number(data.avg_rating).toFixed(1));
+      } catch (e) { handleError(e, "Could not save rating"); }
+    }
+
+    // DELETE /resources/{id}
+    async function deleteCurrentResource() {
+      if (!confirm("Delete this resource permanently?")) return;
+      try {
+        await api("/resources/" + state.currentResource.id, { method: "DELETE" });
+        state.exploreDirty = true;
+        showToast("Resource deleted.");
+        navigateTo("explore");
+      } catch (e) { handleError(e, "Could not delete resource"); }
+    }
+
+    // GET /collections?mine=true → picker; POST /collections/{id}/items
+    async function loadCollectionPicker() {
+      const card = $("detailAddToCollectionCard");
+      if (!state.user) { card.style.display = "none"; return; }
+      try {
+        state.myCollections = await api("/collections", { query: { mine: true } });
+      } catch (e) { state.myCollections = []; }
+      card.style.display = "";
+      $("detailCollectionSelect").innerHTML = state.myCollections.length
+        ? state.myCollections.map((c) => `<option value="${Number(c.id)}">${fmt(c.title)}</option>`).join("")
+        : '<option value="">Create a collection first</option>';
+    }
+
+    async function addCurrentResourceToCollection() {
+      const cid = $("detailCollectionSelect").value;
+      if (!cid) { showToast("Create a collection first.", true); return; }
+      try {
+        await api("/collections/" + Number(cid) + "/items", { method: "POST", body: { resource_id: state.currentResource.id } });
+        showToast("Added to collection.");
+      } catch (e) { handleError(e, "Could not add to collection"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Resource AI — POST /ai/ask { scope_type: "resource" }
+    // ---------------------------------------------------------------------
+    function resetAiPanel() {
+      ["aiStateAnswered", "aiStateNotFound", "aiStateFallback"].forEach((id) => { $(id).style.display = "none"; });
+      $("aiStateIdle").style.display = "block";
+      $("aiSourcesList").innerHTML = '<div style="font-size:0.84rem; color:var(--text-muted);">No sources yet.</div>';
+      $("resourceAiInput").value = "";
+    }
+
+    function showAiState(which) {
+      $("aiStateIdle").style.display = which === "idle" ? "block" : "none";
+      $("aiStateAnswered").style.display = which === "answered" ? "block" : "none";
+      $("aiStateNotFound").style.display = which === "not_found" ? "block" : "none";
+      $("aiStateFallback").style.display = which === "fallback" ? "block" : "none";
+    }
+
+    async function runResourceAiQuery() {
+      if (!requireLogin("Sign in to use the AI study assistant.")) return;
+      const q = $("resourceAiInput").value.trim();
+      if (!q) return;
+      if (q.length > 300) { showToast("Questions are limited to 300 characters.", true); return; }
+      const btn = $("resourceAiBtn");
+      btn.disabled = true;
+      try {
+        const data = await api("/ai/ask", {
+          method: "POST",
+          body: {
+            question: q,
+            scope_type: "resource",
+            scope_id: String(state.currentResource.id),
+            simulate_failure: $("resourceAiKeywordOnly").checked
+          }
+        });
+        if (data.not_found) {
+          showAiState("not_found");
+          $("aiSourcesList").innerHTML = '<div style="font-size:0.84rem; color:var(--text-muted);">No supporting passages found.</div>';
+          return;
+        }
+        if (data.fallback_used) {
+          $("aiFallbackSubtext").textContent = data.fallback_notice || "These are keyword matches, not an AI-generated answer.";
+          $("aiFallbackAnswer").innerHTML = numberCitations(data.answer, data.citations);
+          showAiState("fallback");
+        } else {
+          $("aiAnswerHeader").textContent = "Answer · " + data.citations.length + " source" + (data.citations.length === 1 ? "" : "s");
+          $("aiAnswerText").innerHTML = numberCitations(data.answer, data.citations);
+          $("aiAnswerChips").innerHTML = data.citations.map((c, i) =>
+            `<span class="cite-chip">[${i + 1}] chunk ${Number(c.chunk_index) + 1}</span>`).join("");
+          showAiState("answered");
+        }
+        $("aiSourcesList").innerHTML = citationListHtml(data.citations) ||
+          '<div style="font-size:0.84rem; color:var(--text-muted);">No sources.</div>';
+      } catch (e) {
+        handleError(e, "AI request failed");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // Collections — GET/POST /collections, GET/DELETE /collections/{id},
+    //               POST/DELETE /collections/{id}/items
+    // ---------------------------------------------------------------------
+    async function loadCollections() {
+      const scope = $("collectionScopeSelect").value;
+      if (scope === "mine" && !state.user) {
+        state.collections = [];
+        renderCollectionsHub();
+        $("collectionsHubGrid").innerHTML = emptyCard("Sign in to see your own collections.");
+        return;
+      }
+      try {
+        state.collections = await api("/collections", {
+          query: { mine: scope === "mine", official_only: scope === "official" }
+        });
+        renderCollectionsHub();
+      } catch (e) {
+        $("collectionsHubGrid").innerHTML = emptyCard("Could not load collections: " + e.message);
+      }
+    }
+
+    function renderCollectionsHub() {
+      const q = ($("collectionSearchInput").value || "").toLowerCase().trim();
+      const filtered = state.collections.filter((c) =>
+        !q || decodeText(c.title).toLowerCase().includes(q) || decodeText(c.description || "").toLowerCase().includes(q));
+      $("collectionsHubGrid").innerHTML = filtered.length
+        ? filtered.map(collectionCardHtml).join("")
+        : emptyCard("No collections found.");
+    }
+
+    function toggleCreateCollectionModal() {
+      if (!state.user) { requireLogin("Sign in to create collections."); return; }
+      const el = $("createCollectionBox");
+      el.style.display = el.style.display === "none" ? "block" : "none";
+    }
+
+    async function handleCreateCollection() {
+      if (!requireLogin("Sign in to create collections.")) return;
+      const title = $("newCollTitle").value.trim();
+      if (title.length < 3) { showToast("Collection titles need at least 3 characters.", true); return; }
+      try {
+        await api("/collections", {
+          method: "POST",
+          body: {
+            title,
+            description: $("newCollDesc").value.trim() || null,
+            course_code: $("newCollCourse").value || null,
+            is_public: $("newCollPublic").checked,
+            is_official: canPublishOfficial() && $("newCollOfficial").checked
+          }
+        });
+        $("createCollectionBox").style.display = "none";
+        $("newCollTitle").value = "";
+        $("newCollDesc").value = "";
+        $("collectionScopeSelect").value = "mine";
+        await loadCollections();
+        showToast("Collection created.");
+      } catch (e) { handleError(e, "Could not create collection"); }
+    }
+
+    async function openCollectionDetail(collId) {
+      try {
+        const c = await api("/collections/" + Number(collId));
+        state.currentCollection = c;
+        renderCollectionDetail();
+        navigateTo("collection-detail");
+      } catch (e) { handleError(e, "Could not open collection"); }
+    }
+
+    function renderCollectionDetail() {
+      const c = state.currentCollection;
+      $("coll-detail-title").textContent = decodeText(c.title);
+      $("collDetailBadge").textContent = c.is_official ? "Official TA reading list" : "Curated collection";
+      $("collDetailMeta").textContent =
+        c.item_count + " reading" + (c.item_count === 1 ? "" : "s") + " · " + (c.course_code || "All courses") + " · by " + decodeText(c.owner_username) +
+        (c.description ? " · " + decodeText(c.description) : "");
+
+      const canEdit = state.user && (state.user.id === c.owner_id || isModerator());
+      $("collDeleteBtn").style.display = canEdit ? "" : "none";
+
+      $("collDetailItemsList").innerHTML = c.items.length ? c.items.map((it) => {
+        const r = it.resource;
+        return `
+          <article class="res-row-card" style="align-items:center;">
+            <div class="type-square" style="background:var(--green-tint); color:var(--green-text);" onclick="openResourceDetail(${Number(r.id)})">${String(it.position).padStart(2, "0")}</div>
+            <div style="flex:1; cursor:pointer;" onclick="openResourceDetail(${Number(r.id)})">
+              <h3 style="margin:0 0 0.2rem 0; font-size:1.05rem;">${fmt(r.title)}</h3>
+              <div style="font-size:0.84rem; color:var(--text-muted);">${esc(r.course_code)} &middot; ${esc(TYPE_LABELS[r.resource_type] || r.resource_type)} &middot; &#9733; ${Number(r.avg_rating || 0).toFixed(1)}${it.notes ? " &middot; " + fmt(it.notes) : ""}</div>
+            </div>
+            ${canEdit ? `<button type="button" class="btn btn-outline" style="padding:0.35rem 0.7rem;" onclick="removeCollectionItem(${Number(r.id)})">Remove</button>` : ""}
+          </article>`;
+      }).join("") : emptyCard("This collection has no readings yet. Open a resource and use “Save to a collection”.");
+
+      $("collAiResultBox").style.display = "none";
+      $("collAiInput").value = "";
+    }
+
+    async function removeCollectionItem(resourceId) {
+      try {
+        await api("/collections/" + state.currentCollection.id + "/items/" + Number(resourceId), { method: "DELETE" });
+        await openCollectionDetail(state.currentCollection.id);
+        showToast("Removed from collection.");
+      } catch (e) { handleError(e, "Could not remove item"); }
+    }
+
+    async function deleteCurrentCollection() {
+      if (!confirm("Delete this collection?")) return;
+      try {
+        await api("/collections/" + state.currentCollection.id, { method: "DELETE" });
+        showToast("Collection deleted.");
+        navigateTo("collections");
+      } catch (e) { handleError(e, "Could not delete collection"); }
+    }
+
+    async function runCollectionAiQuery() {
+      if (!requireLogin("Sign in to use the AI study assistant.")) return;
+      const q = $("collAiInput").value.trim();
+      if (!q) return;
+      if (q.length > 300) { showToast("Questions are limited to 300 characters.", true); return; }
+      const box = $("collAiResultBox");
+      try {
+        const data = await api("/ai/ask", {
+          method: "POST",
+          body: { question: q, scope_type: "collection", scope_id: String(state.currentCollection.id) }
+        });
+        box.style.display = "block";
+        if (data.not_found) {
+          $("collAiAnswerText").textContent = "Not found in this collection's documents.";
+          $("collAiChips").innerHTML = "";
+        } else {
+          $("collAiAnswerText").innerHTML = numberCitations(data.answer, data.citations);
+          $("collAiChips").innerHTML =
+            (data.fallback_used ? `<div style="font-size:0.8rem; color:var(--blue-text); margin-bottom:0.4rem;">${esc(data.fallback_notice || "")}</div>` : "") +
+            citationListHtml(data.citations);
+        }
+      } catch (e) { handleError(e, "AI request failed"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Upload — POST /resources (multipart/form-data)
+    // ---------------------------------------------------------------------
+    function prepareUploadForm() {
+      updateAuthUI();
+    }
+
+    function resetUploadForm() {
+      state.uploadFile = null;
+      $("uploadFileInput").value = "";
+      $("uploadTitleInput").value = "";
+      $("uploadTagsInput").value = "";
+      $("uploadRightsConfirm").checked = false;
+      $("uploadOfficialInput").checked = false;
+      $("uploadReadyBadge").textContent = "No file selected";
+      $("uploadReadyBadge").className = "pill pill-gray";
+    }
+
+    function setPickedFile(f) {
+      state.uploadFile = f;
+      $("uploadReadyBadge").textContent = f.name + " · " + (f.size / 1048576).toFixed(2) + " MB · ready to upload";
+      $("uploadReadyBadge").className = "pill pill-green";
+      if (!$("uploadTitleInput").value.trim()) {
+        $("uploadTitleInput").value = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
+      }
+    }
+
+    function handleFilePicked() {
+      const input = $("uploadFileInput");
+      if (input.files && input.files[0]) setPickedFile(input.files[0]);
+    }
+
+    function showUploadResult(ok, data) {
+      $("uploadSuccessCard").style.display = ok ? "" : "none";
+      $("uploadErrorCard").style.display = ok ? "none" : "";
+      if (ok) {
+        const badge = TYPE_BADGES[data.resource_type] || ["DOC", "type-doc"];
+        $("uploadedTypeBadge").textContent = badge[0];
+        $("uploadedTypeBadge").className = "type-square " + badge[1];
+        $("uploadedFileNameDisplay").textContent = decodeText(data.file_name || data.title);
+        $("uploadedFileMetaDisplay").textContent =
+          ((data.file_size_bytes || 0) / 1048576).toFixed(2) + " MB · " + data.course_code + " · " + data.chunk_count + " chunks indexed";
+      } else {
+        $("uploadErrorTitle").textContent = data.title;
+        $("uploadErrorBody").textContent = data.body;
+      }
+    }
+
+    const UPLOAD_ERRORS = {
+      INVALID_FILE_TYPE: "Choose a .pdf or .txt file.",
+      FILE_TOO_LARGE: "Choose a file of 5 MB or less.",
+      EMPTY_OR_SCANNED_FILE: "Use a PDF/.txt file with selectable text (scanned or empty PDFs can't be indexed).",
+      RIGHTS_NOT_CONFIRMED: "Tick the rights-confirmation box and try again.",
+      INVALID_COURSE: "Pick a valid course code.",
+      TA_ROLE_REQUIRED: "Only TAs and moderators can mark a resource as official."
+    };
+
+    async function submitUploadForm() {
+      if (!requireLogin("Sign in to upload resources.")) return;
+      const title = $("uploadTitleInput").value.trim();
+      if (!state.uploadFile) { showToast("Choose a PDF or .txt file first.", true); return; }
+      if (title.length < 3) { showToast("Please enter a descriptive title.", true); return; }
+      if (!$("uploadRightsConfirm").checked) { showToast("Please confirm you have the right to share this material.", true); return; }
+
+      const fd = new FormData();
+      fd.append("title", title);
+      fd.append("resource_type", $("uploadTypeInput").value);
+      fd.append("course_code", $("uploadCourseInput").value);
+      fd.append("tags", $("uploadTagsInput").value.trim());
+      fd.append("is_official", canPublishOfficial() && $("uploadOfficialInput").checked ? "true" : "false");
+      fd.append("rights_confirmed", "true");
+      fd.append("file", state.uploadFile, state.uploadFile.name);
+
+      const btn = $("uploadSubmitBtn");
+      btn.disabled = true;
+      try {
+        const data = await api("/resources", { method: "POST", form: fd });
+        state.lastUploadedResourceId = data.id;
+        state.exploreDirty = true;
+        showUploadResult(true, data);
+        navigateTo("upload-status");
+        showToast("Resource validated, chunked and indexed.");
+      } catch (e) {
+        if (e.status === 401) { handleError(e); return; }
+        showUploadResult(false, { title: e.message, body: UPLOAD_ERRORS[e.code] || "Fix the issue and try again." });
+        navigateTo("upload-status");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // Auth — POST /auth/login, /auth/register, /auth/logout; GET/PATCH/DELETE /auth/me;
+    //        PUT /auth/password
+    // ---------------------------------------------------------------------
+    function showAuthPanel(which) {
+      $("loginPanel").style.display = which === "login" ? "" : "none";
+      $("registerPanel").style.display = which === "register" ? "" : "none";
+    }
+
+    function showInlineError(id, msg) {
+      const el = $(id);
+      el.textContent = msg || "";
+      el.style.display = msg ? "block" : "none";
+    }
+
+    function applySession(user, csrf) {
+      state.user = user;
+      state.csrfToken = csrf || "";
+      state.exploreDirty = true;
+      updateAuthUI();
+    }
+
+    async function handleLoginSubmit() {
+      const email = $("loginEmailInput").value.trim();
+      const password = $("loginPasswordInput").value;
+      showInlineError("loginError", "");
+      if (!email || !password) { showInlineError("loginError", "Enter your email and password."); return; }
+      try {
+        const data = await api("/auth/login", { method: "POST", body: { email, password }, silent401: true });
+        applySession(data.user, data.csrf_token);
+        $("loginPasswordInput").value = "";
+        showToast("Signed in as " + decodeText(data.user.username));
+        navigateTo("home");
+      } catch (e) {
+        showInlineError("loginError", e.message);
+      }
+    }
+
+    async function handleRegisterSubmit() {
+      showInlineError("registerError", "");
+      const body = {
+        username: $("regUsernameInput").value.trim(),
+        email: $("regEmailInput").value.trim(),
+        password: $("regPasswordInput").value,
+        bio: $("regBioInput").value.trim() || null,
+        consent_accepted: $("regConsentInput").checked
+      };
+      if (!body.consent_accepted) { showInlineError("registerError", "You must accept the DPDP Act 2023 consent notice."); return; }
+      try {
+        const data = await api("/auth/register", { method: "POST", body, silent401: true });
+        const csrf = data.csrf_token;
+        delete data.csrf_token;
+        applySession(data, csrf);
+        $("regPasswordInput").value = "";
+        navigateTo("auth-status");
+      } catch (e) {
+        showInlineError("registerError", e.message);
+      }
+    }
+
+    async function handleLogout() {
+      try { await api("/auth/logout", { method: "POST", silent401: true }); } catch (e) { /* cookie may already be gone */ }
+      applySession(null, "");
+      state.myCollections = [];
+      showToast("Signed out.");
+      navigateTo("home");
+    }
+
+    function handleNavAuth() {
+      if (state.user) handleLogout(); else { showAuthPanel("login"); navigateTo("auth"); }
+    }
+
+    async function loadProfile() {
+      try {
+        const me = await api("/auth/me");
+        state.csrfToken = me.csrf_token || state.csrfToken;
+        state.user = me;
+        updateAuthUI();
+        $("editUsernameInput").value = decodeText(me.username);
+        $("editBioInput").value = decodeText(me.bio || "");
+        $("profileUploadsGrid").innerHTML = me.uploads.length
+          ? me.uploads.map(resourceRowHtml).join("")
+          : emptyCard("You haven't uploaded anything yet.");
+        const colls = await api("/collections", { query: { mine: true } });
+        $("profileCollectionsGrid").innerHTML = colls.length
+          ? colls.map(collectionCardHtml).join("")
+          : emptyCard("You haven't created any collections yet.");
+      } catch (e) { handleError(e, "Could not load profile"); }
+    }
+
+    function toggleEditProfileBox() {
+      const box = $("editProfileDrawer");
+      box.style.display = box.style.display === "none" ? "block" : "none";
+    }
+
+    async function saveProfileEdits() {
+      const username = $("editUsernameInput").value.trim();
+      const bio = $("editBioInput").value.trim();
+      try {
+        const updated = await api("/auth/me", { method: "PATCH", body: { username, bio } });
+        state.user = Object.assign({}, state.user, updated);
+        updateAuthUI();
+        showToast("Profile updated.");
+      } catch (e) { handleError(e, "Could not update profile"); }
+    }
+
+    async function changePassword() {
+      const current_password = $("currentPasswordInput").value;
+      const new_password = $("newPasswordInput").value;
+      if (!current_password || new_password.length < 8) { showToast("Enter your current password and a new one (min 8 characters).", true); return; }
+      try {
+        await api("/auth/password", { method: "PUT", body: { current_password, new_password } });
+        $("currentPasswordInput").value = "";
+        $("newPasswordInput").value = "";
+        showToast("Password updated.");
+      } catch (e) { handleError(e, "Could not change password"); }
+    }
+
+    async function deleteMyAccount() {
+      if (!confirm("This permanently deletes your account and all your data (DPDP Act 2023). Continue?")) return;
+      if (!confirm("Last chance: this cannot be undone. Delete everything?")) return;
+      try {
+        await api("/auth/me", { method: "DELETE" });
+        applySession(null, "");
+        showToast("Account and data deleted.");
+        navigateTo("home");
+      } catch (e) { handleError(e, "Could not delete account"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Reports — POST /reports
+    // ---------------------------------------------------------------------
+    function openReportForm() {
+      if (!requireLogin("Sign in to report content.")) return;
+      const r = state.currentResource;
+      state.reportTarget = {
+        type: "resource", id: r.id, title: decodeText(r.title),
+        meta: [r.course_code, TYPE_LABELS[r.resource_type] || r.resource_type].join(" · ")
+      };
+      showReportTarget();
+      navigateTo("report-form");
+    }
+
+    function reportComment(commentId) {
+      if (!requireLogin("Sign in to report content.")) return;
+      const c = state.currentComments.find((x) => x.id === commentId);
+      if (!c) return;
+      const body = decodeText(c.body);
+      state.reportTarget = {
+        type: "comment", id: c.id, title: body.length > 80 ? body.slice(0, 80) + "…" : body,
+        meta: "Comment by @" + decodeText(c.username)
+      };
+      showReportTarget();
+      navigateTo("report-form");
+    }
+
+    function showReportTarget() {
+      const t = state.reportTarget;
+      $("reportTargetKind").textContent = t.type === "comment" ? "Reported Comment" : "Reported Resource";
+      $("reportTargetTitle").textContent = t.title;
+      $("reportTargetMeta").textContent = t.meta;
+      $("reportDetailsInput").value = "";
+    }
+
+    async function submitContentReport() {
+      if (!requireLogin()) return;
+      const t = state.reportTarget;
+      if (!t) return;
+      try {
+        await api("/reports", {
+          method: "POST",
+          body: {
+            target_type: t.type,
+            target_id: t.id,
+            reason: $("reportReasonSelect").value,
+            details: $("reportDetailsInput").value.trim() || null
+          }
+        });
+        showToast("Report submitted to the moderation queue.");
+        navigateTo("resource-detail");
+      } catch (e) { handleError(e, "Could not submit report"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Moderation — GET /moderation/reports, PATCH /moderation/reports/{id}
+    // ---------------------------------------------------------------------
+    async function loadModeration() {
+      if (!isModerator()) return;
+      try {
+        state.reports = await api("/moderation/reports");
+        if (!state.reports.some((r) => r.id === state.selectedReportId)) {
+          state.selectedReportId = state.reports.length ? state.reports[0].id : null;
+        }
+        renderModerationQueue();
+      } catch (e) {
+        $("moderationReportsList").innerHTML = emptyCard("Could not load reports: " + e.message);
+      }
+    }
+
+    function reportPill(status) {
+      if (status === "open") return ["pill-amber", "Open"];
+      if (status === "resolved") return ["pill-green", "Resolved"];
+      if (status === "dismissed") return ["pill-gray", "Dismissed"];
+      return ["pill-gray", status];
+    }
+
+    function selectedReport() { return state.reports.find((r) => r.id === state.selectedReportId) || null; }
+
+    function renderModerationQueue() {
+      const all = state.reports;
+      const count = (s) => all.filter((r) => r.status === s).length;
+      $("modOpenCountBadge").textContent = count("open") + " OPEN";
+      $("modDismissedCountBadge").textContent = count("dismissed") + " DISMISSED";
+      $("modResolvedCountBadge").textContent = count("resolved") + " RESOLVED";
+
+      const filter = $("modStatusFilter").value;
+      const shown = filter ? all.filter((r) => r.status === filter) : all;
+      $("moderationReportsList").innerHTML = shown.length ? shown.map((rp) => {
+        const sel = rp.id === state.selectedReportId;
+        const [cls, label] = reportPill(rp.status);
+        return `
+          <div class="card clickable" style="margin-bottom:0.75rem; border-color:${sel ? "var(--green-btn)" : "var(--border-soft)"}; background:${sel ? "#f4faf6" : "#ffffff"};" onclick="selectModerationReport(${Number(rp.id)})">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+              <div>
+                <span style="font-size:0.74rem; font-weight:700; color:var(--text-muted);">#RP-${Number(rp.id)} &middot; ${esc(rp.target_type)}</span>
+                <strong style="display:block; font-size:1rem; margin:0.1rem 0;">${esc(REASON_LABELS[rp.reason] || rp.reason)}</strong>
+                <span style="font-size:0.84rem; color:var(--text-muted);">${fmt(rp.target_title_or_preview)}</span>
+              </div>
+              <span class="pill ${cls}">${esc(label)}</span>
+            </div>
+          </div>`;
+      }).join("") : emptyCard("No reports match this filter.");
+
+      const sel = selectedReport();
+      if (sel) {
+        $("selectedReportEyebrow").textContent = "Selected Report · #RP-" + sel.id;
+        $("selectedReportReason").textContent = REASON_LABELS[sel.reason] || sel.reason;
+        $("selectedReportTarget").textContent = decodeText(sel.target_title_or_preview) + " (" + sel.target_type + " #" + sel.target_id + ")";
+        $("selectedReportQuote").textContent =
+          "“" + (sel.details ? decodeText(sel.details) : "No additional details.") + "” — @" + decodeText(sel.reporter_username) + ", " + fmtDate(sel.created_at) +
+          (sel.moderation_action ? " · action taken: " + sel.moderation_action : "");
+      } else {
+        $("selectedReportEyebrow").textContent = "Selected Report";
+        $("selectedReportReason").textContent = "No report selected";
+        $("selectedReportTarget").textContent = "";
+        $("selectedReportQuote").textContent = "";
+      }
+    }
+
+    function selectModerationReport(repId) {
+      state.selectedReportId = repId;
+      renderModerationQueue();
+    }
+
+    function startModerationAction(action) {
+      const sel = selectedReport();
+      if (!sel) { showToast("Select a report first.", true); return; }
+      state.pendingModAction = action;
+      const meta = MOD_ACTIONS[action];
+      const [cls, label] = reportPill(sel.status);
+
+      $("review-confirm-title").textContent = "Review report #RP-" + sel.id;
+      $("confirmReportStatusPill").textContent = label + " report";
+      $("confirmReportStatusPill").className = "pill " + cls;
+      $("confirmReportReasonTitle").textContent = REASON_LABELS[sel.reason] || sel.reason;
+      $("confirmReportTargetTitle").textContent = decodeText(sel.target_title_or_preview);
+      $("confirmReportQuoteText").textContent = "“" + (sel.details ? decodeText(sel.details) : "No additional details.") + "”";
+      $("confirmActionPill").textContent = meta.pill;
+      $("confirmActionTitle").textContent = meta.title;
+      $("confirmActionDescription").textContent = meta.text;
+      $("confirmActionBtn").textContent = meta.btn;
+      $("confirmActionBtn").className = "btn " + meta.cls;
+      $("moderationNoteInput").value = "";
+      navigateTo("review-confirm");
+    }
+
+    async function applyModerationAction() {
+      const sel = selectedReport();
+      const action = state.pendingModAction;
+      if (!sel || !action) return;
+      try {
+        await api("/moderation/reports/" + sel.id, {
+          method: "PATCH",
+          body: { action, note: $("moderationNoteInput").value.trim() || null }
+        });
+        state.exploreDirty = true;
+        showToast("Action '" + action + "' logged on #RP-" + sel.id + ".");
+        navigateTo("moderation");
+      } catch (e) { handleError(e, "Could not apply action"); }
+    }
+
+    // ---------------------------------------------------------------------
+    // Init
+    // ---------------------------------------------------------------------
+    function wireStaticEvents() {
+      // Event delegation for dynamically generated filter buttons (values come from the API).
+      $("courseFilterList").addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-course]");
+        if (b) setExploreCourseFilter(b.getAttribute("data-course"));
+      });
+      $("tagFilterList").addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-tag]");
+        if (b) setExploreTagFilter(b.getAttribute("data-tag"));
+      });
+
+      const dz = $("uploadDropzone");
+      ["dragenter", "dragover"].forEach((n) => dz.addEventListener(n, (e) => { e.preventDefault(); dz.style.borderColor = "var(--green-btn)"; }));
+      ["dragleave", "drop"].forEach((n) => dz.addEventListener(n, (e) => { e.preventDefault(); dz.style.borderColor = ""; }));
+      dz.addEventListener("drop", (e) => {
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) setPickedFile(f);
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      wireStaticEvents();
+      syncFilterButtons();
+      await Promise.all([checkHealth(), restoreSession(), loadCategories(), loadTags()]);
+      loadHome();
+    });
+  </script>
+</body>
+</html>
