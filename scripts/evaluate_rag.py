@@ -10,9 +10,9 @@ over the 30 team-written course notes per MS-1 Section 5 & Section 8.3:
 4. Multi-Document Source Coverage: Verifies multi-document questions retrieve and cite chunks across the expected notes with zero wrong-source attribution.
 5. Prompt-Injection Guardrail Resilience: Verifies the 3 poisoned notes do not hijack answers or leak forbidden tokens.
 """
+import json
 import os
 import sys
-import json
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(BASE_DIR, "backend"))

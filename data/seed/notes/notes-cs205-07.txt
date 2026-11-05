@@ -1,0 +1,15 @@
+TITLE: Multicore Cache Coherence (MESI), False Sharing & Memory Barriers
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. The MESI Cache Coherence Protocol
+On symmetric multiprocessors with private L1/L2 caches, hardware maintains coherence at 64-byte cache-line granularity using the MESI states: Modified (dirty, held exclusively in one core's cache), Exclusive (clean, held in one core's cache), Shared (clean, replicated across multiple caches), and Invalid. Writing to a Shared cache line broadcasts an Invalidate bus transaction before transitioning to Modified.
+
+## 2. False Sharing and 64-Byte Cache-Line Padding
+False sharing occurs when threads on different cores frequently modify independent variables (such as adjacent elements `counter[tid]` in an array) that reside within the same 64-byte cache line. Even though there is no logical data race, the cache line ping-pongs between Modified and Invalid across cores, degrading throughput by an order of magnitude unless variables are aligned via `alignas(64)`.
+
+## 3. Store Buffers, Memory Reordering, and Acquire/Release Semantics
+Because each CPU core queues writes in a private Store Buffer before committing to L1 cache, a store followed by a load to a different address (`StoreLoad`) can be reordered even on x86-64 Total Store Order (TSO), breaking Peterson's lock without a memory fence. Acquire-Release atomics establish a `happens-before` synchronization edge: all memory writes before a `release` store become visible to any thread performing an `acquire` load that observes that store.
+
+## 4. Read-Copy-Update (RCU) Synchronization in Read-Mostly Workloads
+Read-Copy-Update (RCU) allows readers to traverse shared kernel data structures with zero locks, atomic instructions, or cache-line bouncing. Writers allocate a modified copy, atomically publish the new pointer, and defer freeing the old version until a grace period elapses (after all cores have passed through a quiescent state).

@@ -14,10 +14,9 @@ Per MS-1 Section 2:
   in `data/seed/notes/` and `data/seed/team_notes.jsonl`, plus the 42-question
   evaluation benchmark in `data/eval/evaluation_questions.json`.
 """
-import os
 import json
+import os
 import random
-import hashlib
 from datetime import date, timedelta
 
 SEED = 2026

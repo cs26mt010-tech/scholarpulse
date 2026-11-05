@@ -1,0 +1,15 @@
+TITLE: Virtual Memory, Multi-Level Page Tables, TLBs & Page Replacement
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. Multi-Level Page Tables and x86-64 4-Level Address Translation
+A flat 48-bit virtual address space with 4 KB (2^12 byte) pages would require 2^36 page table entries (512 GB per process). Multi-level page tables (such as x86-64's 4-level PGD, PUD, PMD, PTE hierarchy with 9 bits per level) allocate page-table pages sparsely on demand, reducing memory overhead to only the active regions of the address space at the cost of up to 4 memory accesses on a TLB miss.
+
+## 2. Translation Lookaside Buffer (TLB) and Effective Access Time
+The Translation Lookaside Buffer (TLB) is a hardware associative cache mapping virtual page numbers (VPN) to physical frame numbers (PFN) tagged with Address Space Identifiers (ASID) to avoid flushing on context switches. With TLB hit ratio alpha, TLB lookup time t_TLB, and DRAM access time t_mem on a 4-level page table, Effective Access Time is EAT = alpha * (t_TLB + t_mem) + (1 - alpha) * (t_TLB + 5 * t_mem).
+
+## 3. Copy-on-Write (CoW) Fork and Demand Paging
+During `fork()`, the kernel avoids copying physical memory frames by marking parent and child page-table entries read-only and incrementing frame reference counts. When either process writes to a shared page, the MMU triggers a protection page fault, and the kernel allocates a private copy of that single 4 KB frame on demand.
+
+## 4. Belady's Anomaly, LRU, Clock (Second-Chance), and Thrashing
+FIFO page replacement suffers from Belady's Anomaly (adding more physical frames can increase page faults). Least Recently Used (LRU) and Belady's MIN are stack algorithms immune to Belady's Anomaly. Because exact hardware LRU is too costly per memory reference, operating systems use the Clock (Second-Chance) algorithm sweeping hardware Reference (R) and Dirty (M) bits, combined with Denning's Working-Set model to prevent thrashing.

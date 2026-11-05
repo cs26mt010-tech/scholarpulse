@@ -179,6 +179,20 @@ components:
           type: string
           nullable: true
           example: CS undergraduate preparing for Operating Systems and DB exams.
+        programme:
+          type: string
+          nullable: true
+          example: M.Tech Computer Science
+        profile_photo_url:
+          type: string
+          nullable: true
+          example: /api/v1/auth/me/photo
+        email_notifications:
+          type: boolean
+          default: true
+        public_profile:
+          type: boolean
+          default: true
         role:
           $ref: '#/components/schemas/RoleEnum'
         consent_accepted:
@@ -197,6 +211,13 @@ components:
         bio:
           type: string
           maxLength: 500
+        programme:
+          type: string
+          maxLength: 120
+        email_notifications:
+          type: boolean
+        public_profile:
+          type: boolean
     PasswordChangeRequest:
       type: object
       required:
@@ -897,7 +918,7 @@ paths:
     patch:
       tags:
       - Users
-      summary: Update own username or bio
+      summary: Update own profile details, programme and privacy/notification preferences
       operationId: updateCurrentUser
       security:
       - SessionCookie: []
@@ -928,6 +949,51 @@ paths:
       responses:
         '200':
           description: Account and personal data permanently deleted
+        '401':
+          description: Not authenticated
+  /api/v1/auth/me/photo:
+    get:
+      tags:
+      - Users
+      summary: Retrieve the signed-in user's profile photo
+      operationId: getCurrentUserPhoto
+      security:
+      - SessionCookie: []
+      responses:
+        '200':
+          description: Profile image bytes (JPEG, PNG or WebP)
+          content:
+            image/jpeg: {}
+            image/png: {}
+            image/webp: {}
+        '401':
+          description: Not authenticated
+        '404':
+          description: No profile photo uploaded
+    post:
+      tags:
+      - Users
+      summary: Upload or replace own profile photo (maximum 2 MB)
+      operationId: uploadCurrentUserPhoto
+      security:
+      - SessionCookie: []
+        CsrfToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Profile photo stored
+        '400':
+          description: Unsupported, invalid or oversized image
         '401':
           description: Not authenticated
   /api/v1/auth/password:

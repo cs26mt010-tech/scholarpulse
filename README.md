@@ -13,10 +13,10 @@ ScholarPulse is a multi-page academic knowledge hub where students upload, searc
 | 3 | Gangadevi Venkata Siva krishna | `cs26mt009` | OpenAPI 3.0.3 spec, authentication & security (Argon2id, CSRF), Docker/CI, pytest suite, AI guardrails & evaluation |
 | 4 | Ritik Kumar | `cs26mt021` | PPT presentation, integration testing, and evaluation benchmarking |
 
-## Milestone 3 (MS-3) Deliverables Included
+## Milestones 1–4 Deliverables Included
 
-1. **OpenAPI 3.0.3 YAML Specification (`docs/openapi.yaml` & `openapi.yaml`)**:
-   - Complete contract defining **21 REST API paths** and **30 component schemas** across 9 functional tags (`System`, `Auth`, `Users`, `Categories`, `Resources`, `Ratings & Comments`, `Collections`, `AI Study Assistant`, `Moderation`), plus `SessionCookie` (`sp_session`) and `CsrfToken` (`X-CSRF-Token`) security schemes.
+1. **OpenAPI 3.0.3 YAML Specification (`docs/openapi.yaml`, mirrored at the repository root)**:
+   - Complete contract defining **22 REST API paths** and **30 component schemas** across 9 functional tags (`System`, `Auth`, `Users`, `Categories`, `Resources`, `Ratings & Comments`, `Collections`, `AI Study Assistant`, `Moderation`), plus `SessionCookie` (`sp_session`) and `CsrfToken` (`X-CSRF-Token`) security schemes.
 2. **Database Schema & Alembic Migrations (`backend/app/models/schema.py` & `backend/alembic/versions/0001_initial_schema_12_tables.py`)**:
    - All **12 relational tables**: `users`, `categories`, `resources`, `resource_chunks`, `tags`, `resource_tags`, `ratings`, `comments`, `collections`, `collection_items`, `reports`, and `ai_queries`.
    - Includes B+Tree composite indexes (`ix_resources_cat_status_rating`, `ix_collection_items_order`, etc.) and MySQL 8 InnoDB `FULLTEXT` indexes (`ft_resource_chunks_text`, `ft_resources_title_content`).
@@ -47,12 +47,41 @@ curl http://localhost:8000/api/v1/health
 - **Interactive Swagger UI (OpenAPI)**: `http://localhost:8000/docs`
 - **Raw OpenAPI 3.0.3 YAML**: `http://localhost:8000/api/v1/openapi.yaml`
 
-## Running Tests & RAG Evaluation Offline
+## Running Tests, Coverage & Browser Checks
 
 ```bash
-# Run the integration test suite
-python3 backend/tests/test_ms3_stack.py
+# Backend integration tests with the MS-4 minimum coverage gate (60%)
+pytest backend/tests/test_ms3_stack.py --cov=app --cov-report=term-missing --cov-fail-under=60
 
-# Run the 42-question RAG & Guardrail evaluation benchmark
-python3 scripts/evaluate_rag.py
+# RAG & guardrail evaluation benchmark
+python scripts/evaluate_rag.py
+
+# Browser smoke tests (from frontend/)
+cd frontend
+npm install
+npx playwright install chromium
+npm test
 ```
+
+
+## Milestone 2 and 3 implementation guide
+
+See [`docs/MS2_MS3_IMPLEMENTATION.md`](docs/MS2_MS3_IMPLEMENTATION.md) for the clickable-prototype-to-endpoint mapping, 12-table ER model, authentication/CSRF conventions, setup commands, seeded demo accounts, scope notes and submission checklist.
+
+
+## MS-4 CI verification
+
+GitHub Actions runs Python compilation, Ruff, OpenAPI validation, Alembic migrations,
+idempotent database seeding, Pytest with a **60% minimum coverage gate**, the RAG
+evaluation benchmark, and Playwright browser smoke tests. The workflow uploads coverage
+and Playwright reports as artifacts.
+
+A passing local test run or a workflow file does not by itself prove that GitHub Actions
+has passed on the remote repository. Check the Actions tab after pushing these changes.
+
+## Milestone evidence still requiring team/GitHub action
+
+- Attach the actual Figma prototype export and record the prototype URL/version.
+- Complete and record manual keyboard, focus-visible, and WCAG contrast checks; do not
+  mark accessibility as passed without measuring the actual rendered interface.
+- Link at least one reviewed/approved pull request per the team's review requirement.

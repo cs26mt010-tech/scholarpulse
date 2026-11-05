@@ -50,3 +50,14 @@ test-results/
 .idea/
 .DS_Store
 Thumbs.db
+
+
+# Playwright / Node
+frontend/node_modules/
+frontend/playwright-report/
+frontend/test-results/
+
+# Coverage artifacts
+.coverage
+coverage.xml
+htmlcov/
