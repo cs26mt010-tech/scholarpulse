@@ -32,6 +32,7 @@ services:
       dockerfile: backend/Dockerfile
     container_name: scholarpulse-backend
     entrypoint: ["bash", "/app/backend/entrypoint.sh"]
+    
     restart: unless-stopped
     depends_on:
       db:
