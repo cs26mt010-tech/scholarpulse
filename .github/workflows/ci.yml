@@ -15,6 +15,10 @@ jobs:
     name: Backend, migrations, seed, coverage and RAG evaluation
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     services:
       mysql:
         image: mysql:8.0
@@ -33,6 +37,7 @@ jobs:
 
     env:
       DATABASE_URL: mysql+pymysql://sp_user:sp_password_2026@127.0.0.1:3306/scholarpulse?charset=utf8mb4
+      PYTHONPATH: backend
 
     steps:
       - name: Checkout repository
@@ -48,15 +53,17 @@ jobs:
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r backend/requirements.txt
+          python -m pip install -r requirements.txt
+          python -m pip install ruff pytest-cov
 
       - name: Compile Python
-        run: python -m compileall -q backend scripts
+        run: python -m compileall -q app ../scripts
 
       - name: Lint with Ruff
-        run: ruff check backend scripts
+        run: ruff check app ../scripts
 
       - name: Validate canonical OpenAPI YAML and synchronized copy
+        working-directory: .
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -64,43 +71,47 @@ jobs:
 
           canonical = Path("docs/openapi.yaml").read_text(encoding="utf-8")
           duplicate = Path("openapi.yaml").read_text(encoding="utf-8")
+
           assert canonical == duplicate, "Root openapi.yaml must match docs/openapi.yaml"
+
           spec = yaml.safe_load(canonical)
+
           assert spec["openapi"] == "3.0.3"
           assert isinstance(spec.get("paths"), dict) and spec["paths"]
           assert isinstance(spec.get("components", {}).get("schemas"), dict)
+
           print(f"OpenAPI 3.0.3 valid: {len(spec['paths'])} paths")
           print(f"Reusable schemas: {len(spec['components']['schemas'])}")
           PY
 
       - name: Apply Alembic migrations
-        working-directory: backend
         run: alembic upgrade head
 
       - name: Verify migration revision
-        working-directory: backend
         run: alembic current
 
       - name: Run deterministic seed twice (idempotency check)
         run: |
-          python scripts/seed_db.py
-          python scripts/seed_db.py
+          python ../scripts/seed_db.py
+          python ../scripts/seed_db.py
 
-      - name: Run Pytest with MS-4 coverage gate (minimum 60%)
+      - name: Run Pytest with MS-5 coverage gate (minimum 70%)
         run: |
-          pytest backend/tests/test_ms3_stack.py -v \
-            --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml \
-            --cov-fail-under=60
+          python -m pytest tests/test_ms3_stack.py -v \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-fail-under=70
 
       - name: Run RAG evaluation benchmark
-        run: python scripts/evaluate_rag.py
+        run: python ../scripts/evaluate_rag.py
 
       - name: Upload backend coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage-report
-          path: coverage.xml
+          path: backend/coverage.xml
           if-no-files-found: ignore
 
   frontend-e2e:
@@ -128,6 +139,7 @@ jobs:
       DATABASE_URL: mysql+pymysql://sp_user:sp_password_2026@127.0.0.1:3306/scholarpulse?charset=utf8mb4
       APP_ENV: test
       SESSION_COOKIE_SECURE: "false"
+      PYTHONPATH: backend
 
     steps:
       - name: Checkout repository
@@ -139,19 +151,22 @@ jobs:
           python-version: "3.11"
 
       - name: Install backend dependencies
-        run: python -m pip install -r backend/requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
 
       - name: Apply migrations and seed database for browser tests
         working-directory: backend
         run: |
           alembic upgrade head
-          cd ..
-          python scripts/seed_db.py
+          python ../scripts/seed_db.py
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend test dependencies
         working-directory: frontend
@@ -164,12 +179,14 @@ jobs:
       - name: Start ScholarPulse API
         run: |
           nohup uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 > /tmp/scholarpulse-api.log 2>&1 &
+
           for attempt in $(seq 1 40); do
             if curl --fail http://127.0.0.1:8000/api/v1/health; then
               exit 0
             fi
             sleep 2
           done
+
           cat /tmp/scholarpulse-api.log
           exit 1
 
