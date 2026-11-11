@@ -35,6 +35,13 @@ from app.core.security import (
     verify_session_cookie_value,
 )
 from app.db.session import get_db
+from app.schemas.auth import (
+    PasswordChangeRequest,
+    UserLoginRequest,
+    UserRegisterRequest,
+    UserUpdateRequest,
+)
+
 from app.services.rag_service import (
     chunk_text_sliding,
     compute_embedding,
@@ -57,36 +64,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# ---------------------------------------------------------------------------
-# Pydantic Request Schemas
-# ---------------------------------------------------------------------------
-class UserRegisterRequest(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    email: str = Field(..., min_length=5, max_length=120)
-    password: str = Field(..., min_length=8, max_length=128)
-    bio: Optional[str] = Field(None, max_length=500)
-    consent_accepted: bool = Field(...)
-
-
-class UserLoginRequest(BaseModel):
-    email: str
-    password: str
-    remember_me: bool = False
-
-
-class UserUpdateRequest(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
-    bio: Optional[str] = Field(None, max_length=500)
-    programme: Optional[str] = Field(None, max_length=120)
-    email_notifications: Optional[bool] = None
-    public_profile: Optional[bool] = None
-
-
-class PasswordChangeRequest(BaseModel):
-    current_password: str
-    new_password: str = Field(..., min_length=8, max_length=128)
 
 
 class ResourceUpdateRequest(BaseModel):
