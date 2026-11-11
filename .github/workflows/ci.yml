@@ -1,8 +1,9 @@
-name: ScholarPulse CI (MS-1 to MS-4)
+
+name: ScholarPulse CI (MS-1 to MS-5)
 
 on:
   push:
-    branches: [main, "ms3*", "ms4*", "feature/*"]
+    branches: [main, "ms3*", "ms4*", "ms5*", "feature/*"]
   pull_request:
     branches: [main]
 
@@ -13,6 +14,7 @@ jobs:
   backend:
     name: Backend, migrations, seed, coverage and RAG evaluation
     runs-on: ubuntu-latest
+
     services:
       mysql:
         image: mysql:8.0
@@ -105,6 +107,7 @@ jobs:
     name: Frontend browser smoke tests
     runs-on: ubuntu-latest
     needs: backend
+
     services:
       mysql:
         image: mysql:8.0
@@ -152,11 +155,11 @@ jobs:
 
       - name: Install frontend test dependencies
         working-directory: frontend
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Chromium
         working-directory: frontend
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Start ScholarPulse API
         run: |
