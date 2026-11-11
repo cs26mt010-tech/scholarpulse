@@ -360,7 +360,7 @@ class TestScholarPulseMS3(unittest.TestCase):
             },
         )
 
-        self.assertEqual(q1.status_code, 200)
+        self.assertEqual(q1.status_code, 200, q1.text)
 
         b1 = q1.json()
 
