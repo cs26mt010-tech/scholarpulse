@@ -6,8 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.dependencies import require_authenticated_user
 from app.db.session import get_db
-from app.schemas.community import RatingRequest, CommentCreateRequest
-
+from app.schemas.community import CommentCreateRequest, RatingRequest
 
 router = APIRouter(prefix="/api/v1", tags=["Community"])
 

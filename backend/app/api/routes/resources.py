@@ -5,7 +5,6 @@ import json
 import math
 import os
 import time
-
 from typing import Any, Dict, List, Optional
 
 from fastapi import (
@@ -18,20 +17,15 @@ from fastapi import (
     UploadFile,
 )
 
+from app.api.dependencies import require_authenticated_user
 from app.core.config import settings
 from app.db.session import get_db
-
-from app.api.dependencies import require_authenticated_user
-
 from app.schemas.resources import ResourceUpdateRequest
-
 from app.services.rag_service import (
     chunk_text_sliding,
     compute_embedding,
 )
-
 from app.services.resource_formatter import format_resource_summary
-
 
 router = APIRouter(prefix="/api/v1", tags=["Resources"])
 

@@ -9,16 +9,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from app.db.session import get_db
-
-from app.api.routes.auth import router as auth_router
-from app.api.routes.resources import router as resources_router
-from app.api.routes.community import router as community_router
-from app.api.routes.collections import router as collections_router
 from app.api.routes.ai import router as ai_router
-from app.api.routes.moderation import router as moderation_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.collections import router as collections_router
+from app.api.routes.community import router as community_router
 from app.api.routes.frontend import router as frontend_router
-
+from app.api.routes.moderation import router as moderation_router
+from app.api.routes.resources import router as resources_router
+from app.db.session import get_db
 
 app = FastAPI(
     title="ScholarPulse: AI-Enabled Academic Knowledge Hub API",

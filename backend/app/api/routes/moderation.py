@@ -10,9 +10,9 @@ from app.api.dependencies import (
 )
 from app.db.session import get_db
 from app.schemas.moderation import (
-    ReportCreateRequest,
-    ModerationActionRequest,
     REPORT_REASONS,
+    ModerationActionRequest,
+    ReportCreateRequest,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["Reporting & Moderation"])

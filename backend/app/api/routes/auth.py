@@ -27,7 +27,6 @@ from app.schemas.auth import (
 )
 from app.services.resource_formatter import format_resource_summary
 
-
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 

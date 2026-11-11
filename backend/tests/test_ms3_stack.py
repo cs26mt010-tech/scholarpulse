@@ -17,10 +17,10 @@ Tests all MS-3 deliverables and security/AI invariants:
 8. Moderation Queue workflow.
 """
 
+import base64
 import os
 import sys
 import unittest
-import base64
 
 import yaml
 from fastapi.testclient import TestClient
@@ -30,8 +30,8 @@ BASE_DIR = os.path.abspath(
 )
 sys.path.insert(0, os.path.join(BASE_DIR, "backend"))
 
-from app.main import app
 from app.db.session import get_db
+from app.main import app
 
 
 class TestScholarPulseMS3(unittest.TestCase):

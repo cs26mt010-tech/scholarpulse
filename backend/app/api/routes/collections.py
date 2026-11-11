@@ -12,11 +12,10 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.collections import (
     CollectionCreateRequest,
-    CollectionUpdateRequest,
     CollectionItemAddRequest,
+    CollectionUpdateRequest,
 )
 from app.services.resource_formatter import format_resource_summary
-
 
 router = APIRouter(prefix="/api/v1", tags=["Collections"])
 
