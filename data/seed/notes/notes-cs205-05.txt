@@ -1,0 +1,15 @@
+TITLE: File Systems, Inodes, Ext4 Extents & Crash-Consistent Journaling
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. VFS Abstraction, Inodes, Hard Links, and Symbolic Links
+Unix file systems separate human-readable filenames (stored in directory entries mapping name -> inode number) from file metadata stored in an Index Node (inode: permissions, owner, size, timestamps, link count, and block pointers). A hard link adds a directory entry pointing to the same inode and increments `i_links_count` (cannot span across mounted file systems or link directories); the file's data blocks are freed only when both `i_links_count == 0` and zero open file descriptors remain. A symbolic (soft) link is a separate inode containing a target path string.
+
+## 2. Block Addressing: Multi-Level Indirect Pointers vs Ext4 Extent Trees
+Classical FFS/Ext2 inodes store 12 direct block pointers plus single, double, and triple indirect blocks, which requires many metadata blocks for large contiguous files. Modern Ext4 replaces indirect block lists with an inline 4-entry Extent Tree header where each extent `(logical_block, length, physical_start_block)` maps up to 128 MB of contiguous 4 KB blocks in a single compact descriptor.
+
+## 3. Crash Consistency Problem and FSCK Limitations
+Appending a block to a file requires updating three separate on-disk structures: the data bitmap, the inode, and the new data block. A power loss between these writes leaves inconsistent states (e.g., an inode pointing to an uninitialized garbage block or leaked bitmap space), and offline `fsck` scans scale poorly with multi-terabyte drives.
+
+## 4. Write-Ahead Journaling Modes: Data, Ordered, and Writeback
+Ext3/Ext4 `jbd2` journaling uses a circular on-disk log. Full Data Journaling writes both data and metadata to the journal (safe, but halves sequential write throughput). Ordered Journaling (default) forces file data blocks to their final disk locations BEFORE committing the metadata transaction (`TxE`) to the journal, preventing stale data exposure without writing payload data twice.

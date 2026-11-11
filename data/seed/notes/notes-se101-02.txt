@@ -1,0 +1,15 @@
+TITLE: Web Application Security: Argon2id, Session Cookies, CSRF & OWASP Top 10
+COURSE: SE101 | TYPE: lecture_notes | AUTHORS: Gangadevi Venkata Siva krishna
+==============================================================================
+
+## 1. Salted Argon2id Password Hashing vs Fast Cryptographic Hashes
+Storing passwords with fast hashes like SHA-256 allows attackers with modern GPUs to test billions of guesses per second. Argon2id (winner of the Password Hashing Competition) is a memory-hard key derivation function combining data-independent memory access (Argon2i, resisting side-channel timing attacks) and data-dependent access (Argon2d, resisting GPU/ASIC time-memory tradeoffs) with a unique random 16-byte cryptographic salt per user.
+
+## 2. Server-Side Session Cookies vs LocalStorage JWTs
+Storing authentication tokens in browser `localStorage` exposes them to theft by any Cross-Site Scripting (XSS) vulnerability. ScholarPulse uses server-side session cookies configured with `HttpOnly` (invisible to `document.cookie` JavaScript), `SameSite=Lax` (not sent on cross-site subrequests), `Secure` in production HTTPS, and a strict 24-hour expiration.
+
+## 3. Synchronizer CSRF Protection on State-Changing Endpoints
+Because browsers automatically attach cookies to requests targeting the origin, all state-changing methods (`POST`, `PUT`, `PATCH`, `DELETE`) require an `X-CSRF-Token` header cryptographically bound via HMAC-SHA256 to the user's session cookie. An attacker origin cannot read or forge this header under the Same-Origin Policy.
+
+## 4. SQL Injection Prevention, Escaped Output, and DPDP Act 2023 Compliance
+All database operations use SQLAlchemy ORM or parameterized bind variables (`:param`), completely preventing SQL injection. Uploaded PDF/.txt extracted text and user comments are rendered as escaped plain text (`textContent`) to prevent stored XSS. In alignment with India's Digital Personal Data Protection (DPDP) Act 2023, ScholarPulse displays an explicit data collection consent notice at signup and supports one-click account and personal data deletion (`DELETE /api/v1/auth/me`).
