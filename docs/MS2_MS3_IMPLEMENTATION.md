@@ -82,9 +82,9 @@ The pytest `conftest.py` selects an isolated SQLite test database when `DATABASE
 All deterministic demo accounts use the development password `ScholarPulse!2026`. The seed includes student, TA and moderator roles. Change/remove these credentials before any public deployment; never use the demo password in production.
 
 Examples:
-- Student: `sam.green@university.edu`
-- TA: `snehadip.ghoshal@university.edu`
-- Moderator: `harshit.pant@university.edu`
+- Student: `sam.green.sp@gmail.com`
+- TA: `snehadip.ghoshal.sp@gmail.com`
+- Moderator: `harshit.pant.sp@gmail.com`
 
 ## 7. Milestone deliverables checklist
 

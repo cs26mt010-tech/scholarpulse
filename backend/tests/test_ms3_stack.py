@@ -57,7 +57,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["status"], "ok")
-        self.assertEqual(body["alembic_revision"], "0002_profile_settings")
+        self.assertEqual(body["alembic_revision"], "0003_email_verification")
         counts = body["counts"]
         self.assertGreaterEqual(counts["users"], 20)
         self.assertEqual(counts["categories"], 4)
@@ -73,8 +73,9 @@ class TestScholarPulseMS3(unittest.TestCase):
         r1 = self.client.get("/api/v1/resources?course_code=CS301&sort_by=rating&page=1&page_size=10")
         self.assertEqual(r1.status_code, 200)
         data = r1.json()
-        self.assertGreater(data["total"], 100)
-        self.assertEqual(len(data["items"]), 10)
+        # Public discovery only lists official/approved resources (the seed has a handful per course).
+        self.assertGreater(data["total"], 0)
+        self.assertEqual(len(data["items"]), min(10, data["total"]))
         self.assertEqual(data["items"][0]["course_code"], "CS301")
 
         # Visitor can view resource detail
@@ -88,7 +89,8 @@ class TestScholarPulseMS3(unittest.TestCase):
         r3 = self.client.get("/api/v1/collections")
         self.assertEqual(r3.status_code, 200)
         colls = r3.json()
-        self.assertGreaterEqual(len(colls), 15)
+        # Public discovery lists only public, official collections.
+        self.assertGreaterEqual(len(colls), 1)
         self.assertTrue(colls[0]["is_official"])
 
         # Visitor gets 401 when attempting protected actions
@@ -97,7 +99,7 @@ class TestScholarPulseMS3(unittest.TestCase):
 
     def test_04_auth_csrf_and_rbac_enforcement(self):
         # Student login (Sam Green)
-        student_client, student_csrf, student_user = self._login("sam.green@university.edu")
+        student_client, student_csrf, student_user = self._login("sam.green.sp@gmail.com")
         self.assertEqual(student_user["role"], "student")
 
         # Missing CSRF token on state-changing request must return 403
@@ -125,7 +127,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         self.assertEqual(mod_q_resp.status_code, 403)
 
         # TA login (Snehadip Ghoshal) can create official collection
-        ta_client, ta_csrf, ta_user = self._login("snehadip.ghoshal@university.edu")
+        ta_client, ta_csrf, ta_user = self._login("snehadip.ghoshal.sp@gmail.com")
         self.assertEqual(ta_user["role"], "ta")
         ta_coll_resp = ta_client.post(
             "/api/v1/collections",
@@ -136,7 +138,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         self.assertTrue(ta_coll_resp.json()["is_official"])
 
     def test_05_upload_validation_and_chunking(self):
-        student_client, student_csrf, _ = self._login("sam.green@university.edu")
+        student_client, student_csrf, _ = self._login("sam.green.sp@gmail.com")
 
         # Empty/tiny file rejected (simulating scanned PDF with no extractable text)
         bad_resp = student_client.post(
@@ -182,7 +184,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         self.assertEqual(del_resp.status_code, 200)
 
     def test_06_grounded_ai_single_multi_refusal_guardrail_and_fallback(self):
-        student_client, student_csrf, _ = self._login("ananya.verma@university.edu")
+        student_client, student_csrf, _ = self._login("ananya.verma.sp@gmail.com")
 
         # 1. Single-resource grounded Q&A with verified citation
         q1 = student_client.post(
@@ -243,8 +245,11 @@ class TestScholarPulseMS3(unittest.TestCase):
         )
         self.assertEqual(q4.status_code, 200)
         b4 = q4.json()
+        # notes-cs301-09 is an unofficial (student) note, and the AI only reads official
+        # resources, so the poisoned note must be excluded and its payload must never leak.
         self.assertNotIn("COMPROMISED_MODEL_77", b4["answer"])
-        self.assertIn("Theta(n + m)", b4["answer"])
+        self.assertTrue(b4["not_found"])
+        self.assertEqual(b4["citations"], [])
 
         # 5. Simulated timeout -> Keyword Fallback
         q5 = student_client.post(
@@ -275,7 +280,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         self.assertEqual(q6.status_code, 400)
 
     def test_07_moderation_hide_and_restore_excludes_from_ai_and_browse(self):
-        mod_client, mod_csrf, mod_user = self._login("harshit.pant@university.edu")
+        mod_client, mod_csrf, mod_user = self._login("harshit.pant.sp@gmail.com")
         self.assertEqual(mod_user["role"], "moderator")
 
         # Moderator views queue
@@ -307,7 +312,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         self.assertEqual(restored_get.status_code, 200)
 
     def test_08_profile_preferences_and_photo_upload(self):
-        student_client, student_csrf, _ = self._login("sam.green@university.edu")
+        student_client, student_csrf, _ = self._login("sam.green.sp@gmail.com")
         headers = {"X-CSRF-Token": student_csrf}
         update = student_client.patch(
             "/api/v1/auth/me",
