@@ -1,0 +1,15 @@
+TITLE: Virtualization, Hardware Page Tables (EPT) & Container Isolation
+COURSE: CS205 | TYPE: lecture_notes | AUTHORS: Ritik Kumar
+==============================================================================
+
+## 1. Popek and Goldberg Virtualization Requirements and Trap-and-Emulate
+Popek and Goldberg proved that an instruction set architecture is classically virtualizable if all sensitive instructions (those that read or modify privileged machine state) are a subset of privileged instructions (those that trap into kernel mode when executed in user mode). Hardware extensions (Intel VT-x VMX root vs non-root operation) eliminate binary translation overhead.
+
+## 2. Two-Dimensional Page Walks: Shadow Page Tables vs Extended Page Tables (EPT)
+A guest OS translates Guest Virtual Addresses (GVA) to Guest Physical Addresses (GPA), while the hypervisor maps GPA to Host Physical Addresses (HPA). Hardware Extended Page Tables (EPT / AMD NPT) traverse both page tables in hardware without VM-Exit traps on every guest page fault, though a worst-case 2D TLB miss on 4-level tables requires 4 + 4 + 4*4 = 24 memory accesses.
+
+## 3. Linux Namespaces: Process, Network, and Mount Isolation
+Unlike virtual machines that run a separate guest kernel, Linux containers share the host kernel and isolate visibility via namespaces (`CLONE_NEWPID`, `CLONE_NEWNET`, `CLONE_NEWNS`, `CLONE_NEWUTS`, `CLONE_NEWIPC`, `CLONE_NEWUSER`). A process inside a PID namespace sees itself as PID 1 while having a regular unprivileged PID in the host root namespace.
+
+## 4. Control Groups (cgroups v2) and Seccomp System-Call Filtering
+While namespaces control what a container can see, `cgroups v2` limits what resources it can consume (CPU quotas, memory limits, and I/O bandwidth). Combining rootless user namespaces with `seccomp-bpf` system-call allowlists prevents container breakout vulnerabilities.
