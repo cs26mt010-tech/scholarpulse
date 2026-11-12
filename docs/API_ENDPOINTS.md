@@ -85,7 +85,7 @@ Returns the user plus `csrf_token`; sets the session cookie.
 Errors: `400 CONSENT_REQUIRED`, `400 DUPLICATE_USER`.
 
 ### `POST /auth/login`
-Body: `{ "email": "sam.green@university.edu", "password": "…" }` (the `email` field also accepts a username).
+Body: `{ "email": "sam.green.sp@gmail.com", "password": "…" }` (the `email` field also accepts a username).
 Returns `{ "user": {id, username, email, bio, role, consent_accepted, created_at}, "csrf_token": "…" }`.
 Errors: `401 INVALID_CREDENTIALS`.
 
@@ -246,7 +246,7 @@ Not used by the UI: `PATCH /resources/{id}`, `PATCH /collections/{id}` (reorderi
 ```bash
 # Sign in and keep the cookie + CSRF token
 curl -s -c jar.txt -H 'Content-Type: application/json' \
-  -d '{"email":"sam.green@university.edu","password":"ScholarPulse!2026"}' \
+  -d '{"email":"sam.green.sp@gmail.com","password":"ScholarPulse!2026"}' \
   http://localhost:8000/api/v1/auth/login
 # → {"user": {...}, "csrf_token": "<TOKEN>"}
 
@@ -256,4 +256,4 @@ curl -s -b jar.txt -H 'Content-Type: application/json' -H 'X-CSRF-Token: <TOKEN>
   http://localhost:8000/api/v1/ai/ask
 ```
 
-Seeded demo accounts (password `ScholarPulse!2026`): `sam.green@university.edu` (student), `snehadip.ghoshal@university.edu` (TA), `harshit.pant@university.edu` (moderator).
+Seeded demo accounts (password `ScholarPulse!2026`): `sam.green.sp@gmail.com` (student), `snehadip.ghoshal.sp@gmail.com` (TA), `harshit.pant.sp@gmail.com` (moderator).

@@ -74,28 +74,28 @@ def run_seed(force_reset: bool = False) -> dict:
         # 2. Seed 20 Users (Students, TAs, Moderators) with deterministic Argon2id hashes
         users_spec = [
             # Moderators (2)
-            ("mod_harshit", "harshit.pant@university.edu", "moderator", "Platform Moderator & Backend Architect (cs26mt006)."),
-            ("mod_siva", "siva.krishna@university.edu", "moderator", "Security & AI Guardrails Moderator (cs26mt009)."),
+            ("mod_harshit", "harshit.pant.sp@gmail.com", "moderator", "Platform Moderator & Backend Architect (cs26mt006)."),
+            ("mod_siva", "siva.krishna.sp@gmail.com", "moderator", "Security & AI Guardrails Moderator (cs26mt009)."),
             # Teaching Assistants (4)
-            ("ta_snehadip", "snehadip.ghoshal@university.edu", "ta", "Head TA for CS301 & UI/UX Lead (cs26mt010)."),
-            ("ta_ritik", "ritik.kumar@university.edu", "ta", "Teaching Assistant for CS205 & Testing Lead (cs26mt021)."),
-            ("ta_arjun", "arjun.sharma@university.edu", "ta", "Teaching Assistant for CS301 Algorithms & Graph Theory."),
-            ("ta_meera", "meera.nair@university.edu", "ta", "Teaching Assistant for CS402 Database Systems."),
+            ("ta_snehadip", "snehadip.ghoshal.sp@gmail.com", "ta", "Head TA for CS301 & UI/UX Lead (cs26mt010)."),
+            ("ta_ritik", "ritik.kumar.sp@gmail.com", "ta", "Teaching Assistant for CS205 & Testing Lead (cs26mt021)."),
+            ("ta_arjun", "arjun.sharma.sp@gmail.com", "ta", "Teaching Assistant for CS301 Algorithms & Graph Theory."),
+            ("ta_meera", "meera.nair.sp@gmail.com", "ta", "Teaching Assistant for CS402 Database Systems."),
             # Students (14, including Sam Green from MS-2 Figma prototype)
-            ("sam_green", "sam.green@university.edu", "student", "Student contributor focusing on Graph Algorithms and Operating Systems."),
-            ("ananya_verma", "ananya.verma@university.edu", "student", "Postgraduate CS student studying distributed transactions."),
-            ("rohan_iyer", "rohan.iyer@university.edu", "student", "Undergraduate student preparing for CS301 and CS205 exams."),
-            ("priya_patel", "priya.patel@university.edu", "student", "M.Tech student researching hybrid RAG and vector indexing."),
-            ("vikram_reddy", "vikram.reddy@university.edu", "student", "CS student interested in Linux kernel scheduling and io_uring."),
-            ("divya_joshi", "divya.joshi@university.edu", "student", "Student contributor curating exam revision checklists."),
-            ("karthik_menon", "karthik.menon@university.edu", "student", "Systems enthusiast focusing on cache coherence and lock-free rings."),
-            ("neha_gupta", "neha.gupta@university.edu", "student", "Software engineering student working on OpenAPI contract testing."),
-            ("siddharth_bose", "siddharth.bose@university.edu", "student", "Algorithms competition participant and dynamic programming tutor."),
-            ("kavya_deshmukh", "kavya.deshmukh@university.edu", "student", "Database systems student exploring MVCC and LSM-trees."),
-            ("aditya_kulkarni", "aditya.kulkarni@university.edu", "student", "Security researcher studying OWASP Top 10 for LLM applications."),
-            ("ishita_chatterjee", "ishita.chatterjee@university.edu", "student", "Full-stack student contributor and accessibility advocate."),
-            ("nikhil_rao", "nikhil.rao@university.edu", "student", "Student studying randomized algorithms and universal hashing."),
-            ("pooja_sen", "pooja.sen@university.edu", "student", "Undergraduate CS student organizing SE101 study notes."),
+            ("sam_green", "sam.green.sp@gmail.com", "student", "Student contributor focusing on Graph Algorithms and Operating Systems."),
+            ("ananya_verma", "ananya.verma.sp@gmail.com", "student", "Postgraduate CS student studying distributed transactions."),
+            ("rohan_iyer", "rohan.iyer.sp@gmail.com", "student", "Undergraduate student preparing for CS301 and CS205 exams."),
+            ("priya_patel", "priya.patel.sp@gmail.com", "student", "M.Tech student researching hybrid RAG and vector indexing."),
+            ("vikram_reddy", "vikram.reddy.sp@gmail.com", "student", "CS student interested in Linux kernel scheduling and io_uring."),
+            ("divya_joshi", "divya.joshi.sp@gmail.com", "student", "Student contributor curating exam revision checklists."),
+            ("karthik_menon", "karthik.menon.sp@gmail.com", "student", "Systems enthusiast focusing on cache coherence and lock-free rings."),
+            ("neha_gupta", "neha.gupta.sp@gmail.com", "student", "Software engineering student working on OpenAPI contract testing."),
+            ("siddharth_bose", "siddharth.bose.sp@gmail.com", "student", "Algorithms competition participant and dynamic programming tutor."),
+            ("kavya_deshmukh", "kavya.deshmukh.sp@gmail.com", "student", "Database systems student exploring MVCC and LSM-trees."),
+            ("aditya_kulkarni", "aditya.kulkarni.sp@gmail.com", "student", "Security researcher studying OWASP Top 10 for LLM applications."),
+            ("ishita_chatterjee", "ishita.chatterjee.sp@gmail.com", "student", "Full-stack student contributor and accessibility advocate."),
+            ("nikhil_rao", "nikhil.rao.sp@gmail.com", "student", "Student studying randomized algorithms and universal hashing."),
+            ("pooja_sen", "pooja.sen.sp@gmail.com", "student", "Undergraduate CS student organizing SE101 study notes."),
         ]
 
         user_ids = []
