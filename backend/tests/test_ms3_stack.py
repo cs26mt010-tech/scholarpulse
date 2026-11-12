@@ -245,7 +245,7 @@ class TestScholarPulseMS3(unittest.TestCase):
         )
         self.assertEqual(q4.status_code, 200)
         b4 = q4.json()
-        # notes-cs301-09 is an unofficial (student) note, and the AI only reads official
+        # notes-cs301-09 is an unofficial (student) note, and the AI only reads commands
         # resources, so the poisoned note must be excluded and its payload must never leak.
         self.assertNotIn("COMPROMISED_MODEL_77", b4["answer"])
         self.assertTrue(b4["not_found"])
