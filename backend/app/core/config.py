@@ -1,4 +1,4 @@
-"""
+﻿"""
 Application configuration loaded from environment variables (.env).
 Model names and secrets are stored in environment variables and never hardcoded.
 """
@@ -40,6 +40,7 @@ class Settings:
     # Gemini AI Configuration (Server-Side Only)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_EMBEDDING_MODEL: str = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
+    GEMINI_EMBEDDING_DIMENSIONS: int = int(os.getenv("GEMINI_EMBEDDING_DIMENSIONS", "768"))
     GEMINI_GENERATION_MODEL: str = os.getenv("GEMINI_GENERATION_MODEL", "gemini-2.5-flash")
     AI_REQUEST_TIMEOUT_SECONDS: int = int(os.getenv("AI_REQUEST_TIMEOUT_SECONDS", "10"))
     AI_MAX_RETRIES: int = int(os.getenv("AI_MAX_RETRIES", "1"))
@@ -60,3 +61,4 @@ class Settings:
 
 
 settings = Settings()
+
