@@ -1,6 +1,6 @@
 """Request schemas for ai endpoints."""
-from typing import List, Optional
 from pydantic import BaseModel, Field
+
 
 class AIAskRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=500)
