@@ -26,6 +26,7 @@ services:
     networks:
       - scholarpulse-net
 
+
   backend:
     build:
       context: .
