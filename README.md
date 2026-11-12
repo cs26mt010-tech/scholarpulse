@@ -85,3 +85,13 @@ has passed on the remote repository. Check the Actions tab after pushing these c
 - Complete and record manual keyboard, focus-visible, and WCAG contrast checks; do not
   mark accessibility as passed without measuring the actual rendered interface.
 - Link at least one reviewed/approved pull request per the team's review requirement.
+
+
+## Ask AI: Gemini fallback when data is not found
+
+`POST /api/v1/ai/ask` first searches the stored documents (resource, collection or course scope). If nothing relevant is found **and** `GEMINI_API_KEY` is set in `.env`, the backend asks Google Gemini (`GEMINI_GENERATION_MODEL`, default `gemini-2.5-flash`) and returns:
+
+- `general_ai_used: true`, `not_found: false`, empty `citations`, and a `general_ai_notice` saying the answer is not grounded in ScholarPulse documents (the UI shows it in a separate blue "Gemini - General Answer" box).
+- Without a key, on a Gemini error/quota/timeout, or when "Keyword search only" is ticked, the usual "Not found in this document" refusal is returned.
+
+The key stays server-side. Get one at https://aistudio.google.com/apikey, then set `GEMINI_API_KEY=...` in `.env` and restart (`docker compose up --build`).

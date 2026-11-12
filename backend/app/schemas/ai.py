@@ -1,4 +1,7 @@
+"""Request schemas for AI endpoints."""
+
 from typing import Literal
+
 from pydantic import BaseModel, Field
 
 

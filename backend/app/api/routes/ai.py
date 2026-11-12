@@ -1,3 +1,5 @@
+"""AI API routes."""
+
 import html
 import json
 import re
@@ -34,6 +36,14 @@ def ask_study_assistant(
     scope_type = payload.scope_type
     scope_id = payload.scope_id or "global"
 
+    # Guardrail: block restricted word
+    if "vulger" in question.casefold():
+        raise HTTPException(
+            status_code=403,
+            detail="This question is blocked.",
+        )
+
+    # Guardrail: question length
     if len(question) > settings.AI_MAX_QUESTION_LENGTH:
         raise HTTPException(
             status_code=400,
@@ -61,10 +71,14 @@ def ask_study_assistant(
     not_found = False
     fallback_used = False
     fallback_notice = None
+    general_ai_used = False
+    general_ai_error = None
     citations = []
     model_used = settings.GEMINI_GENERATION_MODEL
+    doc_miss = False
 
     with get_db() as db:
+
         # Rate limit per user
         if db.dialect == "sqlite":
             recent_q = db.fetchone(
@@ -99,6 +113,7 @@ def ask_study_assistant(
                 },
             )
 
+        # General questions use Gemini directly
         if scope_type == "general":
             try:
                 if payload.simulate_failure:
@@ -120,6 +135,7 @@ def ask_study_assistant(
                 model_used = "unavailable-fallback"
 
         else:
+            # Retrieve relevant document chunks
             mode = "keyword" if payload.simulate_failure else "embedding"
 
             retrieved = retrieve_chunks_for_scope(
@@ -130,7 +146,7 @@ def ask_study_assistant(
                 mode=mode,
             )
 
-            # Keep the existing local synthesizer as a safe fallback
+            # Prepare local RAG answer as backup
             local_answer, local_not_found, _, _, local_citations = (
                 synthesize_grounded_answer(
                     question=question,
@@ -143,6 +159,7 @@ def ask_study_assistant(
             if not retrieved:
                 answer = "Not found in this document."
                 not_found = True
+                doc_miss = True
                 citations = []
                 model_used = "rag-no-results"
 
@@ -158,6 +175,7 @@ def ask_study_assistant(
                 model_used = "mysql-fulltext-fallback"
 
             else:
+                # Remove potentially malicious instructions from retrieved text
                 safe_chunks = [
                     {
                         "chunk_id": chunk["chunk_id"],
@@ -180,33 +198,38 @@ def ask_study_assistant(
                     ):
                         answer = "Not found in this document."
                         not_found = True
+                        doc_miss = True
                         citations = []
 
                     else:
-                        # Only accept citations belonging to retrieved chunks
+                        # Validate citations against retrieved chunks
                         retrieved_ids = {
                             int(chunk["chunk_id"]) for chunk in retrieved
                         }
+
                         cited_ids = [
                             int(value)
                             for value in re.findall(
-                                r"\[Chunk\s+(\d+)\]", gemini_answer
+                                r"\[Chunk\s+(\d+)\]",
+                                gemini_answer,
                             )
                         ]
+
                         valid_ids = set(cited_ids) & retrieved_ids
 
                         if not valid_ids:
-                            # Do not return unsupported Gemini claims
                             answer = local_answer
                             citations = local_citations
+                            not_found = local_not_found
                             fallback_used = True
                             fallback_notice = (
                                 "Gemini returned no valid document citations. "
                                 "Showing the local grounded answer instead."
                             )
                             model_used = "local-rag-fallback"
+
                         else:
-                            # Remove citations that do not belong to retrieved chunks
+
                             def clean_citation(match):
                                 chunk_id = int(match.group(1))
                                 return (
@@ -238,9 +261,27 @@ def ask_study_assistant(
                     )
                     model_used = "local-rag-fallback"
 
+            # Preserve main's general-knowledge fallback for document misses
+            if (
+                doc_miss
+                and not payload.simulate_failure
+            ):
+                try:
+                    general_answer = generate_general_answer(question)
+
+                    if general_answer:
+                        answer = general_answer
+                        not_found = False
+                        general_ai_used = True
+                        citations = []
+
+                except GeminiUnavailable:
+                    general_ai_error = "Gemini general-answer service unavailable."
+
         latency_ms = max(1, int((time.time() - t0) * 1000))
         cited_ids = [citation["chunk_id"] for citation in citations]
 
+        # Save AI query history
         db.execute(
             """
             INSERT INTO ai_queries (
@@ -256,7 +297,7 @@ def ask_study_assistant(
                 question,
                 html.escape(answer),
                 json.dumps(cited_ids),
-                1 if not_found else 0,
+                1 if (not_found or doc_miss) else 0,
                 1 if fallback_used else 0,
                 model_used,
                 latency_ms,
@@ -269,6 +310,7 @@ def ask_study_assistant(
             "SELECT id FROM ai_queries WHERE user_id = ? ORDER BY id DESC LIMIT 1",
             (user["id"],),
         )
+
         qid = q_row["id"] if q_row else 1
 
     return {
@@ -280,6 +322,16 @@ def ask_study_assistant(
         "not_found": not_found,
         "fallback_used": fallback_used,
         "fallback_notice": fallback_notice,
+        "general_ai_used": general_ai_used,
+        "general_ai_error": general_ai_error,
+        "general_ai_notice": (
+            "Not found in ScholarPulse documents. This answer comes from "
+            "Google Gemini's general knowledge, has no citations, and may "
+            "be inaccurate. Verify it against your course material."
+            if general_ai_used
+            else None
+        ),
+        "model_used": model_used,
         "citations": citations,
         "latency_ms": latency_ms,
     }

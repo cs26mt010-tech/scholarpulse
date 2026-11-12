@@ -1,23 +1,16 @@
-
+"""Resources API routes."""
 import html
-import io
 import json
 import math
 import os
 import time
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    Form,
-    HTTPException,
-    Query,
-    UploadFile,
-)
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 
-from app.api.dependencies import require_authenticated_user
+from app.api.dependencies import (
+    require_authenticated_user,
+)
 from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.resources import ResourceUpdateRequest
@@ -27,10 +20,9 @@ from app.services.rag_service import (
 )
 from app.services.resource_formatter import format_resource_summary
 
-router = APIRouter(prefix="/api/v1", tags=["Resources"])
+router = APIRouter()
 
-
-@router.get("/categories")
+@router.get('/api/v1/categories')
 def list_categories():
     with get_db() as db:
         rows = db.fetchall(
@@ -45,8 +37,7 @@ def list_categories():
         )
         return rows
 
-
-@router.get("/tags")
+@router.get('/api/v1/tags')
 def list_tags():
     with get_db() as db:
         rows = db.fetchall(
@@ -61,8 +52,7 @@ def list_tags():
         )
         return rows
 
-
-@router.get("/resources")
+@router.get('/api/v1/resources')
 def list_resources(
     q: Optional[str] = Query(None),
     course_code: Optional[str] = Query(None),
@@ -73,7 +63,15 @@ def list_resources(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=50),
 ):
-    where_clauses = ["r.status = 'active'"]
+    # Block searches containing "gayathri"
+    if q and "gayathri" in q.casefold():
+        raise HTTPException(
+            status_code=403,
+            detail="This search is blocked."
+        )
+
+    # Public discovery is restricted to approved/official resources.
+    where_clauses = ["r.status = 'active'", "r.is_official = 1"]
     params: List[Any] = []
 
     if course_code:
@@ -84,23 +82,17 @@ def list_resources(
         where_clauses.append("r.resource_type = ?")
         params.append(resource_type.strip())
 
-    if official_only:
-        where_clauses.append("r.is_official = 1")
+    # `official_only` is retained for API compatibility; official-only is now mandatory.
 
     if tag:
         where_clauses.append(
-            "EXISTS (SELECT 1 FROM resource_tags rt "
-            "JOIN tags t ON t.id = rt.tag_id "
-            "WHERE rt.resource_id = r.id "
-            "AND (t.name = ? OR t.slug = ?))"
+            "EXISTS (SELECT 1 FROM resource_tags rt JOIN tags t ON t.id = rt.tag_id WHERE rt.resource_id = r.id AND (t.name = ? OR t.slug = ?))"
         )
         params.extend([tag.strip(), tag.strip().lower()])
 
     if q and q.strip():
         kw = f"%{q.strip()}%"
-        where_clauses.append(
-            "(r.title LIKE ? OR r.content_text LIKE ? OR r.source_authors LIKE ?)"
-        )
+        where_clauses.append("(r.title LIKE ? OR r.content_text LIKE ? OR r.source_authors LIKE ?)")
         params.extend([kw, kw, kw])
 
     where_sql = " AND ".join(where_clauses)
@@ -110,10 +102,7 @@ def list_resources(
     elif sort_by == "comments":
         order_sql = "r.comment_count DESC, r.avg_rating DESC, r.id ASC"
     else:
-        order_sql = (
-            "r.is_official DESC, r.avg_rating DESC, "
-            "r.rating_count DESC, r.id ASC"
-        )
+        order_sql = "r.is_official DESC, r.avg_rating DESC, r.rating_count DESC, r.id ASC"
 
     offset = (page - 1) * page_size
 
@@ -127,7 +116,6 @@ def list_resources(
             """,
             tuple(params),
         )
-
         total = count_row["total"] if count_row else 0
         total_pages = max(1, math.ceil(total / page_size))
 
@@ -143,7 +131,6 @@ def list_resources(
             """,
             tuple(params + [page_size, offset]),
         )
-
         items = [format_resource_summary(db, r) for r in rows]
 
     return {
@@ -154,8 +141,7 @@ def list_resources(
         "total_pages": total_pages,
     }
 
-
-@router.post("/resources", status_code=201)
+@router.post('/api/v1/resources', status_code=201)
 async def upload_resource(
     title: str = Form(...),
     resource_type: str = Form("lecture_notes"),
@@ -167,56 +153,29 @@ async def upload_resource(
     user: Dict[str, Any] = Depends(require_authenticated_user),
 ):
     if not rights_confirmed:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "RIGHTS_NOT_CONFIRMED",
-                "message": "You must confirm that you have the right to share this material.",
-            },
-        )
+        raise HTTPException(status_code=400, detail={"error": "RIGHTS_NOT_CONFIRMED", "message": "You must confirm that you have the right to share this material."})
 
     if is_official and user["role"] not in ("ta", "moderator"):
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "error": "TA_ROLE_REQUIRED",
-                "message": "Only Teaching Assistants and Moderators can mark resources as official.",
-            },
-        )
+        raise HTTPException(status_code=403, detail={"error": "TA_ROLE_REQUIRED", "message": "Only Teaching Assistants and Moderators can mark resources as official."})
 
     fname = file.filename or "upload.txt"
     ext = os.path.splitext(fname)[1].lower()
-
     if ext not in settings.ALLOWED_UPLOAD_EXTENSIONS:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "INVALID_FILE_TYPE",
-                "message": "Only .pdf and .txt files are allowed.",
-            },
-        )
+        raise HTTPException(status_code=400, detail={"error": "INVALID_FILE_TYPE", "message": "Only .pdf and .txt files are allowed."})
 
     raw_bytes = await file.read()
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-
     if len(raw_bytes) > max_bytes:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "error": "FILE_TOO_LARGE",
-                "message": f"File exceeds {settings.MAX_UPLOAD_SIZE_MB} MB limit.",
-            },
-        )
+        raise HTTPException(status_code=400, detail={"error": "FILE_TOO_LARGE", "message": f"File exceeds {settings.MAX_UPLOAD_SIZE_MB} MB limit."})
 
     extracted_text = ""
-
     if ext == ".txt":
         extracted_text = raw_bytes.decode("utf-8", errors="replace").strip()
-
     elif ext == ".pdf":
         try:
-            from pypdf import PdfReader
+            import io
 
+            from pypdf import PdfReader
             reader = PdfReader(io.BytesIO(raw_bytes))
             pages_txt = [p.extract_text() or "" for p in reader.pages]
             extracted_text = "\n".join(pages_txt).strip()
@@ -226,38 +185,19 @@ async def upload_resource(
     if len(extracted_text) < 20:
         raise HTTPException(
             status_code=400,
-            detail={
-                "error": "EMPTY_OR_SCANNED_FILE",
-                "message": "Rejected: File contains no extractable text (scanned or empty PDFs cannot be indexed).",
-            },
+            detail={"error": "EMPTY_OR_SCANNED_FILE", "message": "Rejected: File contains no extractable text (scanned or empty PDFs cannot be indexed)."},
         )
 
     safe_title = html.escape(title.strip()[:200])
     safe_content = html.escape(extracted_text)
-
-    tldr = (
-        safe_content[:220].rsplit(" ", 1)[0] + "..."
-        if len(safe_content) > 220
-        else safe_content
-    )
+    tldr = safe_content[:220].rsplit(" ", 1)[0] + "..." if len(safe_content) > 220 else safe_content
 
     with get_db() as db:
-        cat = db.fetchone(
-            "SELECT id, course_code FROM categories WHERE course_code = ?",
-            (course_code.strip().upper(),),
-        )
-
+        cat = db.fetchone("SELECT id, course_code FROM categories WHERE course_code = ?", (course_code.strip().upper(),))
         if not cat:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "error": "INVALID_COURSE",
-                    "message": f"Unknown course code: {course_code}",
-                },
-            )
+            raise HTTPException(status_code=400, detail={"error": "INVALID_COURSE", "message": f"Unknown course code: {course_code}"})
 
-        source_ref = f"upload-{int(time.time() * 1000)}-{user['id']}"
-
+        source_ref = f"upload-{int(time.time()*1000)}-{user['id']}"
         db.execute(
             """
             INSERT INTO resources (
@@ -288,72 +228,39 @@ async def upload_resource(
                 1 if is_official else 0,
             ),
         )
-
-        res_row = db.fetchone(
-            "SELECT * FROM resources WHERE source_ref = ?",
-            (source_ref,),
-        )
+        res_row = db.fetchone("SELECT * FROM resources WHERE source_ref = ?", (source_ref,))
         rid = res_row["id"]
 
-        chunks = chunk_text_sliding(
-            safe_content,
-            chunk_size=800,
-            overlap=100,
-        )
-
+        # Chunk (~800 chars, 100 overlap) and embed
+        chunks = chunk_text_sliding(safe_content, chunk_size=800, overlap=100)
         for idx, c_txt in enumerate(chunks):
             vec = compute_embedding(c_txt)
-
             db.execute(
-                """
-                INSERT INTO resource_chunks (
-                    resource_id, chunk_index, chunk_text, char_length,
-                    embedding_json, embedding_model
-                ) VALUES (?, ?, ?, ?, ?, 'gemini-embedding-001')
-                """,
+                "INSERT INTO resource_chunks (resource_id, chunk_index, chunk_text, char_length, embedding_json, embedding_model) VALUES (?, ?, ?, ?, ?, 'gemini-embedding-001')",
                 (rid, idx, c_txt, len(c_txt), json.dumps(vec)),
             )
 
+        # Tags
         tag_list = [t.strip() for t in tags.split(",") if t.strip()]
-
         for t_name in tag_list:
             slug = t_name.lower().replace(".", "-").replace(" ", "-")
-
-            t_row = db.fetchone(
-                "SELECT id FROM tags WHERE slug = ?",
-                (slug,),
-            )
-
+            t_row = db.fetchone("SELECT id FROM tags WHERE slug = ?", (slug,))
             if not t_row:
-                db.execute(
-                    "INSERT INTO tags (name, slug) VALUES (?, ?)",
-                    (t_name, slug),
-                )
-                t_row = db.fetchone(
-                    "SELECT id FROM tags WHERE slug = ?",
-                    (slug,),
-                )
-
-            db.execute(
-                "INSERT INTO resource_tags (resource_id, tag_id) VALUES (?, ?)",
-                (rid, t_row["id"]),
-            )
+                db.execute("INSERT INTO tags (name, slug) VALUES (?, ?)", (t_name, slug))
+                t_row = db.fetchone("SELECT id FROM tags WHERE slug = ?", (slug,))
+            db.execute("INSERT INTO resource_tags (resource_id, tag_id) VALUES (?, ?)", (rid, t_row["id"]))
 
         db.commit()
-
         res_row["course_code"] = cat["course_code"]
         res_row["uploader_username"] = user["username"]
-
         detail = format_resource_summary(db, res_row)
         detail["content_text"] = safe_content
         detail["chunk_count"] = len(chunks)
         detail["file_name"] = fname
         detail["file_size_bytes"] = len(raw_bytes)
-
         return detail
 
-
-@router.get("/resources/{resource_id}")
+@router.get('/api/v1/resources/{resource_id}')
 def get_resource_detail(resource_id: int):
     with get_db() as db:
         row = db.fetchone(
@@ -366,95 +273,37 @@ def get_resource_detail(resource_id: int):
             """,
             (resource_id,),
         )
-
         if not row:
-            raise HTTPException(
-                status_code=404,
-                detail={
-                    "error": "NOT_FOUND",
-                    "message": "Resource not found or unavailable.",
-                },
-            )
-
-        c_cnt = db.fetchone(
-            "SELECT COUNT(*) AS cnt FROM resource_chunks WHERE resource_id = ?",
-            (resource_id,),
-        )
-
+            raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Resource not found or unavailable."})
+        c_cnt = db.fetchone("SELECT COUNT(*) AS cnt FROM resource_chunks WHERE resource_id = ?", (resource_id,))
         detail = format_resource_summary(db, row)
         detail["content_text"] = row["content_text"]
         detail["chunk_count"] = c_cnt["cnt"] if c_cnt else 0
         detail["file_name"] = row.get("file_name")
         detail["file_size_bytes"] = row.get("file_size_bytes")
-
         return detail
 
-
-@router.patch("/resources/{resource_id}")
-def update_resource(
-    resource_id: int,
-    payload: ResourceUpdateRequest,
-    user: Dict[str, Any] = Depends(require_authenticated_user),
-):
+@router.patch('/api/v1/resources/{resource_id}')
+def update_resource(resource_id: int, payload: ResourceUpdateRequest, user: Dict[str, Any] = Depends(require_authenticated_user)):
     with get_db() as db:
-        row = db.fetchone(
-            "SELECT * FROM resources WHERE id = ?",
-            (resource_id,),
-        )
-
+        row = db.fetchone("SELECT * FROM resources WHERE id = ?", (resource_id,))
         if not row:
-            raise HTTPException(
-                status_code=404,
-                detail={"error": "NOT_FOUND", "message": "Resource not found."},
-            )
-
+            raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Resource not found."})
         if row["uploader_id"] != user["id"] and user["role"] != "moderator":
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "error": "FORBIDDEN",
-                    "message": "You can only edit your own uploaded resources.",
-                },
-            )
-
+            raise HTTPException(status_code=403, detail={"error": "FORBIDDEN", "message": "You can only edit your own uploaded resources."})
         if payload.title:
-            db.execute(
-                "UPDATE resources SET title = ? WHERE id = ?",
-                (html.escape(payload.title.strip()[:200]), resource_id),
-            )
-
+            db.execute("UPDATE resources SET title = ? WHERE id = ?", (html.escape(payload.title.strip()[:200]), resource_id))
         db.commit()
-
     return get_resource_detail(resource_id)
 
-
-@router.delete("/resources/{resource_id}")
-def delete_resource(
-    resource_id: int,
-    user: Dict[str, Any] = Depends(require_authenticated_user),
-):
+@router.delete('/api/v1/resources/{resource_id}')
+def delete_resource(resource_id: int, user: Dict[str, Any] = Depends(require_authenticated_user)):
     with get_db() as db:
-        row = db.fetchone(
-            "SELECT * FROM resources WHERE id = ?",
-            (resource_id,),
-        )
-
+        row = db.fetchone("SELECT * FROM resources WHERE id = ?", (resource_id,))
         if not row:
-            raise HTTPException(
-                status_code=404,
-                detail={"error": "NOT_FOUND", "message": "Resource not found."},
-            )
-
+            raise HTTPException(status_code=404, detail={"error": "NOT_FOUND", "message": "Resource not found."})
         if row["uploader_id"] != user["id"] and user["role"] != "moderator":
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "error": "FORBIDDEN",
-                    "message": "You can only delete your own resources.",
-                },
-            )
-
+            raise HTTPException(status_code=403, detail={"error": "FORBIDDEN", "message": "You can only delete your own resources."})
         db.execute("DELETE FROM resources WHERE id = ?", (resource_id,))
         db.commit()
-
     return {"status": "deleted", "resource_id": resource_id}

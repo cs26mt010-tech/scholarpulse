@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const STUDENT = { email: 'sam.green@university.edu', password: 'ScholarPulse!2026' };
+const STUDENT = { email: 'sam.green.sp@gmail.com', password: 'ScholarPulse!2026' };
 
 async function login(page, { email, password }) {
   await page.goto('/');
