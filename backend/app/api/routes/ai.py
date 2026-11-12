@@ -25,7 +25,7 @@ def ask_study_assistant(payload: AIAskRequest, user: Dict[str, Any] = Depends(re
     t0 = time.time()
     question = payload.question.strip()
         # Block AI questions containing "gayathri"
-    if "gayathri" in question.casefold():
+    if "vulger" in question.casefold():
         raise HTTPException(
             status_code=403,
             detail="This question is blocked."
