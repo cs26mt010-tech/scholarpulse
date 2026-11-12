@@ -125,7 +125,7 @@ components:
           type: string
           format: email
           maxLength: 120
-          example: sam.green.sp@gmail.com
+          example: sam.green@university.edu
         password:
           type: string
           minLength: 8
@@ -149,7 +149,7 @@ components:
         email:
           type: string
           format: email
-          example: sam.green.sp@gmail.com
+          example: sam.green@university.edu
         password:
           type: string
           example: StrongPass!2026
@@ -174,7 +174,7 @@ components:
         email:
           type: string
           format: email
-          example: sam.green.sp@gmail.com
+          example: sam.green@university.edu
         bio:
           type: string
           nullable: true
