@@ -26,13 +26,13 @@ services:
     networks:
       - scholarpulse-net
 
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     container_name: scholarpulse-backend
     entrypoint: ["bash", "/app/backend/entrypoint.sh"]
-    
     restart: unless-stopped
     depends_on:
       db:
@@ -45,13 +45,19 @@ services:
       CSRF_SECRET_KEY: ${CSRF_SECRET_KEY:-dev_csrf_secret_replace_in_prod_1a2b3c4d5e6f7a8b9c0d}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL:-gemini-embedding-001}
-      GEMINI_GENERATION_MODEL: ${GEMINI_GENERATION_MODEL:-gemini-2.5-flash}
+      GEMINI_GENERATION_MODEL: ${GEMINI_GENERATION_MODEL:-gemini-3.8-flash}
       AI_REQUEST_TIMEOUT_SECONDS: ${AI_REQUEST_TIMEOUT_SECONDS:-10}
       AI_MAX_RETRIES: ${AI_MAX_RETRIES:-1}
       AUTO_SEED_ON_STARTUP: ${AUTO_SEED_ON_STARTUP:-true}
       SEED_RANDOM_SEED: ${SEED_RANDOM_SEED:-2026}
       UPLOAD_STORAGE_DIR: ${UPLOAD_STORAGE_DIR:-/app/uploads}
       MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-5}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      EMAIL_VERIFICATION_TTL_MINUTES: ${EMAIL_VERIFICATION_TTL_MINUTES:-15}
     ports:
       - "${APP_PORT:-8000}:8000"
     volumes:

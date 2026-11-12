@@ -1,6 +1,5 @@
-
+"""Shared resource serialization helpers."""
 from typing import Any, Dict
-
 
 def format_resource_summary(db, row: Dict[str, Any]) -> Dict[str, Any]:
     tag_rows = db.fetchall(
@@ -12,7 +11,6 @@ def format_resource_summary(db, row: Dict[str, Any]) -> Dict[str, Any]:
         """,
         (row["id"],),
     )
-
     return {
         "id": row["id"],
         "title": row["title"],
