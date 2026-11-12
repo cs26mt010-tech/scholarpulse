@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/v1/ai", tags=["AI Study Assistant"])
 @router.post("/ask")
 def ask_study_assistant(
     payload: AIAskRequest,
-    user: Dict[str, Any] = Depends(require_authenticated_user),
+    user: Dict[str, Any] = Depends(require_authenticated_user), # noqa: B008
 ):
     t0 = time.time()
     question = payload.question.strip()
