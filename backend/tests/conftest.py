@@ -1,4 +1,3 @@
-
 """Self-contained local test database setup.
 
 CI may set DATABASE_URL to its MySQL service. Otherwise pytest uses an
@@ -22,6 +21,10 @@ os.environ.setdefault(
     f"sqlite:///{TEST_DB.as_posix()}",
 )
 os.environ.setdefault("UPLOAD_STORAGE_DIR", str(TEST_UPLOADS))
+
+# Tests must be hermetic: never call the real Gemini API, even if a key is set in .env or the
+# shell. With no key, unanswerable questions return the "Not found" refusal the tests expect.
+os.environ["GEMINI_API_KEY"] = ""
 
 # Start each SQLite test run with a clean database.
 if os.environ["DATABASE_URL"].startswith("sqlite:///"):
