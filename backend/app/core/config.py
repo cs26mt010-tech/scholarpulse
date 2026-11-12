@@ -32,6 +32,15 @@ class Settings:
     SESSION_COOKIE_SECURE: bool = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
     SESSION_COOKIE_SAMESITE: str = os.getenv("SESSION_COOKIE_SAMESITE", "lax")
 
+    # Gmail SMTP email verification (use a Google App Password, not your Gmail password)
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "465"))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "")
+    FRONTEND_BASE_URL: str = os.getenv("FRONTEND_BASE_URL", "http://localhost:8000")
+    EMAIL_VERIFICATION_TTL_MINUTES: int = int(os.getenv("EMAIL_VERIFICATION_TTL_MINUTES", "15"))
+
     # Uploads
     MAX_UPLOAD_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "5"))
     ALLOWED_UPLOAD_EXTENSIONS: tuple = (".pdf", ".txt")
@@ -40,7 +49,7 @@ class Settings:
     # Gemini AI Configuration (Server-Side Only)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_EMBEDDING_MODEL: str = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
-    GEMINI_GENERATION_MODEL: str = os.getenv("GEMINI_GENERATION_MODEL", "gemini-2.5-flash")
+    GEMINI_GENERATION_MODEL: str = os.getenv("GEMINI_GENERATION_MODEL","gemini-3.8-flash")
     AI_REQUEST_TIMEOUT_SECONDS: int = int(os.getenv("AI_REQUEST_TIMEOUT_SECONDS", "10"))
     AI_MAX_RETRIES: int = int(os.getenv("AI_MAX_RETRIES", "1"))
     AI_SIMILARITY_THRESHOLD: float = float(os.getenv("AI_SIMILARITY_THRESHOLD", "0.35"))
