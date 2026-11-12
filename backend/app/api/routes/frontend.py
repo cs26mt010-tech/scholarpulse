@@ -1,47 +1,9 @@
 """Frontend API routes."""
-import html
-import json
-import math
 import os
-import time
-import uuid
-import secrets
-import hashlib
-import re
-import smtplib
-from datetime import datetime, timedelta
-from email.message import EmailMessage
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
-from pydantic import BaseModel, Field
-
-from app.core.config import settings
-from app.core.security import (
-    create_session_cookie_value,
-    generate_csrf_token,
-    hash_password_argon2id,
-    verify_csrf_token,
-    verify_password_argon2id,
-    verify_session_cookie_value,
-)
-from app.db.session import get_db
-from app.services.rag_service import (
-    chunk_text_sliding,
-    compute_embedding,
-    generate_gemini_general_answer,
-    retrieve_chunks_for_scope,
-    synthesize_grounded_answer,
-)
-from app.api.dependencies import (
-    _send_verification_email,
-    _set_login_session,
-    get_optional_user,
-    require_authenticated_user,
-    require_moderator,
-)
+from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
 
 router = APIRouter()
 

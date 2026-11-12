@@ -1,6 +1,8 @@
 """Request schemas for auth endpoints."""
-from typing import List, Optional
+from typing import Optional
+
 from pydantic import BaseModel, Field
+
 
 class UserRegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)

@@ -1,10 +1,8 @@
 """ScholarPulse FastAPI application entry point."""
 
-import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 
 from app.api.routes.ai import router as ai_router
 from app.api.routes.auth import router as auth_router

@@ -1,6 +1,8 @@
 """Request schemas for moderation endpoints."""
-from typing import List, Optional
+from typing import Optional
+
 from pydantic import BaseModel, Field
+
 
 class ReportCreateRequest(BaseModel):
     target_type: str = Field(..., description="resource | comment")

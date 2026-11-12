@@ -1,6 +1,8 @@
 """Request schemas for collections endpoints."""
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
+
 
 class CollectionCreateRequest(BaseModel):
     title: str = Field(..., min_length=3, max_length=150)
