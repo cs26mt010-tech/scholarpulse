@@ -290,7 +290,7 @@ def retrieve_chunks_for_scope(
         scored.append(row_copy)
 
     scored.sort(key=lambda x: x["similarity_score"], reverse=True)
-    
+
 
     # Filter by configurable similarity threshold
     threshold = (
