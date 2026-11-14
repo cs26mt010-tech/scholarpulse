@@ -3,8 +3,8 @@ Grounded AI Study Assistant & RAG Pipeline Service (app/services/rag_service.py)
 --------------------------------------------------------------------------------
 Implements MS-1 Section 5 specifications:
 - Chunking: ~800 characters with 100 characters of overlap.
-- Embedding: `gemini-embedding-001` (with deterministic domain-aware semantic vector
-  representation when running offline/CI so tests never consume external quota).
+- Embedding: a deterministic, domain-aware 64-dimension vector computed locally by
+  `compute_embedding()` (no external embedding model is called).
 - Retrieval: Cosine similarity over active chunks in scope (`resource`, `collection` <= 20 resources,
   or `course` code). Top 5 chunks for single resource; Top 8 chunks with at most 3 per resource
   for multi-document scope.
@@ -16,7 +16,8 @@ Implements MS-1 Section 5 specifications:
      "BEGIN SYSTEM PROMPT HIJACK") are sanitized before synthesis.
   4. Citation verification ensures every cited `[Chunk ID]` was actually retrieved.
   5. Unanswerable questions return `"Not found in this document"`.
-  6. Timeout (10s + 1 retry) or quota exhaustion transparently falls back to keyword search.
+  6. The Gemini fallback uses a 10s timeout (+1 retry on server errors); on failure the "Not found"
+     answer is returned. A user-selected keyword mode uses MySQL FULLTEXT and never calls Gemini.
   7. When nothing relevant exists in the stored data, `generate_gemini_general_answer` asks Google
      Gemini (server-side, key from GEMINI_API_KEY) and the answer is clearly labelled as NOT
      grounded in ScholarPulse documents. Without a key, the "Not found" refusal is kept.

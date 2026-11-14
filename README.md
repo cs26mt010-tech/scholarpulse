@@ -2,7 +2,7 @@
 
 **Course Project 2026 | Theme 4: Knowledge Hub | Team of 4 (`cs26mt010-tech/scholarpulse`)**
 
-ScholarPulse is a multi-page academic knowledge hub where students upload, search, rate, comment on, and organise course notes, paper summaries, and curated reading lists. Teaching assistants publish official course reading lists, and moderators review reported content with logged actions. To reduce information overload during exam preparation, ScholarPulse includes a grounded **AI Study Assistant** (Google Gemini API `gemini-embedding-001` and `gemini-2.5-flash`, called strictly server-side) that answers questions using only the text of a chosen resource, a reading list collection (up to 20 resources), or an entire course code (`CS301`, `CS402`, `CS205`, `SE101`), citing the exact passages used and falling back to MySQL `FULLTEXT` keyword search on timeout or quota exhaustion.
+ScholarPulse is a multi-page academic knowledge hub where students upload, search, rate, comment on, and organise course notes, paper summaries, and curated reading lists. Teaching assistants publish official course reading lists, and moderators review reported content with logged actions. To reduce information overload during exam preparation, ScholarPulse includes a grounded **AI Study Assistant**. Retrieval and grounded answers run locally in the backend (deterministic 64-dimension chunk vectors and cosine similarity, no external model), answering only from the text of a chosen resource, a reading list collection (up to 20 resources), or an entire course code (`CS301`, `CS402`, `CS205`, `SE101`) and citing the exact passages used. When nothing relevant is found in the stored documents, an optional server-side fallback asks Google Gemini (`gemini-2.5-flash`) a general-knowledge question and labels the answer as not grounded. Only the question text is sent to Gemini; a MySQL `FULLTEXT` keyword mode is available that never calls Gemini.
 
 ## Team Members
 
@@ -92,6 +92,6 @@ has passed on the remote repository. Check the Actions tab after pushing these c
 `POST /api/v1/ai/ask` first searches the stored documents (resource, collection or course scope). If nothing relevant is found **and** `GEMINI_API_KEY` is set in `.env`, the backend asks Google Gemini (`GEMINI_GENERATION_MODEL`, default `gemini-2.5-flash`) and returns:
 
 - `general_ai_used: true`, `not_found: false`, empty `citations`, and a `general_ai_notice` saying the answer is not grounded in ScholarPulse documents (the UI shows it in a separate blue "Gemini - General Answer" box).
-- Without a key, on a Gemini error/quota/timeout, or when "Keyword search only" is ticked, the usual "Not found in this document" refusal is returned.
+- Without a key, on a Gemini error/quota/timeout, or when "Keyword search only" is ticked, the usual "Not found in this document" refusal is returned. Only the question text is sent to Gemini (no document text, emails or other identifiers).
 
 The key stays server-side. Get one at https://aistudio.google.com/apikey, then set `GEMINI_API_KEY=...` in `.env` and restart (`docker compose up --build`).
