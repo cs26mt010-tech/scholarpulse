@@ -84,11 +84,11 @@ jobs:
           python scripts/seed_db.py
           python scripts/seed_db.py
 
-      - name: Run Pytest with MS-4 coverage gate (minimum 60%)
+      - name: Run Pytest with MS-5 coverage gate (minimum 70%)
         run: |
-          pytest backend/tests/test_ms3_stack.py -v \
+          pytest backend/tests -v \
             --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml \
-            --cov-fail-under=60
+            --cov-fail-under=70
 
       - name: Run RAG evaluation benchmark
         run: python scripts/evaluate_rag.py
