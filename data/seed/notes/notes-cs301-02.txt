@@ -1,0 +1,15 @@
+TITLE: Weighted Shortest Paths: Dijkstra, Bellman-Ford & Johnson's Algorithm
+COURSE: CS301 | TYPE: lecture_notes | AUTHORS: Harshit Pant, Snehadip Ghoshal
+==============================================================================
+
+## 1. Edge Relaxation and Optimal Substructure
+Single-Source Shortest Paths (SSSP) algorithms maintain an upper bound d[v] on the shortest-path weight delta(s, v) from source s. Relaxing an edge (u, v) with weight w(u, v) tests whether d[v] > d[u] + w(u, v) and, if so, updates d[v] = d[u] + w(u, v) and sets predecessor pi[v] = u. Every subpath of a shortest path is itself a shortest path, satisfying optimal substructure.
+
+## 2. Dijkstra's Algorithm and Non-Negative Edge Weights
+Dijkstra's algorithm solves SSSP on graphs with strictly non-negative edge weights (w(u, v) >= 0 for all edges). It maintains a settled set S of vertices whose final shortest-path weights have been determined and repeatedly extracts the unsettled vertex u in V - S with minimum d[u]. Using a binary min-heap priority queue, Dijkstra runs in O((V + E) log V) time; using a Fibonacci heap with O(1) amortized decrease-key, it achieves O(V log V + E) time. If negative edge weights are present, Dijkstra's greedy invariant fails because a later negative edge could reduce the distance to an already settled vertex.
+
+## 3. Bellman-Ford Algorithm and Negative Cycle Detection
+The Bellman-Ford algorithm handles arbitrary real edge weights, including negative weights. It relaxes all |E| edges across |V| - 1 sequential passes, running in O(V * E) time. Because any simple shortest path contains at most |V| - 1 edges, d[v] converges to delta(s, v) after |V| - 1 passes if no negative-weight cycle is reachable from s. A |V|-th pass tests every edge (u, v): if d[v] > d[u] + w(u, v) still holds for any edge, the graph contains a reachable negative-weight cycle and Bellman-Ford reports its existence.
+
+## 4. All-Pairs Shortest Paths: Floyd-Warshall vs Johnson's Reweighting
+For dense graphs, Floyd-Warshall computes All-Pairs Shortest Paths (APSP) in Theta(V^3) time using dynamic programming over intermediate vertex sets {1..k}. For sparse graphs without negative cycles, Johnson's algorithm adds a dummy vertex q0 with zero-weight edges to all vertices, runs Bellman-Ford once to compute vertex potentials h(v), reweights every edge to non-negative w_hat(u, v) = w(u, v) + h(u) - h(v) >= 0, and runs Dijkstra from all |V| vertices in O(V^2 log V + V E) total time.

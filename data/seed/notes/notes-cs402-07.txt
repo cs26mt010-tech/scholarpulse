@@ -1,0 +1,15 @@
+TITLE: Vector Embeddings, Cosine Similarity & Hybrid RAG Storage in MySQL
+COURSE: CS402 | TYPE: lecture_notes | AUTHORS: Harshit Pant, Gangadevi Venkata Siva krishna
+==============================================================================
+
+## 1. Chunking Strategy: 800-Character Windows with 100-Character Overlap
+In ScholarPulse's retrieval-augmented generation (RAG) pipeline, uploaded academic notes are split into chunks of approximately 800 characters with a 100-character sliding overlap. The 800-character length captures a complete definition, theorem, or complexity analysis paragraph, while the 100-character overlap prevents key equations or boundary sentences from being severed across adjacent chunks.
+
+## 2. Dense Embeddings (`gemini-embedding-001`) and Cosine Similarity
+Each text chunk and incoming student question is embedded server-side using Google's `gemini-embedding-001` model into a dense floating-point vector u, v in R^d. Semantic similarity is measured via cosine similarity: cos(u, v) = (u . v) / (||u||_2 * ||v||_2). When embedding vectors are L2-normalized to unit length at storage time, cosine similarity reduces to a fast inner dot product sum(u_i * v_i).
+
+## 3. Why MySQL 8 Suffices Without an External Vector Database
+Even across an entire academic course scope, the library holds only a few thousand chunks (`resource_chunks`). Pre-filtering chunks in MySQL 8 by `category_id` or `collection_id` and `resources.status = 'active'` using composite B+Tree indexes and computing vectorized cosine similarity in the Python backend completes in under 15 milliseconds, eliminating the operational complexity of running a separate vector database container.
+
+## 4. Multi-Document Scope Diversification (Cap of 3 Chunks per Resource)
+When a student asks a question across a collection (up to 20 resources) or an entire course code, naive top-k retrieval can let a single verbose document monopolize all context slots. ScholarPulse retrieves the top 8 chunks above the similarity threshold (0.35) subject to a hard cap of at most 3 chunks per individual resource, ensuring balanced multi-document synthesis and per-source citations.

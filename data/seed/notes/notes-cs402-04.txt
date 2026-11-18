@@ -1,0 +1,15 @@
+TITLE: Multi-Version Concurrency Control (MVCC), Snapshot Isolation & Write Skew
+COURSE: CS402 | TYPE: slides | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. How MVCC Eliminates Reader-Writer Blocking
+Under Multi-Version Concurrency Control (MVCC), updating a tuple does not overwrite it in place; instead, the storage engine creates a new timestamped version linked via a rollback undo pointer chain. Readers are assigned a read timestamp (ReadView) and traverse version chains to read the latest version committed prior to their snapshot, so readers never block writers and writers never block readers.
+
+## 2. Snapshot Isolation (SI) First-Committer-Wins Rule
+Under Snapshot Isolation (SI), each transaction reads from a consistent committed snapshot taken at its start time. To prevent Lost Updates on concurrent writes to the same row, SI enforces the First-Committer-Wins rule: if two concurrent transactions T1 and T2 modify the same data item X, the second one to commit is aborted with a serialization failure.
+
+## 3. The Write Skew Anomaly and Serializable Snapshot Isolation (SSI)
+Snapshot Isolation is NOT strictly serializable because it permits Write Skew: two transactions read overlapping sets of rows (e.g., checking that at least two on-call doctors are scheduled) and update disjoint rows (each doctor removing themselves), violating the global invariant without triggering a WW conflict on the same row. Serializable Snapshot Isolation (SSI) tracks rw-antidependency edges and aborts transactions when two consecutive rw-conflicts form a dangerous structure.
+
+## 4. InnoDB Gap Locks and Next-Key Locking under REPEATABLE READ
+MySQL InnoDB uses MVCC for plain `SELECT` queries under `REPEATABLE READ`, and employs Next-Key Locks (combining a record lock with a gap lock on the B+Tree key interval preceding the record) for locking reads (`SELECT ... FOR UPDATE`) to prevent phantom insertions.

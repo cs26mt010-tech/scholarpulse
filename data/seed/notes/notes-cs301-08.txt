@@ -1,0 +1,15 @@
+TITLE: Randomized Algorithms, Universal Hashing & Skip Lists
+COURSE: CS301 | TYPE: assignment | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. Las Vegas versus Monte Carlo Randomized Algorithms
+A Las Vegas randomized algorithm (such as Randomized Quicksort) always produces a guaranteed correct output, with its running time being a random variable whose expectation is bounded over internal coin flips. A Monte Carlo algorithm (such as Miller-Rabin primality testing or Karger's min-cut) runs in deterministic time but has a bounded probability of returning an incorrect output, which can be amplified exponentially by independent repetitions.
+
+## 2. Randomized Quicksort Expected Comparisons via Indicator Variables
+In Randomized Quicksort, choosing the pivot uniformly at random from the subarray eliminates adversarial input ordering. Using indicator random variables X_{ij} for the event that the i-th smallest and j-th smallest elements are ever compared, Pr[X_{ij} = 1] = 2 / (j - i + 1) because they are compared iff one of them is the first pivot selected from {z_i, ..., z_j}. Summing over all pairs yields E[X] <= 2n ln n = O(n log n) expected comparisons.
+
+## 3. Universal Hash Families and Perfect Two-Level Hashing
+A family H of hash functions mapping universe U to {0..m-1} is universal if for every distinct pair x != y, at most |H| / m functions satisfy h(x) = h(y). With chaining and load factor alpha = n/m, expected lookup time is O(1 + alpha) for ANY worst-case input set. Fredman-Komlos-Szemeredi (FKS) two-level hashing uses a secondary table of size m_j = n_j^2 per bucket to achieve O(1) worst-case lookup with O(n) total space.
+
+## 4. Skip Lists: Probabilistic Alternative to Balanced Trees
+A Skip List maintains hierarchical linked lists where each inserted element is promoted to the next level with probability p = 1/2. With high probability (1 - 1/n^c), the maximum level is O(log n) and search, insertion, and deletion traverse O(log n) nodes without complex tree rotations.

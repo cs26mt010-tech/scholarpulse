@@ -1,0 +1,15 @@
+TITLE: Greedy Algorithms, Matroids & Exchange Argument Proof Strategies
+COURSE: CS301 | TYPE: lecture_notes | AUTHORS: Harshit Pant
+==============================================================================
+
+## 1. The Greedy Choice Property and Exchange Arguments
+A greedy algorithm makes locally optimal choices at each step without solving all subproblems first. Correctness requires proving the greedy choice property: there exists an globally optimal solution that includes the first greedy choice. In an exchange argument, we start with an arbitrary optimal solution O* that differs from the greedy schedule G, swap one element in O* for the greedy choice without worsening the objective value, and inductively transform O* into G.
+
+## 2. Activity Selection and Huffman Prefix-Free Coding
+In interval scheduling (activity selection), sorting activities by earliest finish time f_1 <= f_2 <= ... <= f_n and greedily picking compatible intervals yields a maximum-cardinality subset in O(n log n) time. In Huffman coding, repeatedly merging the two symbols with lowest frequencies in a min-heap builds an optimal prefix-free binary code tree in O(n log n) time, achieving total bit length within 1 bit per symbol of the Shannon entropy H(X).
+
+## 3. Minimum Spanning Trees: Cut Property, Kruskal, and Prim
+For a connected undirected graph with weighted edges, the Cut Property states that the lightest edge crossing any partition (S, V - S) of vertices is safe to include in a Minimum Spanning Tree (MST). Kruskal's algorithm sorts edges by weight in O(E log E) time and uses a Disjoint-Set Union (DSU) with path compression and union-by-rank (O(E alpha(V))) to add safe edges that do not form cycles. Prim's algorithm grows a single tree from a root vertex using a priority queue in O(E + V log V) time with a Fibonacci heap.
+
+## 4. Matroid Theory Characterization of Greedy Optimality
+A matroid M = (S, I) consists of a finite ground set S and a family of independent subsets I satisfying the hereditary property and the augmentation (exchange) property. Rado-Edmonds Theorem proves that the standard greedy algorithm returns a maximum-weight independent set for every non-negative weight function if and only if (S, I) is a matroid (such as graphic matroids for MSTs).

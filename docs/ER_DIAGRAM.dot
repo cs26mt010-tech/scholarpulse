@@ -1,0 +1,36 @@
+digraph ScholarPulseERD {
+  graph [rankdir=LR, splines=polyline, overlap=false, nodesep=0.35, ranksep=0.75, pad=0.25, bgcolor="white", labelloc="t", label="ScholarPulse — Normalized ER Diagram (12 application tables)", fontsize=22, fontname="Helvetica"];
+  node [shape=plain, fontname="Helvetica", fontsize=9];
+  edge [fontname="Helvetica", fontsize=8, color="#475569", arrowsize=0.7];
+  users [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#dbeafe"><B>users</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">UK username</TD></TR><TR><TD ALIGN="LEFT">UK email</TD></TR><TR><TD ALIGN="LEFT">password_hash</TD></TR><TR><TD ALIGN="LEFT">bio, role, consent_accepted</TD></TR><TR><TD ALIGN="LEFT">created_at</TD></TR></TABLE>>];
+  categories [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#dbeafe"><B>categories</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">UK course_code</TD></TR><TR><TD ALIGN="LEFT">course_name</TD></TR><TR><TD ALIGN="LEFT">department, description</TD></TR></TABLE>>];
+  resources [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#dcfce7"><B>resources</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK category_id</TD></TR><TR><TD ALIGN="LEFT">FK uploader_id</TD></TR><TR><TD ALIGN="LEFT">UK source_ref</TD></TR><TR><TD ALIGN="LEFT">title, content_text, tldr_summary</TD></TR><TR><TD ALIGN="LEFT">resource_type, source_authors, published_on</TD></TR><TR><TD ALIGN="LEFT">file_name, file_size_bytes, is_official</TD></TR><TR><TD ALIGN="LEFT">rights_confirmed, status, embedding_status</TD></TR><TR><TD ALIGN="LEFT">avg_rating, rating_count, comment_count</TD></TR><TR><TD ALIGN="LEFT">created_at, updated_at</TD></TR></TABLE>>];
+  chunks [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fef3c7"><B>resource_chunks</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK resource_id</TD></TR><TR><TD ALIGN="LEFT">chunk_index, chunk_text</TD></TR><TR><TD ALIGN="LEFT">char_length, embedding_json</TD></TR><TR><TD ALIGN="LEFT">embedding_model, created_at</TD></TR><TR><TD ALIGN="LEFT">UK (resource_id, chunk_index)</TD></TR></TABLE>>];
+  tags [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fef3c7"><B>tags</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">UK name</TD></TR><TR><TD ALIGN="LEFT">UK slug</TD></TR><TR><TD ALIGN="LEFT">created_at</TD></TR></TABLE>>];
+  resource_tags [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fef3c7"><B>resource_tags</B></TD></TR><TR><TD ALIGN="LEFT">PK/FK resource_id</TD></TR><TR><TD ALIGN="LEFT">PK/FK tag_id</TD></TR><TR><TD ALIGN="LEFT">created_at</TD></TR></TABLE>>];
+  ratings [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fef3c7"><B>ratings</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK resource_id</TD></TR><TR><TD ALIGN="LEFT">FK user_id</TD></TR><TR><TD ALIGN="LEFT">score (1–5), created_at</TD></TR><TR><TD ALIGN="LEFT">updated_at</TD></TR><TR><TD ALIGN="LEFT">UK (resource_id, user_id)</TD></TR></TABLE>>];
+  comments [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fef3c7"><B>comments</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK resource_id</TD></TR><TR><TD ALIGN="LEFT">FK user_id</TD></TR><TR><TD ALIGN="LEFT">body, status</TD></TR><TR><TD ALIGN="LEFT">created_at, updated_at</TD></TR></TABLE>>];
+  collections [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#dcfce7"><B>collections</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK owner_id</TD></TR><TR><TD ALIGN="LEFT">FK category_id (nullable)</TD></TR><TR><TD ALIGN="LEFT">title, description</TD></TR><TR><TD ALIGN="LEFT">is_official, is_public</TD></TR><TR><TD ALIGN="LEFT">created_at, updated_at</TD></TR></TABLE>>];
+  collection_items [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fef3c7"><B>collection_items</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK collection_id</TD></TR><TR><TD ALIGN="LEFT">FK resource_id</TD></TR><TR><TD ALIGN="LEFT">position, notes, added_at</TD></TR><TR><TD ALIGN="LEFT">UK (collection_id, resource_id)</TD></TR></TABLE>>];
+  reports [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#fee2e2"><B>reports</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK reporter_id</TD></TR><TR><TD ALIGN="LEFT">FK moderator_id (nullable)</TD></TR><TR><TD ALIGN="LEFT">target_type, target_id*</TD></TR><TR><TD ALIGN="LEFT">reason, details, status</TD></TR><TR><TD ALIGN="LEFT">moderation_action, moderation_note</TD></TR><TR><TD ALIGN="LEFT">created_at, resolved_at</TD></TR></TABLE>>];
+  ai_queries [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5"><TR><TD BGCOLOR="#f3e8ff"><B>ai_queries</B></TD></TR><TR><TD ALIGN="LEFT">PK id</TD></TR><TR><TD ALIGN="LEFT">FK user_id (nullable)</TD></TR><TR><TD ALIGN="LEFT">scope_type, scope_id</TD></TR><TR><TD ALIGN="LEFT">question, answer_text</TD></TR><TR><TD ALIGN="LEFT">cited_chunk_ids_json</TD></TR><TR><TD ALIGN="LEFT">not_found, fallback_used</TD></TR><TR><TD ALIGN="LEFT">model_used, latency_ms, created_at</TD></TR></TABLE>>];
+  indexes [shape=note, fontsize=9, label="INDEX NOTES\n• resources(category_id, status, avg_rating): browse/filter by course and rating\n• resources(resource_type, status, created_at): type filters + newest sort\n• resource_chunks(resource_id, chunk_index): chunk lookup/order; MySQL FULLTEXT(chunk_text) for fallback\n• comments(resource_id, status, created_at): detail-page comments\n• collections(is_official, is_public, created_at): public/official lists\n• collection_items(collection_id, position): ordered collection detail\n• reports(status, created_at): moderator queue\n• ai_queries(user_id, created_at): 20/hour rate-limit check\n• UNIQUE: users.email/username, ratings(resource_id,user_id), collection_items(collection_id,resource_id)\n* reports.target_id is polymorphic (resource or comment); validated in application code, not a single FK."];
+
+  users -> resources [label="uploader 1 : 0..*", taillabel="1", headlabel="0..*", labeldistance=1.4];
+  categories -> resources [label="course 1 : 0..*", taillabel="1", headlabel="0..*"];
+  resources -> chunks [label="1 : 0..*"];
+  resources -> resource_tags [label="1 : 0..*"];
+  tags -> resource_tags [label="1 : 0..*"];
+  users -> ratings [label="1 : 0..*"];
+  resources -> ratings [label="1 : 0..*"];
+  users -> comments [label="1 : 0..*"];
+  resources -> comments [label="1 : 0..*"];
+  users -> collections [label="owner 1 : 0..*"];
+  categories -> collections [label="0..1 : 0..*"];
+  collections -> collection_items [label="1 : 0..*"];
+  resources -> collection_items [label="1 : 0..*"];
+  users -> reports [label="reporter 1 : 0..*"];
+  users -> reports [label="moderator 0..1 : 0..*"];
+  users -> ai_queries [label="1 : 0..*"];
+  indexes -> resources [style=invis];
+}

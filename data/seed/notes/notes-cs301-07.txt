@@ -1,0 +1,15 @@
+TITLE: NP-Completeness, Polynomial Reductions & Approximation Ratios
+COURSE: CS301 | TYPE: lecture_notes | AUTHORS: Gangadevi Venkata Siva krishna
+==============================================================================
+
+## 1. Complexity Classes P, NP, co-NP, and Cook-Levin Theorem
+Class P comprises decision problems solvable in polynomial O(n^k) time on a deterministic Turing machine. Class NP comprises decision problems where a yes-instance has a polynomial-size certificate verifiable in deterministic polynomial time. By the Cook-Levin Theorem, Boolean Satisfiability (SAT) and 3-CNF-SAT are NP-complete: every problem in NP reduces to 3-SAT in polynomial time (L <=_P 3-SAT).
+
+## 2. Designing Polynomial-Time Karp Reductions
+To prove a target problem B is NP-hard using a known NP-complete problem A, we construct a polynomial-time transformation f from instances x of A to instances f(x) of B (A <=_P B) such that x is a YES instance of A if and only if f(x) is a YES instance of B. Reducing in the wrong direction (B <=_P A) is a common exam mistake that only shows B is no harder than A.
+
+## 3. Classical Reduction Chain: 3-SAT -> Clique -> Vertex Cover -> Set Cover
+From 3-SAT with k clauses, we construct a graph with 3k vertices (one per literal) and edges between non-contradictory literals in different clauses; a Clique of size k exists iff the formula is satisfiable. Taking the complement graph reduces k-Clique to (|V| - k)-Independent Set and to k-Vertex Cover, which in turn reduces to Set Cover and Hamiltonian Cycle.
+
+## 4. Approximation Algorithms: 2-Approx Vertex Cover and Ln(n) Set Cover
+For unweighted Vertex Cover, greedily picking a maximal matching M and taking both endpoints of every edge in M yields a 2-approximation because any valid cover must pick at least one endpoint per matched edge (|C| = 2|M| <= 2|OPT|). For Set Cover over n elements, greedily picking the subset with lowest cost per newly covered element achieves an H_n <= ln(n) + 1 approximation ratio.

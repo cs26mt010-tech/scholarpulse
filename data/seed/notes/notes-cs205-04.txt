@@ -1,0 +1,15 @@
+TITLE: Deadlocks: Coffman Conditions, Resource Allocation Graphs & Banker's Algorithm
+COURSE: CS205 | TYPE: slides | AUTHORS: Ritik Kumar, Harshit Pant
+==============================================================================
+
+## 1. The Four Necessary and Sufficient Coffman Deadlock Conditions
+A deadlock can occur if and only if four conditions hold simultaneously: (1) Mutual Exclusion (resources are non-shareable); (2) Hold and Wait (a thread holds one resource while waiting to acquire another); (3) No Preemption (resources cannot be forcibly taken from a holder); and (4) Circular Wait (a closed cycle of threads exists where each waits for a resource held by the next).
+
+## 2. Deadlock Prevention via Total Lock Ordering
+In systems programming, the most practical deadlock prevention technique breaks Circular Wait (condition 4) by imposing a strict global total ordering on all lock acquisitions (e.g., always acquiring `lock_A` before `lock_B`, or ordering locks by memory address when locking two dynamic objects).
+
+## 3. Resource Allocation Graphs (RAG) for Single- vs Multi-Instance Resources
+In a Resource Allocation Graph with request edges (T_i -> R_j) and assignment edges (R_j -> T_i), if every resource type has exactly a single instance, a cycle is both necessary and sufficient for deadlock. If resource types have multiple instances, a cycle is necessary but NOT sufficient for deadlock.
+
+## 4. Dijkstra's Banker's Algorithm for Safe State Verification
+For multi-instance resources with declared `Max` demands, the Banker's safety algorithm checks whether a safe sequence `<T_1, ..., T_n>` exists by tracking `Need[i] = Max[i] - Allocation[i]` and simulating completion of any thread with `Need[i] <= Work` in O(m * n^2) time for n threads and m resource types.

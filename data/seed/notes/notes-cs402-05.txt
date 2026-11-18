@@ -1,0 +1,15 @@
+TITLE: Crash Recovery: Write-Ahead Logging (WAL) & The ARIES Protocol
+COURSE: CS402 | TYPE: lecture_notes | AUTHORS: Harshit Pant, Ritik Kumar
+==============================================================================
+
+## 1. Steal / No-Force Buffer Pool Management
+Modern DBMS engines use a Steal / No-Force policy: Steal allows the buffer manager to flush dirty uncommitted pages to disk when memory is needed (requiring Undo capability for Atomicity), while No-Force allows a transaction to commit without immediately forcing all modified data pages to disk via random I/O (requiring Redo capability for Durability).
+
+## 2. Write-Ahead Logging (WAL) Invariants and LSNs
+Every log record is assigned a monotonically increasing Log Sequence Number (LSN), and every data page records the `pageLSN` of the most recent update applied to it. The WAL protocol enforces two rules: (1) before a dirty page is written to disk, log records up to `pageLSN` must be flushed to stable storage (Undo guarantee); and (2) before a transaction commits, its commit log record must be flushed to stable storage (Redo guarantee).
+
+## 3. ARIES Three-Phase Recovery: Analysis, Redo, and Undo
+Upon restart after a crash, ARIES begins at the last Fuzzy Checkpoint and runs three phases: (1) Analysis scans forward to reconstruct the Transaction Table (active loser transactions) and Dirty Page Table (storing `recLSN`, the oldest log record not yet flushed to disk); (2) Redo ('Repeating History') scans forward from the minimum `recLSN` and reapplies all logged changes (even for aborted transactions) unless `pageLSN >= LSN`; (3) Undo scans backward, reversing all actions of loser transactions in reverse LSN order.
+
+## 4. Compensation Log Records (CLRs) for Idempotent Restart
+During the Undo phase, each undone operation writes a Compensation Log Record (CLR) containing an `UndoNextLSN` pointer to the next action to undo for that transaction. If a second crash occurs during recovery, ARIES never undoes an undo; it follows `UndoNextLSN` to guarantee bounded, idempotent recovery.

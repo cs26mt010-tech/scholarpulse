@@ -1,0 +1,15 @@
+TITLE: REST API Design, OpenAPI 3.0 Contracts & Idempotency Semantics
+COURSE: SE101 | TYPE: lecture_notes | AUTHORS: Gangadevi Venkata Siva krishna, Snehadip Ghoshal
+==============================================================================
+
+## 1. Contract-First API Design with OpenAPI 3.0.3
+In contract-first development, teams author and review the formal OpenAPI 3.0 YAML specification (`docs/openapi.yaml`) before implementing frontend and backend integration. Defining explicit request/response JSON schemas, HTTP status codes (`200`, `201`, `400`, `401`, `403`, `404`, `429`), and security schemes (`SessionCookie`, `CsrfToken`) enables parallel frontend/backend work and automated contract testing.
+
+## 2. HTTP Method Safety and Idempotency Guarantees
+An HTTP method is safe if it does not mutate server state (`GET`, `HEAD`, `OPTIONS`), and idempotent if executing the identical request multiple times produces the exact same server state as executing it once (`GET`, `PUT`, `DELETE`). `POST` is neither safe nor idempotent unless guarded by an explicit `Idempotency-Key` header or unique database constraint.
+
+## 3. Pagination, Filtering, and Sorting Conventions
+Collection endpoints such as `GET /api/v1/resources` return a deterministic envelope (`items`, `total`, `page`, `page_size`, `total_pages`) rather than unbounded arrays, protecting both MySQL memory and browser rendering performance.
+
+## 4. Structured Error Envelopes and Input Validation
+FastAPI and Pydantic validate every incoming request body, query parameter, and multipart upload against strict length, type, and enum constraints, returning uniform `ErrorResponse` JSON payloads (`error`, `message`, `details`) without leaking stack traces or internal SQL metadata.

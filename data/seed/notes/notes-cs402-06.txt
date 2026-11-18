@@ -1,0 +1,15 @@
+TITLE: Query Optimization: Join Algorithms, Cost Estimation & Selinger DP
+COURSE: CS402 | TYPE: lecture_notes | AUTHORS: Snehadip Ghoshal, Harshit Pant
+==============================================================================
+
+## 1. Physical Join Operators: Block Nested-Loop, Sort-Merge, and Grace Hash Join
+For relations R (M pages) and S (N pages) with B buffer pages: Block Nested-Loop Join reads S once per (B-2)-page chunk of R, costing M + ceil(M / (B - 2)) * N I/Os. Sort-Merge Join sorts both inputs via external merge sort and merges them in O(M log_B M + N log_B N) I/Os, excelling when inputs are already indexed or order is needed downstream. Grace Hash Join partitions R and S using hash function h1 into B-1 buckets and probes in-memory hash tables using h2 in 3(M + N) I/Os provided B > sqrt(min(M, N)).
+
+## 2. Iterator Model (Volcano) vs Vectorized Execution
+The classical Volcano iterator model chains `Next()` calls tuple-by-tuple, Enabling pipelining without materializing full intermediate tables, but incurs high virtual-function call overhead per tuple. Vectorized engines process batches of 1,024 columnar values per `Next()` invocation, amortizing dispatch overhead and utilizing CPU SIMD lanes.
+
+## 3. Selectivity Estimation and Equi-Depth Histograms
+Query optimizers estimate output cardinality using column histograms and HyperLogLog distinct-value sketches. Equi-depth histograms partition attribute ranges so each bucket holds an equal number of tuples, providing substantially lower estimation error on skewed distributions than equi-width histograms.
+
+## 4. System R (Selinger) Left-Deep Join Tree Enumeration
+For an n-way join, the number of bushy join trees grows as Catalan(n-1) * n!. System R restricts search to left-deep trees (where the right child of every join is a base table, enabling pipelined index probes) and uses dynamic programming over subsets of relations while retaining plans with 'interesting orders' (sort orders useful for subsequent `GROUP BY` or `ORDER BY` clauses).

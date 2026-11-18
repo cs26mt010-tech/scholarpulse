@@ -1,0 +1,144 @@
+erDiagram
+    USERS ||--o{ RESOURCES : uploads
+    CATEGORIES ||--o{ RESOURCES : classifies
+    RESOURCES ||--o{ RESOURCE_CHUNKS : splits_into
+    RESOURCES ||--o{ RESOURCE_TAGS : tagged_with
+    TAGS ||--o{ RESOURCE_TAGS : assigned_to
+    USERS ||--o{ RATINGS : gives
+    RESOURCES ||--o{ RATINGS : receives
+    USERS ||--o{ COMMENTS : writes
+    RESOURCES ||--o{ COMMENTS : has
+    USERS ||--o{ COLLECTIONS : owns
+    CATEGORIES o|--o{ COLLECTIONS : optionally_groups
+    COLLECTIONS ||--o{ COLLECTION_ITEMS : contains
+    RESOURCES ||--o{ COLLECTION_ITEMS : appears_in
+    USERS ||--o{ REPORTS : submits
+    USERS o|--o{ REPORTS : moderates
+    USERS o|--o{ AI_QUERIES : asks
+
+    USERS {
+        int id PK
+        varchar username UK
+        varchar email UK
+        varchar password_hash
+        varchar bio
+        varchar role
+        boolean consent_accepted
+        datetime created_at
+    }
+    CATEGORIES {
+        int id PK
+        varchar course_code UK
+        varchar course_name
+        varchar department
+        varchar description
+        datetime created_at
+    }
+    RESOURCES {
+        int id PK
+        varchar title
+        text content_text
+        varchar tldr_summary
+        varchar resource_type
+        int category_id FK
+        int uploader_id FK
+        varchar source_authors
+        varchar source_ref UK
+        date published_on
+        varchar file_name
+        int file_size_bytes
+        boolean is_official
+        boolean rights_confirmed
+        varchar status
+        varchar embedding_status
+        float avg_rating
+        int rating_count
+        int comment_count
+        datetime created_at
+        datetime updated_at
+    }
+    RESOURCE_CHUNKS {
+        int id PK
+        int resource_id FK
+        int chunk_index
+        text chunk_text
+        int char_length
+        text embedding_json
+        varchar embedding_model
+        datetime created_at
+    }
+    TAGS {
+        int id PK
+        varchar name UK
+        varchar slug UK
+        datetime created_at
+    }
+    RESOURCE_TAGS {
+        int resource_id PK, FK
+        int tag_id PK, FK
+        datetime created_at
+    }
+    RATINGS {
+        int id PK
+        int resource_id FK
+        int user_id FK
+        int score
+        datetime created_at
+        datetime updated_at
+    }
+    COMMENTS {
+        int id PK
+        int resource_id FK
+        int user_id FK
+        text body
+        varchar status
+        datetime created_at
+        datetime updated_at
+    }
+    COLLECTIONS {
+        int id PK
+        varchar title
+        varchar description
+        int owner_id FK
+        int category_id FK
+        boolean is_official
+        boolean is_public
+        datetime created_at
+        datetime updated_at
+    }
+    COLLECTION_ITEMS {
+        int id PK
+        int collection_id FK
+        int resource_id FK
+        int position
+        varchar notes
+        datetime added_at
+    }
+    REPORTS {
+        int id PK
+        int reporter_id FK
+        varchar target_type
+        int target_id
+        varchar reason
+        varchar details
+        varchar status
+        int moderator_id FK
+        varchar moderation_action
+        varchar moderation_note
+        datetime created_at
+        datetime resolved_at
+    }
+    AI_QUERIES {
+        int id PK
+        int user_id FK
+        varchar scope_type
+        varchar scope_id
+        varchar question
+        text answer_text
+        varchar cited_chunk_ids_json
+        boolean not_found
+        boolean fallback_used
+        varchar model_used
+        int latency_ms
+        datetime created_at
+    }

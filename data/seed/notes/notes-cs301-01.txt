@@ -1,0 +1,15 @@
+TITLE: Graph Algorithms — Week 04: BFS, DFS & Shortest Path Invariants
+COURSE: CS301 | TYPE: lecture_notes | AUTHORS: A. Sharma, Harshit Pant
+==============================================================================
+
+## 1. Graph Representations and Memory Tradeoffs
+A directed or undirected graph G = (V, E) with |V| vertices and |E| edges is typically represented either as an adjacency matrix requiring Theta(V^2) space or as an adjacency list requiring Theta(V + E) space. For sparse graphs where |E| << |V|^2, adjacency lists provide optimal O(V + E) traversal complexity and superior CPU cache locality when stored in contiguous Compressed Sparse Row (CSR) arrays. Edge queries take O(degree(u)) on adjacency lists versus O(1) on adjacency matrices.
+
+## 2. Breadth-First Search (BFS) and Layer Invariants
+Breadth-First Search (BFS) explores vertices in increasing distance layers from a designated source vertex s. It maintains a First-In-First-Out (FIFO) queue Q and three vertex colors: WHITE (undiscovered), GRAY (discovered and currently in the frontier queue Q), and BLACK (fully explored). Because the FIFO queue processes all vertices at distance k before any vertex at distance k + 1, the first time a vertex v is reached, it is reached via the fewest possible edges from s. Consequently, when all edges have equal unit weight, BFS guarantees shortest paths in O(V + E) time and builds a breadth-first predecessor tree.
+
+## 3. Depth-First Search (DFS), Timestamps, and Topological Sort
+Depth-First Search (DFS) explores as deeply as possible along each branch before backtracking, recording discovery time d[u] and finish time f[u] for every vertex u. By the Parenthesis Theorem, intervals [d[u], f[u]] and [d[v], f[v]] are either completely disjoint or one is strictly contained within the other. A directed graph G is a Directed Acyclic Graph (DAG) if and only if a DFS traversal encounters zero back edges (edges (u, v) where v is an ancestor of u in the DFS tree). Ordering vertices by decreasing finish time f[u] yields a valid topological sort in O(V + E) time.
+
+## 4. Tarjan's and Kosaraju's Strongly Connected Components (SCC)
+Two vertices u and v in a directed graph belong to the same Strongly Connected Component (SCC) if both u ->* v and v ->* u exist. Kosaraju's algorithm computes all SCCs in two linear O(V + E) passes: first computing DFS finish times on G, and second running DFS on the transpose graph G^T in decreasing order of finish times. Contracting each SCC into a super-vertex always produces a condensed component DAG.
