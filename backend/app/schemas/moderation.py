@@ -15,4 +15,3 @@ class ModerationActionRequest(BaseModel):
     note: Optional[str] = Field(None, max_length=500)
 
 REPORT_REASONS = ("copyright_concern", "incorrect_or_misleading", "low_quality_or_spam", "inappropriate_content")
-
