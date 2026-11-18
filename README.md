@@ -8,13 +8,8 @@ ScholarPulse is a multi-page academic knowledge hub where students upload, searc
 
 | # | Name | Roll No. | Main Area |
 | :- | :--- | :--- | :--- |
-| 1 | Harshit Pant | `cs26mt006` |Backend: all REST endpoints
-(resources, collections, roles and
-moderation), upload and chunking,
-AI retrieval pipeline |
-| 2 | Snehadip Ghoshal | `cs26mt010` | Database (schema, migrations, seed
-data), frontend UI/UX for all pages,
-accessibility, Figma, Playwright E2E
+| 1 | Harshit Pant | `cs26mt006` |Backend: all REST endpoints(resources, collections, roles andmoderation), upload and chunking,AI retrieval pipeline |
+| 2 | Snehadip Ghoshal | `cs26mt010` | Database (schema, migrations, seeddata), frontend UI/UX for all pages,accessibility, Figma, Playwright E2E
 tests |
 | 3 | Gangadevi Venkata Siva krishna | `cs26mt009` | OpenAPI 3.0.3 spec, authentication & security (Argon2id, CSRF), Docker/CI, pytest suite, AI guardrails & evaluation |
 | 4 | Ritik Kumar | `cs26mt021` | PPT presentation, integration testing, and evaluation benchmarking |
