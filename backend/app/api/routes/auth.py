@@ -42,8 +42,8 @@ def register_user(payload: UserRegisterRequest):
         raise HTTPException(status_code=400, detail={"error": "CONSENT_REQUIRED", "message": "You must accept the DPDP Act 2023 data collection consent notice to create an account."})
     uname = html.escape(payload.username.strip())
     email = payload.email.strip().lower()
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._%+-]*@gmail\.com", email) or ".." in email.split("@", 1)[0] or email.split("@", 1)[0].endswith("."):
-        raise HTTPException(status_code=400, detail={"error": "GMAIL_REQUIRED", "message": "Enter a valid @gmail.com email address."})
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email) or ".." in email.split("@", 1)[0] or email.split("@", 1)[0].endswith(".") or ".." in email.split("@", 1)[1] or email.split("@", 1)[1].startswith(".") or email.split("@", 1)[1].endswith("."):
+        raise HTTPException(status_code=400, detail={"error": "INVALID_EMAIL", "message": "Enter a valid email address."})
     bio = html.escape(payload.bio.strip()) if payload.bio else None
     code = f"{secrets.randbelow(1000000):06d}"
     code_hash = hashlib.sha256(code.encode("utf-8")).hexdigest()
@@ -117,8 +117,8 @@ def verify_email(payload: EmailVerificationRequest, response: Response):
 @router.post('/api/v1/auth/login')
 def login_user(payload: UserLoginRequest, response: Response):
     email = payload.email.strip().lower()
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._%+-]*@gmail\.com", email) or ".." in email.split("@", 1)[0] or email.split("@", 1)[0].endswith("."):
-        raise HTTPException(status_code=400, detail={"error": "GMAIL_REQUIRED", "message": "Enter a valid @gmail.com email address."})
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email) or ".." in email.split("@", 1)[0] or email.split("@", 1)[0].endswith(".") or ".." in email.split("@", 1)[1] or email.split("@", 1)[1].startswith(".") or email.split("@", 1)[1].endswith("."):
+        raise HTTPException(status_code=400, detail={"error": "INVALID_EMAIL", "message": "Enter a valid email address."})
     with get_db() as db:
         user = db.fetchone("SELECT * FROM users WHERE LOWER(email) = ?", (email,))
         if not user or not verify_password_argon2id(payload.password, user["password_hash"]):
