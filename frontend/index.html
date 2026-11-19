@@ -1238,8 +1238,8 @@
               ScholarPulse.</p>
 
             <div class="form-group">
-              <label class="form-label" for="loginEmailInput">Gmail address</label>
-              <input type="email" id="loginEmailInput" class="form-input" placeholder="name@gmail.com"
+              <label class="form-label" for="loginEmailInput">Email address</label>
+              <input type="email" id="loginEmailInput" class="form-input" placeholder="name@example.com"
                 autocomplete="username" />
             </div>
             <div class="form-group">
@@ -1263,7 +1263,7 @@
           <!-- Register -->
           <div id="registerPanel" style="display:none;">
             <h2 style="margin:0 0 0.25rem 0; font-size:1.5rem;">Create your account</h2>
-            <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Use your Gmail address. You must
+            <p style="margin:0 0 1.25rem 0; font-size:0.9rem; color:var(--text-muted);">Use your Email address. You must
               verify it before signing in.</p>
 
             <div class="form-group">
@@ -1271,8 +1271,8 @@
               <input type="text" id="regUsernameInput" class="form-input" maxlength="50" autocomplete="username" />
             </div>
             <div class="form-group">
-              <label class="form-label" for="regEmailInput">Gmail address</label>
-              <input type="email" id="regEmailInput" class="form-input" placeholder="name@gmail.com"
+              <label class="form-label" for="regEmailInput">Email address</label>
+              <input type="email" id="regEmailInput" class="form-input" placeholder="name@example.com"
                 autocomplete="email" />
             </div>
             <div class="form-group">
@@ -1286,7 +1286,7 @@
 
             <div
               style="font-size:0.82rem; color:var(--text-muted); background:#f8fbf9; padding:0.65rem; border-radius:8px; margin-bottom:0.85rem;">
-              <strong>DPDP Act 2023 Consent Notice:</strong> We collect only your Gmail address, username, and
+              <strong>DPDP Act 2023 Consent Notice:</strong> We collect only your Email address, username, and
               uploaded study notes to provide course library and session authentication services. You can delete your
               account and all associated data anytime from your Profile.
               <label style="display:flex; align-items:center; gap:0.4rem; margin-top:0.5rem; cursor:pointer;">
@@ -1315,15 +1315,15 @@
     <section id="screen-auth-status" class="screen" aria-labelledby="auth-status-title">
       <span class="eyebrow">Account Status</span>
       <h1 class="page-title" id="auth-status-title">You're almost there</h1>
-      <p class="page-subtitle">Check your Gmail inbox and enter the verification code to activate your account.</p>
+      <p class="page-subtitle">Check your email inbox and enter the verification code to activate your account.</p>
 
       <div class="card" style="max-width:560px;">
         <span class="pill pill-green" style="margin-bottom:0.65rem;">Verification required</span>
-        <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Verify your Gmail address</h2>
+        <h2 style="margin:0 0 0.3rem 0; font-size:1.35rem;">Verify your Email address</h2>
         <p style="margin:0 0 1rem 0; font-size:0.9rem; color:var(--text-muted);">We sent a six-digit code. It expires in
           15 minutes.</p>
         <div class="form-group">
-          <label class="form-label" for="verifyEmailInput">Gmail address</label>
+          <label class="form-label" for="verifyEmailInput">Email address</label>
           <input type="email" id="verifyEmailInput" class="form-input" readonly />
         </div>
         <div class="form-group">
@@ -2629,7 +2629,7 @@
       };
       if (!body.consent_accepted) {showInlineError("registerError", "You must accept the DPDP Act 2023 consent notice."); return;}
       try {
-        if (!/^[^\s@]+@gmail\.com$/i.test(body.email)) {showInlineError("registerError", "Only a valid @gmail.com address is accepted."); return;}
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {showInlineError("registerError", "Enter a valid email address."); return;}
         const data = await api("/auth/register", {method: "POST", body, silent401: true});
         $("verifyEmailInput").value = data.email;
         $("verifyCodeInput").value = "";
@@ -2644,11 +2644,11 @@
       showInlineError("verifyEmailError", "");
       const email = $("verifyEmailInput").value.trim();
       const code = $("verifyCodeInput").value.trim();
-      if (!/^[0-9]{6}$/.test(code)) {showInlineError("verifyEmailError", "Enter the six-digit code from your Gmail inbox."); return;}
+      if (!/^[0-9]{6}$/.test(code)) {showInlineError("verifyEmailError", "Enter the six-digit code from your email inbox."); return;}
       try {
         const data = await api("/auth/verify-email", {method: "POST", body: {email, code}, silent401: true});
         applySession(data.user, data.csrf_token);
-        showToast("Gmail verified. Welcome to ScholarPulse!");
+        showToast("Email verified. Welcome to ScholarPulse!");
         navigateTo("home");
       } catch (e) {showInlineError("verifyEmailError", e.message);}
     }
