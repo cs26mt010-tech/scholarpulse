@@ -52,7 +52,7 @@ def register_user(payload: UserRegisterRequest):
     with get_db() as db:
         dup = db.fetchone("SELECT id FROM users WHERE username = ? OR email = ?", (uname, email))
         if dup:
-            raise HTTPException(status_code=400, detail={"error": "DUPLICATE_USER", "message": "Username or Gmail address is already registered."})
+            raise HTTPException(status_code=400, detail={"error": "DUPLICATE_USER", "message": "Username or email address is already registered."})
         pw_hash = hash_password_argon2id(payload.password)
         db.execute(
             "INSERT INTO users (username, email, password_hash, bio, role, consent_accepted, email_verified, verification_code_hash, verification_expires_at, verification_attempts) VALUES (?, ?, ?, ?, 'student', 1, 0, ?, ?, 0)",
@@ -67,13 +67,11 @@ def register_user(payload: UserRegisterRequest):
             db.execute("DELETE FROM users WHERE email = ? AND email_verified = 0", (email,))
             db.commit()
         raise
-    return {"message": "Verification code sent. Check your Gmail inbox.", "email": email, "expires_in_minutes": settings.EMAIL_VERIFICATION_TTL_MINUTES}
+    return {"message": "Verification code sent. Check your email inbox.", "email": email, "expires_in_minutes": settings.EMAIL_VERIFICATION_TTL_MINUTES}
 
 @router.post('/api/v1/auth/resend-verification')
 def resend_verification(payload: EmailOnlyRequest):
     email = payload.email.strip().lower()
-    if not email.endswith("@gmail.com"):
-        raise HTTPException(status_code=400, detail={"error": "GMAIL_REQUIRED", "message": "Only @gmail.com addresses are allowed."})
     with get_db() as db:
         user = db.fetchone("SELECT id, email_verified FROM users WHERE LOWER(email) = ?", (email,))
         if not user or user.get("email_verified"):
@@ -89,8 +87,6 @@ def resend_verification(payload: EmailOnlyRequest):
 @router.post('/api/v1/auth/verify-email')
 def verify_email(payload: EmailVerificationRequest, response: Response):
     email = payload.email.strip().lower()
-    if not email.endswith("@gmail.com"):
-        raise HTTPException(status_code=400, detail={"error": "GMAIL_REQUIRED", "message": "Only @gmail.com addresses are allowed."})
     supplied_hash = hashlib.sha256(payload.code.encode("utf-8")).hexdigest()
     with get_db() as db:
         user = db.fetchone("SELECT * FROM users WHERE LOWER(email) = ?", (email,))
@@ -128,7 +124,7 @@ def login_user(payload: UserLoginRequest, response: Response):
         if not user or not verify_password_argon2id(payload.password, user["password_hash"]):
             raise HTTPException(status_code=401, detail={"error": "INVALID_CREDENTIALS", "message": "We couldn't sign you in with that email and password. Try again."})
         if not user.get("email_verified"):
-            raise HTTPException(status_code=403, detail={"error": "EMAIL_NOT_VERIFIED", "message": "Verify your Gmail address before signing in."})
+            raise HTTPException(status_code=403, detail={"error": "EMAIL_NOT_VERIFIED", "message": "Verify your email address before signing in."})
 
     csrf_token = _set_login_session(response, user)
     public_user = {
