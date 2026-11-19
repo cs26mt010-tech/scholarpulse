@@ -63,12 +63,6 @@ def list_resources(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=50),
 ):
-    # Block searches containing "gayathri"
-    if q and "gayathri" in q.casefold():
-        raise HTTPException(
-            status_code=403,
-            detail="This search is blocked."
-        )
 
     # Public discovery is restricted to approved/official resources.
     where_clauses = ["r.status = 'active'", "r.is_official = 1"]
